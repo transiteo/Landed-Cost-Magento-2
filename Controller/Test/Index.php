@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Transiteo\Taxes\Controller\Page;
+namespace Transiteo\Taxes\Controller\Test;
 
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\Controller\ResultFactory;
@@ -24,9 +24,16 @@ class Index extends \Magento\Framework\App\Action\Action{
 
     public function execute(){
 
-          
+            /** @var Json $jsonResult */
+        $jsonResult = $this->resultFactory->create(ResultFactory::TYPE_JSON);
+        $jsonResult->setJsonData($this->api->getDuties([]));
 
-        return $this->api->getDuties([]);
+
+        
+        return $jsonResult;
+
+       // return $this->api->getIdToken();
+        //return $this->api->getDuties([]);
     }
 
 

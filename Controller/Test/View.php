@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Transiteo\Taxes\Controller\Page;
+namespace Transiteo\Taxes\Controller\Test;
 
 use Transiteo\Taxes\Model\GeoIp;
 use Magento\Framework\App\Action\Action;

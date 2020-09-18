@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Transiteo\Taxes\Controller\Page;
+namespace Transiteo\Taxes\Controller\Test;
 
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\Controller\ResultFactory;
