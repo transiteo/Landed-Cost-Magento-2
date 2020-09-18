@@ -3,7 +3,7 @@
     <menu>
         <add id="Transiteo_Taxes::cross_border_head" title="Cross Border" module="Transiteo_Taxes" sortOrder="100" parent="Magento_Backend::stores" resource="Transiteo_Taxes::cross_border_head" />
 
-        <add id="Transiteo_Taxes::activation" title="Activation" module="Transiteo_Taxes" sortOrder="10" parent="Transiteo_Taxes::cross_border_head" action="transiteo/activation" resource="Transiteo_Taxes::activation" />
+        <add id="Transiteo_Taxes::activation" title="Activation" module="Transiteo_Taxes" sortOrder="10" parent="Transiteo_Taxes::cross_border_head" action="admin/system_config/edit/section/transiteo_activation" resource="Transiteo_Taxes::activation" />
         <add id="Transiteo_Taxes::settings" title="Settings" module="Transiteo_Taxes" sortOrder="20" parent="Transiteo_Taxes::cross_border_head" action="transiteo/settings" resource="Transiteo_Taxes::settings" />
     </menu>
 </config>
