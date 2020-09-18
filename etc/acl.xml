@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Magento_Backend::stores">
+                    <resource id="Transiteo_Taxes::cross_border_head" title="Cross Border" sortOrder="100" >
+                        <resource id="Transiteo_Taxes::activation" title="Activation" sortOrder="10">
+                            <resource id="Transiteo_Taxes::token_update" title="Update Token" sortOrder="10" />
+                        </resource>
+                        <resource id="Transiteo_Taxes::settings" title="Settings" sortOrder="20">
+                            <resource id="Transiteo_Taxes::popup_customize" title="Customize Popup" sortOrder="10" />
+                            <resource id="Transiteo_Taxes::duties_display_update" title="Update Duties Display" sortOrder="20" />
+                        </resource>
+                    </resource>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>
