@@ -1,0 +1,18 @@
+{
+    "transiteo_district": {
+        "column": {
+            "entity_id": true,
+            "iso": true,
+            "country_id": true,
+            "label": true,
+            "state": true
+        },
+        "index": {
+            "TRANSITEO_DISTRICT_COUNTRY_ID": true,
+            "TRANSITEO_DISTRICT_ISO": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    }
+}
