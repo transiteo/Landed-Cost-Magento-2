@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/**
+ * @author Joris HART <jhart@efaktory.fr>
+ * @copyright Copyright (c) 2020 eFaktory (https://www.efaktory.fr)
+ * @link https://www.efaktory.fr
+ */
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="transiteo_district" resource="default" engine="innodb" comment="Transiteo District Table">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true"
+                comment="Entity ID"/>
+        <column xsi:type="varchar" name="iso" nullable="false" length="255" comment="Iso Code"/>
+        <column xsi:type="varchar" name="country_id" nullable="false" length="2" comment="Country ID"/>
+        <column xsi:type="varchar" name="state" nullable="true" length="3" comment="State"/>
+        <column xsi:type="varchar" name="label" nullable="false" length="255" comment="Label"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <index referenceId="TRANSITEO_DISTRICT_COUNTRY" indexType="btree">
+            <column name="country_id"/>
+        </index>
+        <index referenceId="TRANSITEO_DISTRICT_ISO" indexType="btree">
+            <column name="iso"/>
+        </index>
+    </table>
+</schema>
