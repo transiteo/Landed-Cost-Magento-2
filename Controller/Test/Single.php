@@ -23,8 +23,6 @@ class Single extends Action{
 
     public function execute(){
 
-        //$this->singleProduct->getApiService()->getCurrencyRate("EUR", "USD");
-
         /** @var Json $jsonResult */
         $jsonResult = $this->resultFactory->create(ResultFactory::TYPE_JSON);
         $jsonResult->setData([
