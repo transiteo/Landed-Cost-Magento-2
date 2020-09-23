@@ -1,0 +1,5 @@
+{
+    "name": "transiteo/base",
+    "description": "Transiteo Api PHP Client",
+    "require": {}
+}

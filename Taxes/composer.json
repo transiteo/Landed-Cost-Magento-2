@@ -1,0 +1,5 @@
+{
+    "name": "transiteo/taxes",
+    "description": "Transiteo Magento Module to calculate taxes and duties",
+    "require": {}
+}

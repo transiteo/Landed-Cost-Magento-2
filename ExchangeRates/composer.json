@@ -1,0 +1,5 @@
+{
+    "name": "transiteo/exchange-rates",
+    "description": "Currency Import Service base on Transiteo API",
+    "require": {}
+}
