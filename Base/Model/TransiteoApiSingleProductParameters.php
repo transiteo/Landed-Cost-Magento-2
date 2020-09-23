@@ -1,6 +1,6 @@
 <?php
 
-namespace Transiteo\Taxes\Model;
+namespace Transiteo\Base\Model;
 
 use Magento\Framework\Serialize\SerializerInterface;
 

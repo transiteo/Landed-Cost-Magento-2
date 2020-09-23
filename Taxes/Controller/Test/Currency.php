@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Transiteo\Taxes\Controller\Test;
 
-use Transiteo\Taxes\Model\TransiteoApiService;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\Controller\ResultFactory;
+use Transiteo\Base\Model\TransiteoApiService;
 
-
-
-class View extends \Magento\Framework\App\Action\Action{
+class Currency extends \Magento\Framework\App\Action\Action{
 
     protected $apiService;
 
@@ -27,7 +25,7 @@ class View extends \Magento\Framework\App\Action\Action{
         /** @var Json $jsonResult */
         $jsonResult = $this->resultFactory->create(ResultFactory::TYPE_JSON);
         $jsonResult->setData([
-            'rate' => $this->apiService->getCurrencyRate("EUR", "USD")
+            'rate' => $this->apiService->getCurrencyRate("EUR", "USD", 0)
         ]);
 
         return $jsonResult;

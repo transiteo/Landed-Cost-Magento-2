@@ -1,8 +1,8 @@
 <?php
 
-namespace Transiteo\Taxes\Model\Currency\Import;
+namespace Transiteo\ExchangeRates\Model\Currency\Import;
 
-use Transiteo\Taxes\Model\TransiteoApiService;
+use Transiteo\Base\Model\TransiteoApiService;
 
 /**
  * Currency rate import model (From https://frankfurter.app/)
@@ -34,7 +34,7 @@ class Transiteo extends \Magento\Directory\Model\Currency\Import\AbstractImport
     /**
      * Transiteo Api Service
      *
-     * @var Transiteo\Taxes\Model\TransiteoApiService
+     * @var Transiteo\Base\Model\TransiteoApiService
      */
     private $apiService;
 

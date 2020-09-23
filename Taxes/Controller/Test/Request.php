@@ -7,8 +7,8 @@ namespace Transiteo\Taxes\Controller\Test;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\Result\Json;
-use Transiteo\Taxes\Model\TransiteoApiShipmentParameters;
-use Transiteo\Taxes\Model\TransiteoApiSingleProductParameters;
+use Transiteo\Base\Model\TransiteoApiShipmentParameters;
+use Transiteo\Base\Model\TransiteoApiSingleProductParameters;
 use Transiteo\Taxes\Model\TransiteoSingleProduct;
 
 class Request extends Action{
@@ -32,13 +32,13 @@ class Request extends Action{
     public function execute(){
 
         //$product->get($id);
-        $this->productParams->setProductName("assiette en plastique");
-        $this->productParams->setWeight(39.6);
+        $this->productParams->setProductName("audi rs8");
+        $this->productParams->setWeight(657);
         $this->productParams->setWeight_unit("kg");
-        $this->productParams->setQuantity(4);
-        $this->productParams->setUnit_price(67);
+        $this->productParams->setQuantity(1);
+        $this->productParams->setUnit_price(34568);
         $this->productParams->setCurrency_unit_price("EUR");
-        $this->productParams->setUnit_ship_price(0);
+        $this->productParams->setUnit_ship_price(567.6);
 
 
         $this->shipmentParams->setLang("fr");
@@ -49,14 +49,14 @@ class Request extends Action{
         $this->shipmentParams->setShipmentType("ARTICLE");
         
         $this->shipmentParams->setSenderPro(true);
-        $this->shipmentParams->setSenderProRevenue(0);
+        $this->shipmentParams->setSenderProRevenue(3450000);
         $this->shipmentParams->setSenderProRevenueCurrency("EUR");
 
         $this->shipmentParams->setTransportCarrier(null);
         $this->shipmentParams->setTransportType(null);
 
-        $this->shipmentParams->setReceiverPro(false);
-        $this->shipmentParams->setReceiverActivity(null);
+        $this->shipmentParams->setReceiverPro(true);
+        $this->shipmentParams->setReceiverActivity("0144Z");
 
         $this->singleProduct->setParams($this->productParams);
         $this->singleProduct->setShipmentParams($this->shipmentParams);
