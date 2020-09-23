@@ -1,5 +1,19 @@
 {
-    "name": "transiteo/base",
-    "description": "Transiteo Api PHP Client",
-    "require": {}
-}
+    "name": "transiteo/module-base",
+    "description": "Transiteo Base",
+    "type": "magento2-module",
+    "version": "1.0.0",
+    "license": [
+      ""
+    ],
+    "require": {
+      "php": "~7.3.0||~7.4.0",
+      "magento/framework": "103.0.*"
+    },
+    "autoload": {
+      "files": ["registration.php"],
+      "psr-4": {
+        "Transiteo\\Base\\": ""
+      }
+    }
+  }
