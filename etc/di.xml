@@ -1,6 +1,16 @@
-<?xml version="1.0"?>
-
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/**
+ * @author Joris HART <jhart@efaktory.fr>
+ * @copyright Copyright (c) 2020 eFaktory (https://www.efaktory.fr)
+ * @link https://www.efaktory.fr
+ */
+-->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Transiteo\Taxes\Api\Data\DistrictInterface" type="Transiteo\Taxes\Model\District" />
+    <preference for="Transiteo\Taxes\Api\DistrictRepositoryInterface" type="Transiteo\Taxes\Model\DistrictRepository" />
+    <preference for="Transiteo\Taxes\Api\Data\DistrictSearchResultInterface" type="Magento\Framework\Api\SearchResults" />
+    
     <type name="Magento\Directory\Model\Currency\Import\Config">
         <arguments>
             <argument name="servicesConfig" xsi:type="array">
@@ -12,4 +22,3 @@
         </arguments>
     </type>
 </config>
-
