@@ -136,6 +136,8 @@ class TransiteoApiService
         elseif($this->idToken == null && $this->cookie->get() != null)
             $this->idToken = $this->cookie->get();
 
+        
+
         $response = $this->doRequest(
             self::API_REQUEST_URI."v1/taxsrv/dutyCalculation", 
             [
@@ -154,6 +156,47 @@ class TransiteoApiService
         $responseBody = $response->getBody();
         $responseContent = $responseBody->getContents();
         
+        return $responseContent;
+    }
+
+    /**
+     * Get Duties for a designated product
+     */
+    public function getCurrencyRate($currencyFrom, $currencyTo, $amount = 1)
+    {   
+
+        if($this->idToken == null && $this->cookie->get() == null)
+            $this->getIdToken();
+        elseif($this->idToken == null && $this->cookie->get() != null)
+            $this->idToken = $this->cookie->get();
+
+        $response = $this->doRequest(
+            self::API_REQUEST_URI."v1/data/currency", 
+            [
+                'headers' => [
+                    'Content-type'     => 'application/json',
+                    'Authorization' => $this->idToken,
+                ],
+                'json' => [
+                    'amount' => 1,
+                    'toCurrency' => $currencyTo,
+                    'fromCurrency' => $currencyFrom
+                ],
+                'http_errors' => false
+                
+            ]
+            , Request::HTTP_METHOD_POST
+        );
+        
+        $status = $response->getStatusCode(); 
+
+        $responseBody = $response->getBody();
+        $responseContent = $responseBody->getContents();
+        
+        echo $status;
+        var_dump($responseContent);
+        die();
+
         return $responseContent;
     }
 

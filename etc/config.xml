@@ -7,5 +7,11 @@
                 <refresh_token></refresh_token>
             </general>
         </transiteo_activation>
+        <currency>
+            <transiteo>
+                <timeout>100</timeout>
+                <delay>1</delay>
+            </transiteo>
+        </currency>
     </default>
 </config>
