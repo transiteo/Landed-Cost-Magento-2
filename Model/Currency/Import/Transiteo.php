@@ -74,33 +74,23 @@ class Transiteo extends \Magento\Directory\Model\Currency\Import\AbstractImport
             'currency/transiteo/timeout',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
-        $url = str_replace('{{CURRENCY_FROM}}', $currencyFrom, self::CURRENCY_CONVERTER_URL);
-        $url = str_replace('{{CURRENCY_TO}}', $currencyTo, $url);
 
-        /** @var \Magento\Framework\HTTP\ZendClient $httpClient */
-        $httpClient = $this->httpClientFactory->create();
-        
         try {
             
-            /*$response = $httpClient->setUri($url)
-                ->setConfig(['timeout' => $timeout])
-                ->request('GET')
-                ->getBody();*/
-
-            $response = $this->apiService->getCurrencyRates($currencyFrom, $currencyTo);
+            $response = $this->apiService->getCurrencyRate($currencyFrom, $currencyTo, $timeout);
 
             $data = $this->jsonHelper->jsonDecode($response);
 
-            if (isset($data['rates'][$currencyTo])) {
-                $result = (float)$data['rates'][$currencyTo];
+            if (isset($data['result'])) {
+                $result = (float) $data['result'];
             } else {
-                $this->_messages[] = __('We can\'t retrieve a rate from %1.', $url);
+                $this->_messages[] = __('We can\'t retrieve a rate from Transiteo.');
             }
         } catch (\Exception $e) {
             if ($retry == 0) {
                 $this->_convert($currencyFrom, $currencyTo, 1);
             } else {
-                $this->_messages[] = __('We can\'t retrieve a rate from %1.', $url);
+                $this->_messages[] = __('We can\'t retrieve a rate from Transiteo.');
             }
         }
         return $result;
