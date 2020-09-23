@@ -10,15 +10,4 @@
     <preference for="Transiteo\Taxes\Api\Data\DistrictInterface" type="Transiteo\Taxes\Model\District" />
     <preference for="Transiteo\Taxes\Api\DistrictRepositoryInterface" type="Transiteo\Taxes\Model\DistrictRepository" />
     <preference for="Transiteo\Taxes\Api\Data\DistrictSearchResultInterface" type="Magento\Framework\Api\SearchResults" />
-    
-    <type name="Magento\Directory\Model\Currency\Import\Config">
-        <arguments>
-            <argument name="servicesConfig" xsi:type="array">
-                <item name="transiteo" xsi:type="array">
-                    <item name="label" xsi:type="string">Transiteo</item>
-                    <item name="class" xsi:type="string">Transiteo\Taxes\Model\Currency\Import\Transiteo</item>
-                </item>
-            </argument>
-        </arguments>
-    </type>
 </config>

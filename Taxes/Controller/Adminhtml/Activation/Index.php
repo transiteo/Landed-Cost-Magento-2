@@ -9,7 +9,7 @@ use Magento\Framework\Controller\ResultFactory;
 
 class Index extends Action
 {
-    const ADMIN_RESOURCE = 'Transiteo_Taxes::activation';
+    const ADMIN_RESOURCE = 'Transiteo_Base::activation';
  
     /**
      * @var PageFactory

@@ -4,10 +4,9 @@
         <resources>
             <resource id="Magento_Backend::admin">
                 <resource id="Magento_Backend::stores">
-                    <resource id="Transiteo_Base::cross_border_head">
-                        <resource id="Transiteo_Taxes::settings" title="Settings" sortOrder="20">
-                            <resource id="Transiteo_Taxes::popup_customize" title="Customize Popup" sortOrder="10" />
-                            <resource id="Transiteo_Taxes::duties_display_update" title="Update Duties Display" sortOrder="20" />
+                    <resource id="Transiteo_Base::cross_border_head" title="Cross Border" sortOrder="100" >
+                        <resource id="Transiteo_Base::activation" title="Activation" sortOrder="10">
+                            <resource id="Transiteo_Base::token_update" title="Update Token" sortOrder="10" />
                         </resource>
                     </resource>
                 </resource>

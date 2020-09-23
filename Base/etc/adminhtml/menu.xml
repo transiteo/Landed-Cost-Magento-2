@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Transiteo_Base::cross_border_head" title="Cross Border" module="Transiteo_Base" sortOrder="100" parent="Magento_Backend::stores" resource="Transiteo_Base::cross_border_head" />
+
+        <add id="Transiteo_Base::activation" title="Activation" module="Transiteo_Base" sortOrder="10" parent="Transiteo_Base::cross_border_head" action="admin/system_config/edit/section/transiteo_activation" resource="Transiteo_Base::activation" />
+    </menu>
+</config>

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Transiteo\Taxes\Model;
+namespace Transiteo\Base\Model;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientFactory;
@@ -128,9 +128,6 @@ class TransiteoApiService
     public function getDuties($productsParams)
     {   
 
-        $jsonExample = file_get_contents(__DIR__."/../example2.json");
-        $productsParams = $this->serializer->unserialize($jsonExample);
-
         if($this->idToken == null && $this->cookie->get() == null)
             $this->getIdToken();
         elseif($this->idToken == null && $this->cookie->get() != null)
@@ -155,7 +152,7 @@ class TransiteoApiService
 
         $responseBody = $response->getBody();
         $responseContent = $responseBody->getContents();
-        
+
         return $responseContent;
     }
 

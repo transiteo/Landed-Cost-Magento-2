@@ -3,6 +3,9 @@
 namespace Transiteo\Taxes\Model;
 
 use Magento\Framework\Serialize\SerializerInterface;
+use Transiteo\Base\Model\TransiteoApiService;
+use Transiteo\Base\Model\TransiteoApiShipmentParameters;
+use Transiteo\Base\Model\TransiteoApiSingleProductParameters;
 
 class TransiteoSingleProduct
 {
@@ -27,8 +30,8 @@ class TransiteoSingleProduct
 
     public function getDuties(){
 
-        $finalParams = $this->shipmentParams->buildArray();
-        $finalParams['products'] = $this->params->buildArray();
+        $finalParams['products'][] = $this->params->buildArray();
+        $finalParams = array_merge($finalParams, $this->shipmentParams->buildArray());
 
         $this->apiResponseContent = json_decode(($this->apiService->getDuties($finalParams)));
 

@@ -7,8 +7,7 @@ namespace Transiteo\Taxes\Controller\Test;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\Result\Json;
-use Transiteo\Taxes\Model\TransiteoApiService;
-
+use Transiteo\Base\Model\TransiteoApiService;
 
 class Index extends \Magento\Framework\App\Action\Action{
 
