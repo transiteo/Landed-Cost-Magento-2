@@ -1,5 +1,20 @@
 {
-    "name": "transiteo/exchange-rates",
-    "description": "Currency Import Service base on Transiteo API",
-    "require": {}
-}
+    "name": "transiteo/module-exchange-rates",
+    "description": "Transiteo Exchange Rates",
+    "type": "magento2-module",
+    "version": "1.0.0",
+    "license": [
+      ""
+    ],
+    "require": {
+      "php": "~7.3.0||~7.4.0",
+      "magento/framework": "103.0.*",
+      "transiteo/module-base": "^1.0"
+    },
+    "autoload": {
+      "files": ["registration.php"],
+      "psr-4": {
+        "Transiteo\\ExchangeRates\\": ""
+      }
+    }
+  }
