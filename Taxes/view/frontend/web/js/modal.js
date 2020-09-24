@@ -36,6 +36,7 @@ require(["jquery", "Magento_Ui/js/modal/modal"], function ($, modal) {
     ],
     opened: function ($Event) {
       $('.modal-header button.action-close', $Event.srcElement).hide();
+      console.log("Visitor Country = "+$('#visitor_country').val());
     },
     keyEventHandlers: {
       escapeKey: function () { return; }
@@ -66,6 +67,9 @@ require(["jquery", "Magento_Ui/js/modal/modal"], function ($, modal) {
         console.log('no response !');
       }
     });
+
+    //console.log(this.geoip_country);
+
 
   });
 
