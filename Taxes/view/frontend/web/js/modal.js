@@ -12,24 +12,27 @@ require(["jquery", "Magento_Ui/js/modal/modal"], function ($, modal) {
     buttons: [
       {
         text: $.mage.__("Submit"),
-        class: "",
+        class: "button_submit",
         click: function (data) {
+          var $form = $("#form-validate");
           let form_data = jQuery("#form-validate").serialize();
           let url = $("#getUrl").val();
 
           var thisPopup = this;
 
+          if (!$form.valid()) return false;
           jQuery.ajax({
             url: url,
-            type: 'POST',
+            type: "POST",
             data: form_data,
             success: function (data) {
               // console.log(data);
               thisPopup.closeModal();
+              console.log(data);
             },
             error: function (result) {
-              console.log('no response !');
-            }
+              console.log("no response !");
+            },
           });
         },
       },
@@ -39,8 +42,10 @@ require(["jquery", "Magento_Ui/js/modal/modal"], function ($, modal) {
       console.log("Visitor Country = "+$('#visitor_country').val());
     },
     keyEventHandlers: {
-      escapeKey: function () { return; }
-    }
+      escapeKey: function () {
+        return;
+      },
+    },
   };
 
   $(document).ready(function(){
