@@ -5,6 +5,7 @@ namespace Transiteo\Taxes\Controller\Page;
 use Transiteo\Taxes\Controller\Cookie;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\File\Csv;
+use Magento\Framework\Controller\ResultFactory;
 
 Class Index extends \Magento\Framework\App\Action\Action 
 {
@@ -26,20 +27,29 @@ Class Index extends \Magento\Framework\App\Action\Action
 
     public function execute()
     {
-        // $this->cookie();
-        $setCookie = $this->cookie->set(self::COOKIE_NAME, 'test');
-        return $setCookie;
+        $this->cookie();
+        return $this->getRequest()->getPost('currency');
     }
 
     public function cookie()
     {
-        $setCookie = $this->cookie->set(self::COOKIE_NAME, 'test');
+        $setCookie = $this->cookie->set(self::COOKIE_NAME, $this->getRequest()->getPost('currency'));
         return $setCookie;
     }
 
     public function saveRegionsAndCountries()
     {
+        $result = $this->resultFactory->create(ResultFactory::TYPE_PAGE);
+        $response = $this->resultFactory->create(ResultFactory::TYPE_RAW);
+        
+        $response->setHeaders('Content-type', 'text/plain');
+        $response->setContents(
+            $this->_jsonHelper->jsonEncode([
 
+            ])
+            );
+        return $response;
+        // $result = $_product->getResource()->getAttribute('material')->getFrontend()->getValue($currencyValue);
     }
 
     public function loadcsvFile($file)
@@ -53,7 +63,6 @@ Class Index extends \Magento\Framework\App\Action\Action
 
         foreach ($csvData as $row => $data) {
             if ($row > 0){
-                //Start your work
                 // $this->saveRegionsAndCountries($Dataofcsvfile);
             }
         }
