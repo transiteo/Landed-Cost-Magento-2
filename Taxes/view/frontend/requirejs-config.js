@@ -1,10 +1,10 @@
 var config = {
     paths: {
-        'myjs': "Transiteo_Taxes/js/modal"
+        'transiteomodal': "Transiteo_Taxes/js/modal"
     },
     shim: {
-        'myjs': {
+        'transiteomodal': {
             deps: ['jquery']
         }
     }
-} 
+}

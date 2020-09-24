@@ -1,136 +1,102 @@
 <?php
 
 namespace Transiteo\Taxes\Model;
-require(__DIR__.'/../vendor/MaxMind-DB-Reader-php-master/autoload.php');
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Filesystem\Directory\ReadFactory;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
-use MaxMind\Db\Reader;
+use Magento\Framework\Module\Dir as ModuleDir;
+use MaxMind\Db\Reader as MaxMindReader;
+use PhpParser\Node\Expr\AssignOp\Mod;
+use Transiteo\Taxes\Service\GeoIpUpdater;
 
 class GeoIp
 {
+    const DOWNLOAD_URL = 'https://download.maxmind.com';
+
     private $licenseKey = "uznrIg04Y1cusqEB"; //linked to crol@efaktory.fr
-    private $dirPath = __DIR__."/../downloads/";
 
-    // get .tar.gz file on maxmind website
-    public function getDownloadPath(){
+    private $dirPath = __DIR__ . "/../downloads/";
 
-        return 'https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key='.$this->licenseKey.'&suffix=tar.gz';
+    /**
+     * @var RemoteAddress
+     */
+    protected $remoteAddress;
+
+    /**
+     * @var ScopeConfigInterface
+     */
+    protected $scopeConfig;
+
+    /**
+     * @var
+     */
+    protected $moduleDir;
+
+    /**
+     * @var GeoIpUpdater
+     */
+    protected $geoIpService;
+
+    /**
+     * GeoIp constructor.
+     *
+     * @param RemoteAddress $remoteAddress
+     */
+    public function __construct(
+        RemoteAddress $remoteAddress,
+        ScopeConfigInterface $scopeConfig,
+        ModuleDir $moduleDir,
+        GeoIpUpdater $geoIpService
+    ) {
+        $this->remoteAddress = $remoteAddress;
+        $this->scopeConfig   = $scopeConfig;
+        $this->moduleDir     = $moduleDir;
+        $this->geoIpService  = $geoIpService;
     }
 
-
-    // download and extract geoip database
-    public function updateDatabase(){
-
-        $this->cleanDownloadDirectory();
-    
-        try {
-            file_put_contents($this->dirPath . 'GeoLite2-Country.tar.gz', fopen($this->getDownloadPath(), 'r'));
-
-            // if phar not activated then we do it
-            if (!in_array('phar', stream_get_wrappers(), true)) {
-                stream_wrapper_restore('phar');
-            }
-
-            $phar = new \PharData($this->dirPath . 'GeoLite2-Country.tar.gz');
-            $phar->extractTo($this->dirPath);
-            
-            return true;
-
-        } catch (\Exception $e) {
-            
-            return false;
-        }
-
-        
-    }
-
-
-    // return if .tar.gz file existe
-    public function checkIsDownloaded()
+    /**
+     * @return string
+     */
+    protected function getDatabaseFile(): string
     {
-        if (!file_exists($this->dirPath)) {
-            return false;
+        if ($databasePath = $this->geoIpService->getGeoIpDownloadedDatabase()) {
+            return $databasePath;
         }
 
-        $folder   = scandir($this->dirPath, true);
-        $pathFile = $this->dirPath.'GeoLite2-Country.tar.gz';
-        if (!file_exists($pathFile)) {
-            return false;
-        }
+        $modulePath = $this->moduleDir->getDir('Transiteo_Taxes');
 
-        return true;
+        return $modulePath . DIRECTORY_SEPARATOR . 'lib/internal/GeoLite2-Country.mmdb';
     }
 
-    // return if .mmdb file exist
-    public function checkisExtracted(){
+    /**
+     * return the user country based on his ip address
+     *
+     * @return mixed|null
+     * @throws MaxMindReader\InvalidDatabaseException
+     */
+    public function getUserCountry()
+    {
+        $fileName = $this->getDatabaseFile();
 
-        if (!file_exists($this->dirPath)) {
-            return false;
-        }
+        $reader = new MaxMindReader($fileName);
 
-        $folder   = scandir($this->dirPath, true);
-        $pathFile = $this->dirPath.'/'.$folder[0].'/GeoLite2-Country.mmdb';
+        //$ipAddress = $this->getUserIp();
+        $ipAddress = "216.58.204.100";
 
-        if (!file_exists($pathFile))
-            return false;
-        else
-            return $pathFile;
+        $country = $reader->get($ipAddress);
+        $reader->close();
 
+        return $country ? $country['country']['iso_code'] : null;
     }
 
-    // clean download directory
-    public function cleanDownloadDirectory(){
-
-        $folder   = scandir($this->dirPath, true);
-
-        $pathFile = $this->dirPath . '/' . $folder[0] . '/GeoLite2-Country.mmdb';
-
-        if (file_exists($pathFile)) {
-            foreach (scandir($this->dirPath . '/' . $folder[0], true) as $filename) {
-                if ($filename == '..' || $filename == '.') {
-                    continue;
-                }
-                unlink($this->dirPath . '/' . $folder[0] . '/' . $filename);
-            }
-            rmdir($this->dirPath . '/' . $folder[0]);
-        }
+    /**
+     * return the visitor ip address
+     *
+     * @return bool|string
+     */
+    public function getUserIp()
+    {
+        return $this->remoteAddress->getRemoteAddress();
     }
-
-    // return the user country based on his ip address
-    public function getUserCountry(){
-
-        $fileName = $this->checkisExtracted();
-
-        if($fileName){
-            $reader = new Reader($fileName);
-
-            //$ipAddress = $this->getUserIp();
-            $ipAddress = "216.58.204.100";
-            
-            $country = $reader->get($ipAddress);
-            $reader->close();
-
-            if($country){
-                $isoCodeCountry = $country['country']['iso_code'];
-                return $isoCodeCountry;
-            }
-            else{
-                return null;
-            }
-    
-        }else
-            return null;
-            
-    }
-
-    // return the visitor ip address
-    public function getUserIp(){
-
-        $om = \Magento\Framework\App\ObjectManager::getInstance();
-        $obj = $om->get('Magento\Framework\HTTP\PhpEnvironment\RemoteAddress');
-        $ip =  $obj->getRemoteAddress();
-
-        return $ip;
-    }
-
 }

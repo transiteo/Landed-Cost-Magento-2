@@ -10,41 +10,50 @@ class Index extends \Magento\Framework\View\Element\Template
     protected $_isScopePrivate;
     protected $cookie;
     protected $scopeConfig;
-    
+
     public function __construct(
-         \Magento\Framework\View\Element\Template\Context $context,
-         \Magento\Directory\Block\Data $directoryBlock,
-         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-         Cookie $cookie,
-         array $data = []
-    )
-    {
+        \Magento\Framework\View\Element\Template\Context $context,
+        \Magento\Directory\Block\Data $directoryBlock,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        Cookie $cookie,
+        array $data = []
+    ) {
         parent::__construct($context, $data);
         $this->_isScopePrivate = true;
-        $this->directoryBlock = $directoryBlock;
-        $this->cookie = $cookie;
-        $this->scopeConfig = $scopeConfig;
+        $this->directoryBlock  = $directoryBlock;
+        $this->cookie          = $cookie;
+        $this->scopeConfig     = $scopeConfig;
     }
 
-    public function getCurrency() {
-        $currency = $this->scopeConfig->getValue('currency/options/allow', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-        return $currency;
+    public function getCurrency()
+    {
+        return $this->scopeConfig->getValue('currency/options/allow',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
     }
- 
+
+    /**
+     * @return string
+     */
     public function getCountries()
     {
-        $country = $this->directoryBlock->getCountryHtmlSelect();
-        return $country;
-    }
-    public function getRegion()
-    {
-        $region = $this->directoryBlock->getRegionHtmlSelect();
-        return $region;
+        return $this->directoryBlock->getCountryHtmlSelect();
     }
 
-    public function getCookie($value)
+    /**
+     * @return string
+     */
+    public function getRegion()
     {
-        $getCookie = $this->cookie->get($value);
-        return $getCookie;
+        return $this->directoryBlock->getRegionHtmlSelect();
+    }
+
+    /**
+     * @param $value
+     *
+     * @return string
+     */
+    public function getCookie(string $value)
+    {
+        return $this->cookie->get($value);
     }
 }

@@ -30,10 +30,7 @@ class View extends \Magento\Framework\App\Action\Action{
     }
 
     public function execute(){
-        
-        if(!$this->geoIp->checkisExtracted())
-            $this->geoIp->updateDatabase();
-        
+
         $visitorCountry = $this->geoIp->getUserCountry();
         $websiteCountry = $this->getWebsiteCountry();
 
@@ -42,7 +39,9 @@ class View extends \Magento\Framework\App\Action\Action{
         /** @var Json $jsonResult */
         $jsonResult = $this->resultFactory->create(ResultFactory::TYPE_JSON);
         $jsonResult->setData([
-            'same_country' => $sameCountry
+            'same_country' => $sameCountry,
+            'visitor_country' => $visitorCountry,
+            'website_country' => $websiteCountry
         ]);
 
         return $jsonResult;

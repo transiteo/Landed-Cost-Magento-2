@@ -1,0 +1,24 @@
+<?php /** @var \Transiteo\Taxes\Pricing\Render\Adjustment $block */ ?>
+
+<?php if ($block->isEnabled()) : ?>
+<div data-bind="scope: 'transiteo_duties'">
+    Implement the Transiteo Taxes here !
+    <span data-bind="text: vat()"></span>
+    <span data-bind="text: duty()"></span>
+    <span data-bind="text: special()"></span>
+</div>
+<script type="text/x-magento-init">
+{
+    "*": {
+        "Magento_Ui/js/core/app": {
+            "components": {
+                "transiteo_duties": {
+                    "component": "Transiteo_Taxes/js/transiteo_duties",
+                    "productId": <?= '1' ?>
+                }
+            }
+        }
+    }
+}
+</script>
+<?php endif; ?>
