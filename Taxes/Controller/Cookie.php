@@ -8,11 +8,6 @@ use Magento\Framework\Stdlib\CookieManagerInterface;
 class Cookie
 {
     /**
-     * Name of cookie that holds private content version
-     */
-    const COOKIE_NAME = 'transiteo-id-token';
-
-    /**
      * CookieManager
      *
      * @var CookieManagerInterface
@@ -49,9 +44,9 @@ class Cookie
      *
      * @return string
      */
-    public function get()
+    public function get($cookie)
     {
-        return $this->cookieManager->getCookie(self::COOKIE_NAME);
+        return $this->cookieManager->getCookie($cookie);
     }
 
     /**
@@ -59,7 +54,7 @@ class Cookie
      * @param int $duration
      * @return void
      */
-    public function set($value, $duration = 86400)
+    public function set($cookie, $value, $duration = 86400)
     {
         $metadata = $this->cookieMetadataFactory
             ->createPublicCookieMetadata()
@@ -70,7 +65,7 @@ class Cookie
             );
 
         $this->cookieManager->setPublicCookie(
-            self::COOKIE_NAME,
+            $cookie,
             $value,
             $metadata
         );
@@ -79,7 +74,7 @@ class Cookie
     /**
      * @return void
      */
-    public function delete()
+    public function delete($cookie)
     {
         $metadata = $this->cookieMetadataFactory
             ->createPublicCookieMetadata()
@@ -87,7 +82,7 @@ class Cookie
             ->setDomain($this->sessionManager->getCookieDomain());
 
         $this->cookieManager->deleteCookie(
-            self::COOKIE_NAME,
+            $cookie,
             $metadata
         );
     }

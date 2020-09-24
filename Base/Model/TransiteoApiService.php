@@ -9,11 +9,11 @@ use GuzzleHttp\ClientFactory;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\ResponseFactory;
-use MageMastery\FirstModule\Controller\Cookie;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Framework\Stdlib\Cookie\SensitiveCookieMetadata;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Transiteo\Taxes\Controller\Cookie;
+
 /**
 
 
@@ -36,6 +36,8 @@ class TransiteoApiService
      */
     const API_REQUEST_ENDPOINT = '';
 
+    const COOKIE_NAME = 'transiteo-id-token';
+
     /**
      * @var ResponseFactory
      */
@@ -56,6 +58,7 @@ class TransiteoApiService
     private $idToken;
 
     protected $scopeConfig;
+
 
     /**
      * TransiteoApiService constructor
@@ -111,7 +114,7 @@ class TransiteoApiService
             $responseArray = $this->serializer->unserialize($responseContent);
 
             $this->idToken  = $responseArray['id_token'];
-            $this->cookie->set($this->idToken, 3500);
+            $this->cookie->set(self::COOKIE_NAME, $this->idToken, 3500);
 
             $accessToken    = $responseArray['access_token'];
             $expires_in     = $responseArray['expires_in'];
@@ -128,10 +131,10 @@ class TransiteoApiService
     public function getDuties($productsParams)
     {   
 
-        if($this->idToken == null && $this->cookie->get() == null)
+        if($this->idToken == null && $this->cookie->get(self::COOKIE_NAME) == null)
             $this->getIdToken();
-        elseif($this->idToken == null && $this->cookie->get() != null)
-            $this->idToken = $this->cookie->get();
+        elseif($this->idToken == null && $this->cookie->get(self::COOKIE_NAME) != null)
+            $this->idToken = $this->cookie->get(self::COOKIE_NAME);
 
         
 
@@ -162,10 +165,10 @@ class TransiteoApiService
     public function getCurrencyRate($currencyFrom, $currencyTo, $timeout, $amount = 1)
     {   
 
-        if($this->idToken == null && $this->cookie->get() == null)
+        if($this->idToken == null && $this->cookie->get(self::COOKIE_NAME) == null)
             $this->getIdToken();
-        elseif($this->idToken == null && $this->cookie->get() != null)
-            $this->idToken = $this->cookie->get();
+        elseif($this->idToken == null && $this->cookie->get(self::COOKIE_NAME) != null)
+            $this->idToken = $this->cookie->get(self::COOKIE_NAME);
 
             $response = $this->doRequest(
             self::API_REQUEST_URI."v1/data/currency?amount=1&toCurrency=".$currencyTo."&fromCurrency=".$currencyFrom, 
