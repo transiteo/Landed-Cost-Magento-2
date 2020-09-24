@@ -104,7 +104,8 @@ class GeoIp
         if($fileName){
             $reader = new Reader($fileName);
 
-            $ipAddress = $this->getUserIp();
+            //$ipAddress = $this->getUserIp();
+            $ipAddress = "216.58.204.100";
             
             $country = $reader->get($ipAddress);
             $reader->close();
@@ -117,7 +118,8 @@ class GeoIp
                 return null;
             }
     
-        }
+        }else
+            return null;
             
     }
 
