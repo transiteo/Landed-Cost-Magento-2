@@ -1,6 +1,6 @@
 require(["jquery", "Magento_Ui/js/modal/modal"], function ($, modal) {
-  let getcookie = $('#getCookie').val();
-  let cookie = getcookie ? false : true
+  let getcookie = $("#getCookie").val();
+  let cookie = getcookie ? false : true;
   var options = {
     type: "popup",
     title: "MyShop",
@@ -11,31 +11,35 @@ require(["jquery", "Magento_Ui/js/modal/modal"], function ($, modal) {
     buttons: [
       {
         text: $.mage.__("Submit"),
-        class: "",
+        class: "button_submit",
         click: function (data) {
+          var $form = $("#form-validate");
           let form_data = jQuery("#form-validate").serialize();
           let url = $("#getUrl").val();
+          if (!$form.valid()) return false;
           jQuery.ajax({
             url: url,
-            type: 'POST',
+            type: "POST",
             data: form_data,
             success: function (data) {
-              // console.log(data);
+              console.log(data);
               $("#popup-modal").modal("closeModal");
             },
             error: function (result) {
-              console.log('no response !');
-            }
+              console.log("no response !");
+            },
           });
         },
       },
     ],
     opened: function ($Event) {
-      $('.modal-header button.action-close', $Event.srcElement).hide();
+      $(".modal-header button.action-close", $Event.srcElement).hide();
     },
     keyEventHandlers: {
-      escapeKey: function () { return; }
-    }
+      escapeKey: function () {
+        return;
+      },
+    },
   };
 
   var popup = modal(options, $("#popup-modal"));

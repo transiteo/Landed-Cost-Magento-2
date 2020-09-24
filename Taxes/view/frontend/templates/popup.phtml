@@ -1,31 +1,26 @@
-<div id="popup-modal" >
+<div id="popup-modal" class="d-flex flex-column" >
+   <h1 class='header_title'>Welcome !</h1>
    <div class='d-flex'>
       <?php
          $countryList=$block->getCountries();
          $regionList=$block->getRegion();
+         $currencyList=$block->getCurrency();
+         $table = explode(",", $currencyList);
          ?>
       <div class="field country">
-         <label class="label" for="country"><span><?php echo __('Country') ?></span></label>
-         <div class="control">
-            <?php echo $countryList?>
-         </div>
+         <?php echo $countryList?>
       </div>
-      <div class="field country">
-         <label class="label" for="region"><span><?php  echo __('Region') ?></span></label>
-         <div class="control">
-            <?php echo $regionList?>
-         </div>
+      <div class="field country ml-2">
+         <?php echo $regionList?>
       </div>
    </div>
-   <div class='currency'>
+   <div class='currency align-self-center mt-2'>
       <select name="currency" id="currency-select">
-         <option value="" selected disabled hidden>Choose your currency...</option>
-         <option value="dog">Dog</option>
-         <option value="cat">Cat</option>
-         <option value="hamster">Hamster</option>
-         <option value="parrot">Parrot</option>
-         <option value="spider">Spider</option>
-         <option value="goldfish">Goldfish</option>
+      <option value="" selected disabled hidden>Choose your currency...</option>
+         <?php foreach ($table as $currencyValue) {
+         ?>
+         <option value="<?php echo $currencyValue ?>;"><?php echo $currencyValue ?></option>
+      <?php } ?>
       </select>
    </div>
    <input type="hidden" id="getUrl" value="<?php echo $block->getBaseUrl() . 'transiteo/page/index';?>"/>
