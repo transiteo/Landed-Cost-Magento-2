@@ -51,6 +51,24 @@
     color: white;
 }
 
+button:not(.primary) {
+    box-shadow: none;
+}
+
+body:not(._keyfocus) button:focus {
+    color: white;
+    background-color: black;
+}
+
+button:not(.primary):active {
+    box-shadow: none !important;
+}
+
+.button_submit:active {
+    background-color: black;
+    color: white;
+}
+
 select {
     border: 1.5px solid lightgray;
     border-radius: 5px;
