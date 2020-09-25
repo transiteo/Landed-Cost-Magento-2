@@ -114,5 +114,17 @@ require([
                         console.log('Error catching visitor ip adress in ajax')
                     }
                 }) */
+    const url_states = $("#getUrl").val();
+    $(document).on("change", "#country", function () {
+      var param = "country=" + $("#country").val();
+      $.ajax({
+        url: url_states,
+        data: param,
+        type: "POST",
+        dataType: "json",
+      }).done(function (data) {
+        console.log(data);
+      });
+    });
   });
 });
