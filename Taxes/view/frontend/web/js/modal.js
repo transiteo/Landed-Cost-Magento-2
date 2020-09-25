@@ -2,13 +2,21 @@ require([
   "jquery",
   "Magento_Ui/js/modal/modal",
   "Magento_Customer/js/customer-data",
-], function ($, modal, customerData) {
-  let getcookie = $("#getCookie").val();
-  let cookie = getcookie ? false : true;
+], ($, modal, customerData) => {
+  let isOpened = false;
+  // reload of geoip_country section
+  const sections = ["geoip_country"];
+  customerData.invalidate(sections);
+  customerData.reload(sections, true);
+  const getcookie = $("#getCookie").val();
+  console.log(`cookieval = ${getcookie}`);
+  const cookieExist = !!(getcookie != "" && getcookie != null);
+
+  const cookie = !getcookie;
   document.getElementById("country").options[0].text = "Choose your country...";
   document.getElementById("state").options[0].text = "Choose your states...";
 
-  var options = {
+  const options = {
     type: "popup",
     title: "",
     responsive: true,
@@ -19,83 +27,92 @@ require([
       {
         text: $.mage.__("Submit"),
         class: "button_submit",
-        click: function (data) {
+        click(data) {
           $("#country_error").hide();
           $("#region_error").hide();
           $("#currency_error").hide();
           if (!$("#country").val()) {
-            let span_country = $("#country_error")
+            const span_country = $("#country_error")
               .html("please select country")
               .show();
             console.log(span_country);
             return false;
-          } else if (!$("#state").val()) {
-            let span_region = $("#region_error")
+          }
+          if (!$("#state").val()) {
+            const span_region = $("#region_error")
               .html("please select region")
               .show();
             return false;
-          } else if (!$("#currency-select").val()) {
-            let span_currency = $("#currency_error")
+          }
+          if (!$("#currency-select").val()) {
+            const span_currency = $("#currency_error")
               .html("please select currency")
               .show();
             return false;
           }
           // var $form = $("transiteo-form-validate");
-          let form_data = jQuery("#transiteo-form-validate").serialize();
-          let url = $("#getUrl").val();
+          const form_data = jQuery("#transiteo-form-validate").serialize();
+          const url = $("#getUrl").val();
 
-          var thisPopup = this;
+          const thisPopup = this;
           // if (!$form.valid()) return false;
           jQuery.ajax({
-            url: url,
+            url,
             type: "POST",
             data: form_data,
-            success: function (data) {
+            success(data) {
               // console.log(data);
               thisPopup.closeModal();
               console.log(data);
             },
-            error: function (result) {
+            error(result) {
               console.log("no response !");
             },
           });
         },
       },
     ],
-    opened: function ($Event) {
+    opened($Event) {
       $(".modal-header button.action-close", $Event.srcElement).hide();
-      console.log("Visitor Country = " + $("#visitor_country").val());
+      isOpened = true;
+    },
+    closed($Event) {
+      isOpened = false;
     },
     keyEventHandlers: {
-      escapeKey: function () {
-        return;
-      },
+      escapeKey() {},
     },
   };
 
-  $(document).ready(function () {
-    var popup = modal(options, $("#transiteo-modal"));
-    //$("#transiteo-modal").modal("openModal");
-
-    $(document).on("click", "#click-me", function () {
-      var popup = modal(options, $("#transiteo-modal"));
+  $(document).ready(() => {
+    // get visitor country based on geoip
+    customerData.get("geoip_country").subscribe((value) => {
+      console.log(`same country = ${value.same_country_as_website}`);
+      console.log(`cookie exist = ${cookieExist}`);
+      console.log(`isOpened = ${isOpened}`);
+      if (!value.same_country_as_website && !cookieExist && !isOpened) {
+        const popup = modal(options, $("#transiteo-modal"));
+        const visitorCountry = value.visitor_country;
+        $("#country").val(visitorCountry);
+        $("#transiteo-modal").modal("openModal");
+      }
+    });
+    $(document).on("click", "#click-me", () => {
+      const popup = modal(options, $("#transiteo-modal"));
       $("#transiteo-modal").modal("openModal");
     });
-
-    jQuery.ajax({
-      url: "/transiteo/test/view",
-      type: "GET",
-      success: function (data) {
-        if (!data["same_country"]) {
-          var popup = modal(options, $("#transiteo-modal"));
-          $("#transiteo-modal").modal("openModal");
-        }
-      },
-      error: function (result) {
-        console.log("no response !");
-      },
-    });
-
-    console.log(customerData.get("geoip_country"));
+    /* jQuery.ajax({
+                    url: 'transiteo/test/view',
+                    type: 'GET',
+                    success: function (data) {
+                        if (!data['same_country'] && !cookieExist) {
+                            var popup = modal(options, $('#transiteo-modal'))
+                            $('#transiteo-modal').modal('openModal')
+                        }
+                    },
+                    error: function (result) {
+                        console.log('Error catching visitor ip adress in ajax')
+                    }
+                }) */
   });
 });
