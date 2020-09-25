@@ -6,13 +6,18 @@ require([
 
   'use strict';
 
+  var isOpened = false;
+
+
     // reload of geoip_country section
     var sections = ['geoip_country'];
     customerData.invalidate(sections);
     customerData.reload(sections, true);
 
     let getcookie = $('#getCookie').val()
-    let cookieExist = getcookie ? false : true
+    console.log("cookieval = "+getcookie);
+
+    let cookieExist = (getcookie != "" && getcookie != null) ? true : false
 
     var options = {
         type: 'popup',
@@ -51,7 +56,11 @@ require([
         ],
         opened: function ($Event) {
             $('.modal-header button.action-close', $Event.srcElement).hide()
-            console.log('Visitor Country = ' + $('#visitor_country').val())
+            isOpened = true;
+
+        },
+        closed: function ($Event) {
+          isOpened = false;
         },
         keyEventHandlers: {
             escapeKey: function () {
@@ -61,14 +70,19 @@ require([
     }
 
     $(document).ready(function () {
-        var popup = modal(options, $('#transiteo-modal'))
+
 
         //get visitor country based on geoip
         customerData.get('geoip_country').subscribe(function(value) {
 
-          if(!value.same_country_as_website && !cookieExist){
+          console.log("same country = "+value.same_country_as_website);
+          console.log("cookie exist = "+ cookieExist);
+          console.log("isOpened = "+isOpened);
+
+          if(!value.same_country_as_website && !cookieExist && !isOpened){
+            var popup = modal(options, $('#transiteo-modal'))
             $("#transiteo-modal").modal("openModal");
-            
+
           }
         });
 
