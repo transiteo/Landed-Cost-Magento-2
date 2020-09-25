@@ -8,33 +8,45 @@ $currencyList = $block->getCurrency();
 $table        = explode(",", $currencyList);
 ?>
 
-<div id="transiteo-modal" class="d-flex flex-column" style="display:none">
-    <?= $block->getChildBlock('logo')->toHtml() ?>
-    <h1 class='header_title'>Welcome !</h1>
-    <div class='d-flex'>
-        <div class="field country">
-            <?= $countryList ?>
-        </div>
-        <div class="field country ml-2">
-            <?php echo $regionList ?>
-        </div>
-    </div>
-    <div class='currency align-self-center mt-2'>
-        <select name="currency" id="currency-select">
-            <option value="" selected disabled hidden>Choose your currency...</option>
-            <?php foreach ($table as $currencyValue) {
-                ?>
-                <option value="<?php echo $currencyValue ?>;"><?php echo $currencyValue ?></option>
-            <?php } ?>
-        </select>
-    </div>
-    <input type="hidden" id="getUrl" value="<?php echo $block->getBaseUrl() . 'transiteo/page/index'; ?>"/>
-
-    <input type="hidden" id="getCookie" value="<?php echo $block->getCookie('transiteo-country-currency'); ?>"/>
-    <div id="example-header" data-bind="scope: 'geoip_country'">
-        Span value : <span data-bind="text: geoip_country().visitor_country"></span>
-        <input data-bind="value: geoip_country().visitor_country" type="hidden" id="visitor_country"/>
-    </div>
+<div id="transiteo-modal" class="d-flex flex-column" id="form-validate" style="display:none">
+   <form id='transiteo-form-validate'>
+      <div class='modal-header'>
+         <?= $block->getChildBlock('logo')->toHtml() ?>
+      </div>
+      <h1 class='header_title'>Welcome !</h1>
+      <div class='d-flex'>
+         <div>
+            <div class="field country">
+               <?= $countryList ?>
+            </div>
+            <span id='country_error'></span>
+         </div>
+         <div>
+            <div class="field country ml-2">
+               <?php echo $regionList ?>
+            </div>
+            <span id='region_error' class='ml-2'></span>
+         </div>
+      </div>
+      <div class='d-flex justify-content-center flex-column'>
+         <div class='currency mt-2'>
+            <select name="currency" id="currency-select">
+               <option value="" selected disabled hidden>Choose your currency...</option>
+               <?php foreach ($table as $currencyValue) {
+                  ?>
+               <option value="<?php echo $currencyValue ?>;"><?php echo $currencyValue ?></option>
+               <?php } ?>
+            </select>
+         </div>
+         <span id='currency_error'></span>
+      </div>
+      <input type="hidden" id="getUrl" value="<?php echo $block->getBaseUrl() . 'transiteo/page/index'; ?>"/>
+      <input type="hidden" id="getCookie" value="<?php echo $block->getCookie('transiteo-popup-info'); ?>"/>
+      <div id="example-header" data-bind="scope: 'geoip_country'">
+         Span value : <span data-bind="text: geoip_country().visitor_country"></span>
+         <input data-bind="value: geoip_country().visitor_country" type="hidden" id="visitor_country"/>
+      </div>
+   </form>
 </div>
 
 <script type="text/x-magento-init">

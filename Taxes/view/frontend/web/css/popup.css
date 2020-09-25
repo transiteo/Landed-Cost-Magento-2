@@ -86,6 +86,10 @@ select {
     margin-left: 2rem;
 }
 
+.mb-1 {
+    margin-bottom: 1rem;
+}
+
 .flex-column {
     flex-direction: column;
 }
@@ -104,6 +108,23 @@ select {
 
 .align-self-center {
     align-self: center;
+}
+
+#region_error {
+    color: red;
+    display: none;
+}
+
+#currency_error {
+    color: red;
+    width: 50%;
+    align-self: center;
+    display: none;
+}
+
+#country_error {
+    color: red;
+    display: none;
 }
 
 @media screen and (max-width: 790px) {
