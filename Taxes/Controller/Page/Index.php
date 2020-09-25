@@ -6,35 +6,45 @@ use Transiteo\Taxes\Controller\Cookie;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\File\Csv;
 use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Controller\Result\JsonFactory;
 
 Class Index extends \Magento\Framework\App\Action\Action 
 {
-    const COOKIE_NAME = 'transiteo-country-currency';
+    const COOKIE_NAME = 'transiteo-popup-info';
     protected $cookie;
     protected $csv;
+    protected $jsonResultFactory;
 
     public function __construct
     (
         Context $context,
         Cookie $cookie,
-        Csv $csv
+        Csv $csv,
+        JsonFactory $jsonResultFactory
     )
     {
         $this->cookie = $cookie;
         $this->csv = $csv;
+        $this->jsonResultFactory = $jsonResultFactory;
         parent::__construct($context);
     }
 
     public function execute()
     {
         $this->cookie();
-        return $this->getRequest()->getPost('currency');
     }
 
     public function cookie()
     {
-        $setCookie = $this->cookie->set(self::COOKIE_NAME, $this->getRequest()->getPost('currency'));
-        return $setCookie;
+        $country_id = $this->getRequest()->getParam('country_id');
+        $region = $this->getRequest()->getParam('region');
+        $currency = $this->getRequest()->getParam('currency');
+        $table = [$country_id, $region, $currency];
+        $value = implode("-", $table);
+        $this->cookie->set(self::COOKIE_NAME, $value);
+        $result = $this->jsonResultFactory->create();
+        $result->setData($value);
+        return $result;
     }
 
     public function saveRegionsAndCountries()
