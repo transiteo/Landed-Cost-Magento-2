@@ -80,7 +80,10 @@ require([
           console.log("isOpened = "+isOpened);
 
           if(!value.same_country_as_website && !cookieExist && !isOpened){
-            var popup = modal(options, $('#transiteo-modal'))
+            var popup = modal(options, $('#transiteo-modal'));
+            var visitorCountry = value.visitor_country;
+            $("#country").val(visitorCountry);
+
             $("#transiteo-modal").modal("openModal");
 
           }
