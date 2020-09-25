@@ -31,10 +31,6 @@ $table        = explode(",", $currencyList);
     <input type="hidden" id="getUrl" value="<?php echo $block->getBaseUrl() . 'transiteo/page/index'; ?>"/>
 
     <input type="hidden" id="getCookie" value="<?php echo $block->getCookie('transiteo-country-currency'); ?>"/>
-    <div id="example-header" data-bind="scope: 'geoip_country'">
-        Span value : <span data-bind="text: geoip_country().visitor_country"></span>
-        <input data-bind="value: geoip_country().visitor_country" type="hidden" id="visitor_country"/>
-    </div>
 </div>
 
 <script type="text/x-magento-init">
