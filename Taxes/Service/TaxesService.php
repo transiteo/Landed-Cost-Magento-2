@@ -9,7 +9,9 @@ declare(strict_types=1);
 namespace Transiteo\Taxes\Service;
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Directory\Model\CountryFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\FlagManager;
 use Magento\Store\Model\StoreManagerInterface;
 use Transiteo\Base\Model\TransiteoApiShipmentParameters;
 use Transiteo\Base\Model\TransiteoApiSingleProductParameters;
@@ -23,6 +25,8 @@ class TaxesService
     protected $productRepository;
     protected $scopeConfig;
     protected $storeManager;
+    protected $_countryFactory;
+    protected $_flagManager;
 
     public function __construct(
         TransiteoSingleProduct $singleProduct,
@@ -30,7 +34,9 @@ class TaxesService
         StoreManagerInterface $storeManager,
         TransiteoApiSingleProductParameters $productParams,
         TransiteoApiShipmentParameters $shipmentParams,
-        ProductRepositoryInterface $productRepository
+        ProductRepositoryInterface $productRepository,
+        CountryFactory $countryFactory,
+        FlagManager $flagManager
     ) {
         $this->singleProduct     = $singleProduct;
         $this->shipmentParams    = $shipmentParams;
@@ -38,7 +44,9 @@ class TaxesService
         $this->productRepository = $productRepository;
         $this->scopeConfig       = $scopeConfig;
         $this->storeManager      = $storeManager;
-    }
+        $this->_countryFactory = $countryFactory;
+        $this->_flagManager = $flagManager;
+        }
 
     /**
      * @param int $productId
@@ -51,38 +59,40 @@ class TaxesService
         $product = $this->productRepository->getById($productId);
 
         $this->productParams->setProductName($product->getName());
-        $this->productParams->setWeight($product->getWeight());
-        $this->productParams->setWeight_unit($this->getWeightUnit());
+        $this->productParams->setWeight(round($product->getWeight(),2));
+        $this->productParams->setWeight_unit(substr($this->getWeightUnit(), 0, 2)); // convert kgs to kg and lbs to lb
         $this->productParams->setQuantity($quantity);
-        $this->productParams->setUnit_price($product->getPrice());
+        $this->productParams->setUnit_price(round($product->getPrice(),2));
         $this->productParams->setCurrency_unit_price($this->getCurrentStoreCurrency());
 
-        /**
-         * @todo Which value has to be filed in here ??
-         */
-        $this->productParams->setUnit_ship_price(567.6);
-
-
-        $this->shipmentParams->setLang("fr");
-        $this->shipmentParams->setFromCountry("FRA");
-        $this->shipmentParams->setFromDistrict("FR-GES");
-        $this->shipmentParams->setToCountry("USA");
-        $this->shipmentParams->setToDistrict("US-MO-65055");
-        $this->shipmentParams->setShipmentType("ARTICLE");
-
-        $this->shipmentParams->setSenderPro(true);
-        $this->shipmentParams->setSenderProRevenue(3450000);
-        $this->shipmentParams->setSenderProRevenueCurrency("EUR");
-
-        $this->shipmentParams->setTransportCarrier(null);
-        $this->shipmentParams->setTransportType(null);
-
-        $this->shipmentParams->setReceiverPro(true);
+       
 
         /**
          * @todo Which value has to be filed in here ??
          */
-        $this->shipmentParams->setReceiverActivity("0144Z");
+        $this->shipmentParams->setShipmentType("ARTICLE"); // ARTICLE or GLOBAL if multiple articless
+        $this->productParams->setUnit_ship_price(0); // prix du shipping, 0 default
+
+        $this->shipmentParams->setLang($this->getTransiteoLang());
+
+        $this->shipmentParams->setFromCountry($this->getIso3Country($this->getWebsiteCountry())); // country from website ISO3
+
+        $this->shipmentParams->setFromDistrict("FR-GES"); // district from DistrictRepository
+        $this->shipmentParams->setToCountry("USA"); // country from customer attribute or cookie value
+        $this->shipmentParams->setToDistrict("US-MO-65055"); // district from customer attribute or cookie value
+
+        $this->shipmentParams->setSenderPro(true); // true always, const
+        $this->shipmentParams->setSenderProRevenue(0); // need an input in admin
+        $this->shipmentParams->setSenderProRevenueCurrency("EUR"); // need an input in admin
+
+        $this->shipmentParams->setTransportCarrier(null); // in checkout only
+        $this->shipmentParams->setTransportType(null); // in checkout only
+
+        $this->shipmentParams->setReceiverPro(false); // need an input in customer attribute
+        $this->shipmentParams->setReceiverActivity(null); // need an input in customer attribute, required if pro = true
+
+
+
 
         $this->singleProduct->setParams($this->productParams);
         $this->singleProduct->setShipmentParams($this->shipmentParams);
@@ -113,6 +123,56 @@ class TaxesService
     private function getCurrentStoreCurrency()
     {
         return $this->storeManager->getStore()->getCurrentCurrencyCode();
+    }
+
+    /**
+     * Get Country code by website scope
+     *
+     * @return string
+     */
+    public function getWebsiteCountry(): string
+    {
+        return $this->scopeConfig->getValue(
+            'general/country/default',
+            \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE
+        );
+    }
+
+     /**
+     * Get Locale Code
+     *
+     * @return string
+     */
+    public function getLocale(): string
+    {
+        return $this->scopeConfig->getValue(
+            'general/locale/code',
+            \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE
+        );
+    }
+
+    /**
+     * Get transiteo lang Code
+     *
+     * @return string
+     */
+    public function getTransiteoLang(): string
+    {
+        $locale = substr($this->getLocale(), 0, 3);
+
+        if($locale == "fr_")
+            return "fr";
+        elseif($locale == "es_")
+            return "es";
+        else
+            return "en";
+
+    }
+
+    // Get ISO3 Country Code from ISO2 Country Code
+    public function getIso3Country($countryIsoCode2){    
+        $country = $this->_countryFactory->create()->load->loadByCode($countryIsoCode2);
+        return $country->getData('iso3_code');
     }
 
 }

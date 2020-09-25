@@ -152,7 +152,7 @@ class TransiteoApiService
         );
         
         $status = $response->getStatusCode(); 
-
+        
         $responseBody = $response->getBody();
         $responseContent = $responseBody->getContents();
 

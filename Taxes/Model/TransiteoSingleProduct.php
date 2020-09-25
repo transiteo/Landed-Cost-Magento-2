@@ -35,13 +35,20 @@ class TransiteoSingleProduct
 
         $this->apiResponseContent = json_decode(($this->apiService->getDuties($finalParams)));
 
-        //return $this->apiResponseContent;
+        if(isset($this->apiResponseContent->httpCode) && $this->apiResponseContent->httpCode != 200)
+            return $this->apiResponseContent;
+        else
+            return true;
     }
 
     public function getDuty(){
 
         if($this->apiResponseContent == null){
-            $this->getDuties();
+            $response = $this->getDuties();
+            if($response !== true){
+                 return $this->apiResponseContent;
+ 
+            }
         }
 
         $totalTax = 0;
@@ -50,6 +57,8 @@ class TransiteoSingleProduct
             $totalTax += ($this->apiResponseContent->products[0]->duty->vat_taxes_amount ?? 0 );
             $totalTax += ($this->apiResponseContent->products[0]->duty->shipping_taxes_amount ?? 0 );
         }
+        else
+            return "undefined";
         
         
         return $totalTax;
@@ -58,7 +67,11 @@ class TransiteoSingleProduct
 
     public function getVat(){
         if($this->apiResponseContent == null){
-            $this->getDuties();
+           $response = $this->getDuties();
+           if($response !== true){
+                return $this->apiResponseContent;
+
+           }
         }
 
         $totalTax = 0;
@@ -75,7 +88,11 @@ class TransiteoSingleProduct
 
     public function getSpecialTaxes(){
         if($this->apiResponseContent == null){
-            $this->getDuties();
+            $response = $this->getDuties();
+            if($response !== true){
+                 return $this->apiResponseContent;
+ 
+            }
         }
 
         $totalTax = 0;
@@ -90,7 +107,11 @@ class TransiteoSingleProduct
     public function getTotalTaxes(){
 
         if($this->apiResponseContent == null){
-            $this->getDuties();
+            $response = $this->getDuties();
+            if($response !== true){
+                 return $this->apiResponseContent;
+ 
+            }
         }
 
         $total = 0;
