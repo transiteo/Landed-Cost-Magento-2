@@ -9,8 +9,7 @@ Class States extends \Magento\Framework\App\Action\Action
     public function __construct(
         Context       $context,
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
-        \Magento\Directory\Model\RegionFactory $regionColFactory,
-        PageFactory $resultPageFactory
+        \Magento\Directory\Model\RegionFactory $regionColFactory
     ) {        
         $this->regionColFactory = $regionColFactory;
         $this->resultJsonFactory = $resultJsonFactory;

@@ -8,8 +8,10 @@ require([
   const sections = ["geoip_country"];
   customerData.invalidate(sections);
   customerData.reload(sections, true);
+
   const getcookie = $("#getCookie").val();
-  console.log(`cookieval = ${getcookie}`);
+  console.log('cookieval = '+getcookie);
+
   const cookieExist = !!(getcookie != "" && getcookie != null);
 
   const cookie = !getcookie;
@@ -28,6 +30,9 @@ require([
         text: $.mage.__("Submit"),
         class: "button_submit",
         click(data) {
+
+          console.log("test");
+
           $("#country_error").hide();
           $("#region_error").hide();
           $("#currency_error").hide();
@@ -87,9 +92,11 @@ require([
   $(document).ready(() => {
     // get visitor country based on geoip
     customerData.get("geoip_country").subscribe((value) => {
+
       console.log(`same country = ${value.same_country_as_website}`);
       console.log(`cookie exist = ${cookieExist}`);
       console.log(`isOpened = ${isOpened}`);
+
       if (!value.same_country_as_website && !cookieExist && !isOpened) {
         const popup = modal(options, $("#transiteo-modal"));
         const visitorCountry = value.visitor_country;
@@ -97,10 +104,22 @@ require([
         $("#transiteo-modal").modal("openModal");
       }
     });
+    
     $(document).on("click", "#click-me", () => {
       const popup = modal(options, $("#transiteo-modal"));
       $("#transiteo-modal").modal("openModal");
     });
+
+    if(cookieExist){
+
+      var tabCountry = getcookie.split("-");
+      $("#country").val(tabCountry[0]);
+      $("#state").val(tabCountry[1]);
+      $("#currency-select").val(tabCountry[2]);
+
+    }
+
+
     /* jQuery.ajax({
                     url: 'transiteo/test/view',
                     type: 'GET',
