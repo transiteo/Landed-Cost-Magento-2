@@ -105,27 +105,14 @@ require([
         const visitorCountry = value.visitor_country;
         $("#country").val(visitorCountry);
 
-         // fetch states with country id
-       var param = "country=" + $("#country").val();
-       $.ajax({
-         url: url_states,
-         data: param,
-         type: "POST",
-         dataType: "json",
-         success(data) {
-           $.each(data.items, function(index, value) {           
-             $("#state").append('<option value="'+value.iso+'">'+value.label+'</option>');
+        reloadDistricts(function(data){
+          $.each(data.items, function(index, value) {           
+            $("#state").append('<option value="'+value.iso+'">'+value.label+'</option>');
 
-           });
-           
-           $("#transiteo-modal").modal("openModal");
-
-
-         },
-         error(data) {
-           console.log("no response !");
-         }
-       });
+          });
+          
+          $("#transiteo-modal").modal("openModal");
+        });
 
       }
     });
@@ -138,42 +125,19 @@ require([
     if(cookieExist){
       var tabCountry = getcookie.split("_");
       console.log("cookie exist, country = "+tabCountry[0]);
+      $("#country").val(tabCountry[0]);
       
+      reloadDistricts(function(data){
+        $.each(data.items, function(index, value) {           
+          $("#state").append('<option value="'+value.iso+'">'+value.label+'</option>');
 
-       // clear of states dropdown
-       $("#state")
-       .find('option')
-       .remove()
-       .end()
-       .append('<option value="">Choose your state...</option>');
-      
-       $("#country").val(tabCountry[0]);
-       $("#currency-select").val(tabCountry[2]);
-
-       // fetch states with country id
-       var param = "country=" + $("#country").val();
-       $.ajax({
-         url: url_states,
-         data: param,
-         type: "POST",
-         dataType: "json",
-         success(data) {
-           $.each(data.items, function(index, value) {           
-             $("#state").append('<option value="'+value.iso+'">'+value.label+'</option>');
-
-           });
-           
-           $("#country").val(tabCountry[0]);
-           $("#currency-select").val(tabCountry[2]);
-           
-           $("#state").val(tabCountry[1]);
-
-         },
-         error(data) {
-           console.log("no response !");
-         }
-       });
-
+        });
+        
+        $("#country").val(tabCountry[0]);
+        $("#currency-select").val(tabCountry[2]);
+        
+        $("#state").val(tabCountry[1]);
+      });
     }
 
 
@@ -191,10 +155,8 @@ require([
                     }
                 }) */
     
-    
-
-    $(document).on("change", "#country", function () {
-
+    function reloadDistricts(callback){  
+     
       // clear of states dropdown
       $("#state")
       .find('option')
@@ -210,15 +172,21 @@ require([
         type: "POST",
         dataType: "json",
         success(data) {
-          $.each(data.items, function(index, value) {           
-            $("#state").append('<option value="'+value.iso+'">'+value.label+'</option>');
-          });
 
+          callback(data);
 
         },
         error(data) {
           console.log("no response !");
         }
+      });
+    }  
+
+    $(document).on("change", "#country", function () {
+      reloadDistricts(function(data){
+        $.each(data.items, function(index, value) {           
+          $("#state").append('<option value="'+value.iso+'">'+value.label+'</option>');
+        });
       });
     });
   });
