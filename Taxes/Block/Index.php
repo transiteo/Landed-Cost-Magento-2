@@ -2,7 +2,10 @@
 
 namespace Transiteo\Taxes\Block;
 
+use Magento\Framework\Api\SearchCriteriaBuilder;
+use Transiteo\Taxes\Api\Data\DistrictInterface;
 use Transiteo\Taxes\Controller\Cookie;
+use Transiteo\Taxes\Model\DistrictRepository;
 
 class Index extends \Magento\Framework\View\Element\Template
 {
@@ -10,11 +13,15 @@ class Index extends \Magento\Framework\View\Element\Template
     protected $_isScopePrivate;
     protected $cookie;
     protected $scopeConfig;
+    protected $districtRepository;
+    protected $searchCriteriaBuilder;
 
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Directory\Block\Data $directoryBlock,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        DistrictRepository $districtRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
         Cookie $cookie,
         array $data = []
     ) {
@@ -23,6 +30,9 @@ class Index extends \Magento\Framework\View\Element\Template
         $this->directoryBlock  = $directoryBlock;
         $this->cookie          = $cookie;
         $this->scopeConfig     = $scopeConfig;
+        $this->districtRepository = $districtRepository;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+
     }
 
     public function getCurrency()
@@ -45,6 +55,15 @@ class Index extends \Magento\Framework\View\Element\Template
     public function getRegion()
     {
         return $this->directoryBlock->getRegionHtmlSelect();
+    }
+
+    public function getTransiteoDistricts(){
+
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->create();
+
+       return $this->districtRepository->getList($searchCriteria)->getItems();
+
     }
 
     /**
