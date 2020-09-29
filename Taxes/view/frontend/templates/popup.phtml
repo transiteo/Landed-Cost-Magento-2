@@ -3,7 +3,6 @@
  * @var \Transiteo\Taxes\Block\Index $block
  */
 $countryList  = $block->getCountries();
-$regionList   = $block->getRegion();
 $currencyList = $block->getCurrency();
 $table        = explode(",", $currencyList);
 ?>
@@ -23,7 +22,9 @@ $table        = explode(",", $currencyList);
          </div>
          <div>
             <div class="field country ml-2">
-               <?php echo $regionList ?>
+            <select name="state" id="state">
+            <option></option>
+            </select>
             </div>
             <span id='region_error' class='ml-2'></span>
          </div>
@@ -41,7 +42,7 @@ $table        = explode(",", $currencyList);
          <span id='currency_error'></span>
       </div>
       <input type="hidden" id="getUrl" value="<?php echo $block->getBaseUrl() . 'transiteo/page/index'; ?>"/>
-      <input type="hidden" id="getUrlStates" value="<?php echo $block->getBaseUrl() . 'transiteo/page/states'; ?>"/>
+      <input type="hidden" id="getUrlStates" value="<?php echo $block->getBaseUrl() . 'transiteo/district/index'; ?>"/>
       <input type="hidden" id="getCookie" value="<?php echo $block->getCookie('transiteo-popup-info'); ?>"/>
    </form>
 </div>

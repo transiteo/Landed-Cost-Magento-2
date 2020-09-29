@@ -37,10 +37,10 @@ Class Index extends \Magento\Framework\App\Action\Action
     public function cookie()
     {
         $country_id = $this->getRequest()->getParam('country_id');
-        $region = $this->getRequest()->getParam('region');
+        $region = $this->getRequest()->getParam('state');
         $currency = $this->getRequest()->getParam('currency');
         $table = [$country_id, $region, $currency];
-        $value = implode("-", $table);
+        $value = implode("_", $table);
         $this->cookie->set(self::COOKIE_NAME, $value);
         $result = $this->jsonResultFactory->create();
         $result->setData($value);

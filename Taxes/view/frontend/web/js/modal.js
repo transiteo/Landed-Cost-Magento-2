@@ -16,7 +16,10 @@ require([
 
   const cookie = !getcookie;
   document.getElementById("country").options[0].text = "Choose your country...";
-  document.getElementById("state").options[0].text = "Choose your states...";
+  document.getElementById("state").options[0].text = "Choose your state...";
+
+  const url_states = $("#getUrlStates").val();
+
 
   const options = {
     type: "popup",
@@ -101,7 +104,29 @@ require([
         const popup = modal(options, $("#transiteo-modal"));
         const visitorCountry = value.visitor_country;
         $("#country").val(visitorCountry);
-        $("#transiteo-modal").modal("openModal");
+
+         // fetch states with country id
+       var param = "country=" + $("#country").val();
+       $.ajax({
+         url: url_states,
+         data: param,
+         type: "POST",
+         dataType: "json",
+         success(data) {
+           $.each(data.items, function(index, value) {           
+             $("#state").append('<option value="'+value.iso+'">'+value.label+'</option>');
+
+           });
+           
+           $("#transiteo-modal").modal("openModal");
+
+
+         },
+         error(data) {
+           console.log("no response !");
+         }
+       });
+
       }
     });
     
@@ -111,11 +136,43 @@ require([
     });
 
     if(cookieExist){
+      var tabCountry = getcookie.split("_");
+      console.log("cookie exist, country = "+tabCountry[0]);
+      
 
-      var tabCountry = getcookie.split("-");
-      $("#country").val(tabCountry[0]);
-      $("#state").val(tabCountry[1]);
-      $("#currency-select").val(tabCountry[2]);
+       // clear of states dropdown
+       $("#state")
+       .find('option')
+       .remove()
+       .end()
+       .append('<option value="">Choose your state...</option>');
+      
+       $("#country").val(tabCountry[0]);
+       $("#currency-select").val(tabCountry[2]);
+
+       // fetch states with country id
+       var param = "country=" + $("#country").val();
+       $.ajax({
+         url: url_states,
+         data: param,
+         type: "POST",
+         dataType: "json",
+         success(data) {
+           $.each(data.items, function(index, value) {           
+             $("#state").append('<option value="'+value.iso+'">'+value.label+'</option>');
+
+           });
+           
+           $("#country").val(tabCountry[0]);
+           $("#currency-select").val(tabCountry[2]);
+           
+           $("#state").val(tabCountry[1]);
+
+         },
+         error(data) {
+           console.log("no response !");
+         }
+       });
 
     }
 
@@ -133,16 +190,35 @@ require([
                         console.log('Error catching visitor ip adress in ajax')
                     }
                 }) */
-    const url_states = $("#getUrl").val();
+    
+    
+
     $(document).on("change", "#country", function () {
+
+      // clear of states dropdown
+      $("#state")
+      .find('option')
+      .remove()
+      .end()
+      .append('<option value="">Choose your state...</option>');
+
+      // fetch states with country id
       var param = "country=" + $("#country").val();
       $.ajax({
         url: url_states,
         data: param,
         type: "POST",
         dataType: "json",
-      }).done(function (data) {
-        console.log(data);
+        success(data) {
+          $.each(data.items, function(index, value) {           
+            $("#state").append('<option value="'+value.iso+'">'+value.label+'</option>');
+          });
+
+
+        },
+        error(data) {
+          console.log("no response !");
+        }
       });
     });
   });
