@@ -46,7 +46,7 @@ class TransiteoSingleProduct
         if($this->apiResponseContent == null){
             $response = $this->getDuties();
             if($response !== true){
-                 return $this->apiResponseContent;
+                return null;
  
             }
         }
@@ -58,7 +58,7 @@ class TransiteoSingleProduct
             $totalTax += ($this->apiResponseContent->products[0]->duty->shipping_taxes_amount ?? 0 );
         }
         else
-            return "undefined";
+            return null;
         
         
         return $totalTax;
@@ -69,7 +69,7 @@ class TransiteoSingleProduct
         if($this->apiResponseContent == null){
            $response = $this->getDuties();
            if($response !== true){
-                return $this->apiResponseContent;
+                return null;
 
            }
         }
@@ -81,6 +81,8 @@ class TransiteoSingleProduct
                 $totalTax += $vat->product_taxes_amount + $vat->shipping_taxes_amount;
             }
         }
+        else
+            return null;
         
 
         return $totalTax;
@@ -90,7 +92,7 @@ class TransiteoSingleProduct
         if($this->apiResponseContent == null){
             $response = $this->getDuties();
             if($response !== true){
-                 return $this->apiResponseContent;
+                return null;
  
             }
         }
@@ -99,6 +101,8 @@ class TransiteoSingleProduct
         if(isset($this->apiResponseContent->products)){
             $totalTax += ($this->apiResponseContent->products[0]->special_taxes->product_taxes_amount ?? 0 );
         }
+        else
+            return null;
 
         return $totalTax;
 
@@ -109,7 +113,7 @@ class TransiteoSingleProduct
         if($this->apiResponseContent == null){
             $response = $this->getDuties();
             if($response !== true){
-                 return $this->apiResponseContent;
+                return null;
  
             }
         }
@@ -119,6 +123,8 @@ class TransiteoSingleProduct
         if(isset($this->apiResponseContent->global)){
             $total = $this->apiResponseContent->global->amount;
         }
+        else
+            return null;
 
         return $total;
     }

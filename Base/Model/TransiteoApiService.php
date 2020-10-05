@@ -13,6 +13,7 @@ use Magento\Framework\Webapi\Rest\Request;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Transiteo\Taxes\Controller\Cookie;
+use Magento\Framework\FlagManager;
 
 /**
 
@@ -37,6 +38,7 @@ class TransiteoApiService
     const API_REQUEST_ENDPOINT = '';
 
     const COOKIE_NAME = 'transiteo-id-token';
+    const ID_TOKEN_FLAG_NAME = 'transiteo-id-token';
 
     /**
      * @var ResponseFactory
@@ -59,6 +61,7 @@ class TransiteoApiService
 
     protected $scopeConfig;
 
+    protected $flagManager;
 
     /**
      * TransiteoApiService constructor
@@ -72,13 +75,15 @@ class TransiteoApiService
         ResponseFactory $responseFactory,
         SerializerInterface $serializer,
         Cookie $cookie,
-        ScopeConfigInterface $scopeConfig
+        ScopeConfigInterface $scopeConfig,
+        FlagManager $flagManager
     ) {
         $this->clientFactory = $clientFactory;
         $this->responseFactory = $responseFactory;
         $this->serializer = $serializer;
         $this->cookie = $cookie;
         $this->scopeConfig = $scopeConfig;
+        $this->flagManager = $flagManager;
     }
 
     /**
@@ -114,7 +119,8 @@ class TransiteoApiService
             $responseArray = $this->serializer->unserialize($responseContent);
 
             $this->idToken  = $responseArray['id_token'];
-            $this->cookie->set(self::COOKIE_NAME, $this->idToken, 3500);
+            //$this->cookie->set(self::COOKIE_NAME, $this->idToken, 3500);
+            $this->flagManager->saveFlag(self::ID_TOKEN_FLAG_NAME, $this->idToken);
 
             $accessToken    = $responseArray['access_token'];
             $expires_in     = $responseArray['expires_in'];
@@ -130,12 +136,7 @@ class TransiteoApiService
      */
     public function getDuties($productsParams)
     {   
-
-        if($this->idToken == null && $this->cookie->get(self::COOKIE_NAME) == null)
-            $this->getIdToken();
-        elseif($this->idToken == null && $this->cookie->get(self::COOKIE_NAME) != null)
-            $this->idToken = $this->cookie->get(self::COOKIE_NAME);
-
+        $this->refreshIdToken();
         
 
         $response = $this->doRequest(
@@ -155,6 +156,15 @@ class TransiteoApiService
         
         $responseBody = $response->getBody();
         $responseContent = $responseBody->getContents();
+        
+        if($status == "401"){
+
+            $responseArray = json_decode($responseContent);
+            if(isset($responseArray->message) && $responseArray->message == "The incoming token has expired"){
+                $this->refreshIdToken(true);
+                $this->getDuties($productsParams);
+            }
+        }
 
         return $responseContent;
     }
@@ -165,12 +175,9 @@ class TransiteoApiService
     public function getCurrencyRate($currencyFrom, $currencyTo, $timeout, $amount = 1)
     {   
 
-        if($this->idToken == null && $this->cookie->get(self::COOKIE_NAME) == null)
-            $this->getIdToken();
-        elseif($this->idToken == null && $this->cookie->get(self::COOKIE_NAME) != null)
-            $this->idToken = $this->cookie->get(self::COOKIE_NAME);
+        $this->refreshIdToken();
 
-            $response = $this->doRequest(
+        $response = $this->doRequest(
             self::API_REQUEST_URI."v1/data/currency?amount=1&toCurrency=".$currencyTo."&fromCurrency=".$currencyFrom, 
             [
                 'headers' => [
@@ -187,10 +194,31 @@ class TransiteoApiService
 
         $responseBody = $response->getBody();
         $responseContent = $responseBody->getContents();
-  
+        
+        
+        if($status == "401"){
+
+            $responseArray = json_decode($responseContent);
+            if(isset($responseArray->message) && $responseArray->message == "The incoming token has expired"){
+                $this->refreshIdToken(true);
+                $this->getCurrencyRate($currencyFrom, $currencyTo, $timeout, $amount);
+            }
+        }
+       
         return $responseContent;
     }
 
+
+    private function refreshIdToken($forceRefresh = false){
+
+        $idTokenStored = $this->flagManager->getFlagData(self::ID_TOKEN_FLAG_NAME);
+
+        if(($this->idToken == null &&  $idTokenStored == null) || $forceRefresh)
+            $this->getIdToken();
+        elseif($this->idToken == null && $idTokenStored != null)
+            $this->idToken = $idTokenStored;
+            
+    }
 
     /**
      * Do API request with provided params
