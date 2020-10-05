@@ -36,9 +36,9 @@ class Request extends Action{
         $this->productParams->setWeight(657);
         $this->productParams->setWeight_unit("kg");
         $this->productParams->setQuantity(1);
-        $this->productParams->setUnit_price(34568);
+        $this->productParams->setUnit_price(38);
         $this->productParams->setCurrency_unit_price("EUR");
-        $this->productParams->setUnit_ship_price(567.6);
+        $this->productParams->setUnit_ship_price(57.6);
 
 
         $this->shipmentParams->setLang("fr");

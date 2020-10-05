@@ -78,7 +78,8 @@ class TransiteoSingleProduct
 
         if(isset($this->apiResponseContent->products)){
             foreach($this->apiResponseContent->products[0]->vat as $vat){
-                $totalTax += $vat->product_taxes_amount + $vat->shipping_taxes_amount;
+                if(isset($vat->product_taxes_amount))
+                    $totalTax += $vat->product_taxes_amount + $vat->shipping_taxes_amount;
             }
         }
         else
@@ -99,7 +100,8 @@ class TransiteoSingleProduct
 
         $totalTax = 0;
         if(isset($this->apiResponseContent->products)){
-            $totalTax += ($this->apiResponseContent->products[0]->special_taxes->product_taxes_amount ?? 0 );
+            if(isset($this->apiResponseContent->products[0]->special_taxes->product_taxes_amount))
+                $totalTax += ($this->apiResponseContent->products[0]->special_taxes->product_taxes_amount ?? 0 );
         }
         else
             return null;
