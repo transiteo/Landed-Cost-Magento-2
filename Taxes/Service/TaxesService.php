@@ -65,7 +65,7 @@ class TaxesService
         $this->productParams->setUnit_price(round($product->getPrice(),2));
         $this->productParams->setCurrency_unit_price($this->getCurrentStoreCurrency());
 
-       
+
 
         /**
          * @todo Which value has to be filed in here ??
@@ -170,8 +170,9 @@ class TaxesService
     }
 
     // Get ISO3 Country Code from ISO2 Country Code
-    public function getIso3Country($countryIsoCode2){    
-        $country = $this->_countryFactory->create()->load->loadByCode($countryIsoCode2);
+    public function getIso3Country($countryIsoCode2){
+        $country = $this->_countryFactory->create();
+        $country->loadByCode($countryIsoCode2);
         return $country->getData('iso3_code');
     }
 

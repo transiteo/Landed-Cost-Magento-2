@@ -38,4 +38,10 @@
             </argument>
         </arguments>
     </type>
+
+    <!-- Add the hourly option -->
+    <preference for="Magento\Config\Model\Config\Backend\Currency\Cron" type="Transiteo\Taxes\Model\Config\Backend\Currency\Cron" />
+    <type name="Magento\Cron\Model\Config\Source\Frequency">
+        <plugin name="transiteo_add_hourly_cron_curreny" type="Transiteo\Taxes\Plugin\AddHourlyCurrencyCronUpdate" sortOrder="1" disabled="false" />
+    </type>
 </config>
