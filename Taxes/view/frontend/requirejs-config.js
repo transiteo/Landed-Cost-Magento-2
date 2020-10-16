@@ -6,5 +6,10 @@ var config = {
         'transiteomodal': {
             deps: ['jquery']
         }
+    },
+    map: {
+        '*': {
+            'transiteoduties': 'Transiteo_Taxes/js/duties'
+        }
     }
 }

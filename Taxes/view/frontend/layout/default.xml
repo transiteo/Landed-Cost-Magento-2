@@ -6,9 +6,9 @@
     </head>
     <body>
         <referenceContainer name="after.body.start">
-            <block class="Transiteo\Taxes\Block\Index" name="transiteo.popup" template="Transiteo_Taxes::popup.phtml">
+            <block class="Transiteo\Taxes\Block\Modal" name="transiteo.modal" template="Transiteo_Taxes::modal.phtml">
                 <block class="Magento\Theme\Block\Html\Header\Logo"
-                       template="Transiteo_Taxes::popup/logo.phtml"
+                       template="Transiteo_Taxes::modal/logo.phtml"
                        name="transiteo.popup.logo"
                        as="logo"/>
             </block>
