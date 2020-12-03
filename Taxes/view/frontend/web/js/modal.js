@@ -55,12 +55,12 @@ require([
                             .show();
                         return false;
                     }
-                    // var $form = $("transiteo-form-validate");
+                     //var $form = $("transiteo-form-validate");
                     const form_data = jQuery("#transiteo-form-validate").serialize();
                     const url = $("#getUrl").val();
 
                     const thisPopup = this;
-                    // if (!$form.valid()) return false;
+                    //if (!$form.valid()) return false;
                     jQuery.ajax({
                         url,
                         type: "POST",
@@ -89,24 +89,20 @@ require([
     };
 
     $(document).ready(() => {
-
         // get visitor country based on geoip
         customerData.get("geoip_country").subscribe((value) => {
-            if (!value.same_country_as_website && !cookieExists() && !isOpened) {
-                const popup = modal(options, $("#transiteo-modal"));
+            if (!cookieExists()) {
                 const visitorCountry = value.visitor_country;
-                $("#country").val(visitorCountry);
-
+                $("#country").value = visitorCountry;
+                console.log("Reload this Districts");
                 reloadDistricts(function (data) {
                     $.each(data.items, function (index, value) {
                         $("#state").append('<option value="' + value.iso + '">' + value.label + '</option>');
-
                     });
-
-                    $("#transiteo-modal").modal("openModal");
                 });
             }
         });
+
         //check if cookie exists and get value
         if (cookieExists()) {
             var tabCountry = getCookie().split("_");
@@ -124,11 +120,25 @@ require([
 
                 $("#state").val(tabCountry[1]);
             });
+        }else{
+            setTimeout(
+                function()
+                    {
+                        let myModal = $("#transiteo-modal");
+                        let popup = modal(options, myModal);
+                        myModal.modal('openModal');
+                        console.log("Opening Modal")
+                    },
+                1000
+            );
         }
     });
 
-    $(document).on("click", "#click-me", () => {
-        const popup = modal(options, $("#transiteo-modal"));
+
+
+    $(document).on("click", "#click-me", function() {
+        let myModal = $("#transiteo-modal");
+        let popup = modal(options, myModal);
         $("#transiteo-modal").modal("openModal");
     });
 
