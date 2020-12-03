@@ -9,11 +9,6 @@ use Transiteo\Base\Model\TransiteoApiService;
  */
 class Transiteo extends \Magento\Directory\Model\Currency\Import\AbstractImport
 {
-    /**
-     * @var string
-     */
-    const CURRENCY_CONVERTER_URL = 'https://api.frankfurter.app/current?from={{CURRENCY_FROM}}&to={{CURRENCY_TO}}&amount=1';
-
     /** @var \Magento\Framework\Json\Helper\Data */
     protected $jsonHelper;
 
@@ -37,7 +32,6 @@ class Transiteo extends \Magento\Directory\Model\Currency\Import\AbstractImport
      * @var Transiteo\Base\Model\TransiteoApiService
      */
     private $apiService;
-
 
     /**
      * Initialize dependencies
@@ -68,17 +62,14 @@ class Transiteo extends \Magento\Directory\Model\Currency\Import\AbstractImport
      * @return float|null
      */
     protected function _convert($currencyFrom, $currencyTo, $retry = 0)
-    {   
+    {
         $result = null;
         $timeout = (int)$this->scopeConfig->getValue(
             'currency/transiteo/timeout',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
-
         try {
-            
             $response = $this->apiService->getCurrencyRate($currencyFrom, $currencyTo, $timeout);
-
             $data = $this->jsonHelper->jsonDecode($response);
 
             if (isset($data['result'])) {
@@ -90,7 +81,7 @@ class Transiteo extends \Magento\Directory\Model\Currency\Import\AbstractImport
             if ($retry == 0) {
                 $this->_convert($currencyFrom, $currencyTo, 1);
             } else {
-                $this->_messages[] = __('We can\'t retrieve a rate from Transiteo.');
+                $this->_messages[] = __('We can\'t retrieve a rate from Transiteo.' . $e->getMessage());
             }
         }
         return $result;
