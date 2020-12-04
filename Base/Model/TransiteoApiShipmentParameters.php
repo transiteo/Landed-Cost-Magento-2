@@ -6,7 +6,6 @@ use Magento\Framework\Serialize\SerializerInterface;
 
 class TransiteoApiShipmentParameters
 {
-
     private $serializer;
     private $lang;
     private $fromCountry;
@@ -14,6 +13,8 @@ class TransiteoApiShipmentParameters
     private $toCountry;
     private $toDistrict;
     private $shipmentType;
+    private $globalShipPrice;
+    private $currencyGlobalShipPrice;
     private $senderPro;
     private $senderProRevenue;
     private $senderProRevenueCurrency;
@@ -22,56 +23,57 @@ class TransiteoApiShipmentParameters
     private $receiverPro;
     private $receiverActivity;
 
-
     public function __construct(
         SerializerInterface $serializer
     ) {
         $this->serializer = $serializer;
     }
 
-
-
-    public function buildArray(){
-        $array = array(
-
+    public function buildArray()
+    {
+        $array = [
             "lang" => $this->lang,
             "from_country" => $this->fromCountry,
             "from_district" => $this->fromDistrict,
             "to_country" => $this->toCountry,
             "to_district" => $this->toDistrict,
             "shipment_type" => $this->shipmentType,
-            "sender" => array(
+            "sender" => [
                 "pro" => $this->senderPro,
                 "revenue_country_annual" => $this->senderProRevenue,
                 "currency_revenue_country_annual" => $this->senderProRevenueCurrency
-            ),
-            "receiver" => array(
+            ],
+            "receiver" => [
                 "pro" => $this->receiverPro
-            )
+            ]
 
-        );
+        ];
 
-        
-        if($this->transportCarrier != null){
-            $array['transport'] = array(
+        if ($this->shipmentType==='GLOBAL') {
+            $array["global_ship_price"] = $this->globalShipPrice;
+            $array["currency_global_ship_price"] = $this->currencyGlobalShipPrice;
+        }
+
+        if ($this->transportCarrier != null) {
+            $array['transport'] = [
                 "type" => $this->transportType,
                 "id" => $this->transportCarrier
-            );
+            ];
         }
 
-        if($this->receiverPro != false){
+        if ($this->receiverPro != false) {
             $array["receiver"]["activity_id"] = $this->receiverActivity;
         }
-        
+
         return $array;
     }
-
 
     /**
      * Set the value of fromCountry
      *
+     * @param $fromCountry
      * @return  self
-     */ 
+     */
     public function setFromCountry($fromCountry)
     {
         $this->fromCountry = $fromCountry;
@@ -82,8 +84,9 @@ class TransiteoApiShipmentParameters
     /**
      * Set the value of fromDistrict
      *
+     * @param $fromDistrict
      * @return  self
-     */ 
+     */
     public function setFromDistrict($fromDistrict)
     {
         $this->fromDistrict = $fromDistrict;
@@ -94,8 +97,9 @@ class TransiteoApiShipmentParameters
     /**
      * Set the value of toCountry
      *
+     * @param $toCountry
      * @return  self
-     */ 
+     */
     public function setToCountry($toCountry)
     {
         $this->toCountry = $toCountry;
@@ -106,8 +110,9 @@ class TransiteoApiShipmentParameters
     /**
      * Set the value of toDistrict
      *
+     * @param $toDistrict
      * @return  self
-     */ 
+     */
     public function setToDistrict($toDistrict)
     {
         $this->toDistrict = $toDistrict;
@@ -118,47 +123,44 @@ class TransiteoApiShipmentParameters
     /**
      * Set the value of shipmentType
      *
+     * @param bool $isGlobal
+     * @param float $globalShipPrice
+     * @param string $currencyGlobalShipPrice
+     *
      * @return  self
-     */ 
-    public function setShipmentType($shipmentType)
+     */
+    public function setShipmentType($isGlobal, $globalShipPrice = null, $currencyGlobalShipPrice = null)
     {
-        $this->shipmentType = $shipmentType;
+        if ($isGlobal) {
+            $this->shipmentType = "GLOBAL";
+            $this->globalShipPrice = $globalShipPrice;
+            $this->currencyGlobalShipPrice = $currencyGlobalShipPrice;
+        } else {
+            $this->shipmentType = "ARTICLE";
+        }
 
         return $this;
     }
 
     /**
-     * Set the value of senderPro
      *
-     * @return  self
-     */ 
-    public function setSenderPro($senderPro)
-    {
-        $this->senderPro = $senderPro;
-
-        return $this;
-    }
-
-    /**
-     * Set the value of senderProRevenue
+     * Define if Sender is Pro and provide required parameters if pro.
      *
-     * @return  self
-     */ 
-    public function setSenderProRevenue($senderProRevenue)
-    {
-        $this->senderProRevenue = $senderProRevenue;
-
-        return $this;
-    }
-
-    /**
-     * Set the value of senderProRevenueCurrency
+     * @param $isPro
+     * @param double $senderProRevenue
+     * @param string $senderProRevenueCurrency
      *
-     * @return  self
-     */ 
-    public function setSenderProRevenueCurrency($senderProRevenueCurrency)
+     * @return self
+     */
+    public function setSenderPro($isPro, $senderProRevenue = null, $senderProRevenueCurrency = null)
     {
-        $this->senderProRevenueCurrency = $senderProRevenueCurrency;
+        if ($isPro) {
+            $this->senderPro = true;
+            $this->senderProRevenue = $senderProRevenue;
+            $this->senderProRevenueCurrency = $senderProRevenueCurrency;
+        } else {
+            $this->senderPro = false;
+        }
 
         return $this;
     }
@@ -166,8 +168,9 @@ class TransiteoApiShipmentParameters
     /**
      * Set the value of transportType
      *
+     * @param $transportType
      * @return  self
-     */ 
+     */
     public function setTransportType($transportType)
     {
         $this->transportType = $transportType;
@@ -178,8 +181,9 @@ class TransiteoApiShipmentParameters
     /**
      * Set the value of transportCarrier
      *
+     * @param $transportCarrier
      * @return  self
-     */ 
+     */
     public function setTransportCarrier($transportCarrier)
     {
         $this->transportCarrier = $transportCarrier;
@@ -188,26 +192,18 @@ class TransiteoApiShipmentParameters
     }
 
     /**
-     * Set the value of receiverPro
-     *
-     * @return  self
-     */ 
-    public function setReceiverPro($receiverPro)
+     * @param bool $isReceiverPro
+     * @param string $receiverActivity
+     * @return $this
+     */
+    public function setReceiverPro($isReceiverPro, $receiverActivity = null)
     {
-        $this->receiverPro = $receiverPro;
-
-        return $this;
-    }
-
-    /**
-     * Set the value of receiverActivity
-     *
-     * @return  self
-     */ 
-    public function setReceiverActivity($receiverActivity)
-    {
-        $this->receiverActivity = $receiverActivity;
-
+        if ($isReceiverPro) {
+            $this->receiverPro = true;
+            $this->receiverActivity = $receiverActivity;
+        } else {
+            $this->receiverPro = false;
+        }
         return $this;
     }
 
@@ -215,7 +211,7 @@ class TransiteoApiShipmentParameters
      * Set the value of lang
      *
      * @return  self
-     */ 
+     */
     public function setLang($lang)
     {
         $this->lang = $lang;

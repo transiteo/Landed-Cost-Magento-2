@@ -41,7 +41,7 @@ class View extends \Magento\Framework\App\Action\Action{
         $jsonResult->setData([
             'same_country' => $sameCountry,
             'visitor_country' => $visitorCountry,
-            'website_country' => $websiteCountry
+            'website_country' => $websiteCountry,
         ]);
 
         return $jsonResult;

@@ -13,7 +13,9 @@ use Magento\Framework\Pricing\SaleableInterface;
 
 class Adjustment implements AdjustmentInterface
 {
-    const ADJUSTMENT_CODE = 'duties';
+    public const ADJUSTMENT_CODE = 'duties';
+
+    public const ADJUSTMENT_VALUE = 10;
 
     public function getAdjustmentCode()
     {
@@ -27,26 +29,26 @@ class Adjustment implements AdjustmentInterface
 
     public function isIncludedInDisplayPrice()
     {
-        return false;
+        return true;
     }
 
     public function extractAdjustment($amount, SaleableInterface $saleableItem, $context = [])
     {
-        return 0;
+        return $amount - self::ADJUSTMENT_VALUE;
     }
 
     public function applyAdjustment($amount, SaleableInterface $saleableItem, $context = [])
     {
-        return $amount;
+        return $amount + self::ADJUSTMENT_VALUE;
     }
 
     public function isExcludedWith($adjustmentCode)
     {
-        return true;
+        return $this->getAdjustmentCode() === $adjustmentCode;
     }
 
     public function getSortOrder()
     {
-        return 10;
+        return 21;
     }
 }
