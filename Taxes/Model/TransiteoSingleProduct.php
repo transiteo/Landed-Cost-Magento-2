@@ -7,6 +7,12 @@ use Transiteo\Base\Model\TransiteoApiService;
 use Transiteo\Base\Model\TransiteoApiShipmentParameters;
 use Transiteo\Base\Model\TransiteoApiSingleProductParameters;
 
+/**
+ *
+ * Class TransiteoSingleProduct
+ * @deprecated Because will be replace by transiteo products
+ * @package Transiteo\Taxes\Model
+ */
 class TransiteoSingleProduct
 {
     private $apiService;
@@ -33,11 +39,13 @@ class TransiteoSingleProduct
         $finalParams = array_merge($finalParams, $this->shipmentParams->buildArray());
 
         $this->apiResponseContent = json_decode(($this->apiService->getDuties($finalParams)), true);
-        if (isset($this->apiResponseContent->httpCode) && $this->apiResponseContent->httpCode != 200) {
-            return $this->apiResponseContent;
-        } else {
-            return true;
-        }
+        var_dump($this->apiResponseContent);
+//        if (isset($this->apiResponseContent->httpCode) && $this->apiResponseContent->httpCode != 200) {
+//            return $this->apiResponseContent;
+//        } else {
+//            return true;
+//        }
+        return $this->apiResponseContent;
     }
 
     public function getDuty()
@@ -50,10 +58,10 @@ class TransiteoSingleProduct
         }
 
         $totalTax = 0;
-        if (isset($this->apiResponseContent->products)) {
-            $totalTax += ($this->apiResponseContent->products[0]->duty->product_taxes_amount ?? 0);
-            $totalTax += ($this->apiResponseContent->products[0]->duty->vat_taxes_amount ?? 0);
-            $totalTax += ($this->apiResponseContent->products[0]->duty->shipping_taxes_amount ?? 0);
+        if (isset($this->apiResponseContent["products"])) {
+            $totalTax += ($this->apiResponseContent["products"][0]["duty"]["product_taxes_amount"] ?? 0);
+            $totalTax += ($this->apiResponseContent["products"][0]["duty"]["vat_taxes_amount"] ?? 0);
+            $totalTax += ($this->apiResponseContent["products"][0]["duty"]["shipping_taxes_amount"] ?? 0);
         } else {
             return null;
         }
@@ -72,7 +80,7 @@ class TransiteoSingleProduct
 
         $totalTax = 0;
 
-        if (isset($this->apiResponseContent->products)) {
+        if (isset($this->apiResponseContent["products"])) {
             foreach ($this->apiResponseContent->products[0]->vat as $vat) {
                 if (isset($vat->product_taxes_amount)) {
                     $totalTax += $vat->product_taxes_amount + $vat->shipping_taxes_amount;

@@ -25,20 +25,25 @@ class TransiteoApiService
     /**
      * API request URL
      */
-    const API_REQUEST_URI = 'https://api.transiteo.io/';
+    public const API_REQUEST_URI = 'https://api.transiteo.io/';
 
     /**
     * API AUTH request URL
     */
-    const API_AUTH_REQUEST_URI = 'https://auth.transiteo.io/';
+    public const API_AUTH_REQUEST_URI = 'https://auth.transiteo.io/';
 
     /**
      * API request endpoint
      */
-    const API_REQUEST_ENDPOINT = '';
+    public const API_REQUEST_ENDPOINT = 'https://api.transiteo.io/';
 
-    const COOKIE_NAME = 'transiteo-id-token';
-    const ID_TOKEN_FLAG_NAME = 'transiteo-id-token';
+    public const COOKIE_NAME = 'transiteo-id-token';
+    public const ID_TOKEN_FLAG_NAME = 'transiteo-id-token';
+    public const ACCESS_TOKEN_FLAG_NAME = 'transiteo-access-token';
+    public const TOKEN_EXPIRES_IN_FLAG_NAME = 'transiteo-id-token-expires';
+    public const TOKEN_RECEIVED_TIMESTAMP = 'transiteo-token-received-timestamp';
+    public const TOKEN_TYPE_FLAG_NAME = 'transiteo-id-token-type';
+    public const TOKEN_VALIDITY_MARGIN_IN_SECONDS = 60;
 
     /**
      * @var ResponseFactory
@@ -120,13 +125,33 @@ class TransiteoApiService
             $this->idToken  = $responseArray['id_token'];
             //$this->cookie->set(self::COOKIE_NAME, $this->idToken, 3500);
             $this->flagManager->saveFlag(self::ID_TOKEN_FLAG_NAME, $this->idToken);
-
             $accessToken    = $responseArray['access_token'];
+            $this->flagManager->saveFlag(self::ACCESS_TOKEN_FLAG_NAME, $accessToken);
             $expires_in     = $responseArray['expires_in'];
+            $this->flagManager->saveFlag(self::TOKEN_EXPIRES_IN_FLAG_NAME, $expires_in);
             $token_type     = $responseArray['token_type'];
+            $this->flagManager->saveFlag(self::TOKEN_TYPE_FLAG_NAME, $token_type);
+            $date = new \DateTime();
+            $this->flagManager->saveFlag(self::TOKEN_RECEIVED_TIMESTAMP, $date->getTimestamp());
         }
 
         return $responseContent;
+    }
+
+    /**
+     * Verify if token has expired
+     *
+     * @return bool
+     */
+    public function hasTokenExpired()
+    {
+        $tokenTimestamp = $this->flagManager->getFlagData(self::TOKEN_RECEIVED_TIMESTAMP);
+        if ($tokenTimestamp !== null) {
+            $date = (new \DateTime())->getTimestamp();
+            $validity = $this->flagManager->getFlagData(self::TOKEN_EXPIRES_IN_FLAG_NAME);
+            return $date > $tokenTimestamp + $validity - self::TOKEN_VALIDITY_MARGIN_IN_SECONDS;
+        }
+        return true;
     }
 
     /**
@@ -143,14 +168,12 @@ class TransiteoApiService
                     'Content-type'     => 'application/json',
                     'Authorization' => $this->idToken,
                 ],
-                'json' => $productsParams,
-                'http_errors' => false
+                'json' => $productsParams
             ],
             Request::HTTP_METHOD_POST
         );
 
         $status = $response->getStatusCode();
-
         $responseBody = $response->getBody();
         $responseContent = $responseBody->getContents();
 
@@ -161,7 +184,7 @@ class TransiteoApiService
                 $this->getDuties($productsParams);
             }
         }
-
+        var_dump($response);
         return $responseContent;
     }
 
@@ -205,7 +228,7 @@ class TransiteoApiService
     {
         $idTokenStored = $this->flagManager->getFlagData(self::ID_TOKEN_FLAG_NAME);
 
-        if (($this->idToken == null &&  $idTokenStored == null) || $forceRefresh) {
+        if (($this->idToken == null &&  $idTokenStored == null) || $forceRefresh || $this->hasTokenExpired()) {
             $this->getIdToken();
         } elseif ($this->idToken == null && $idTokenStored != null) {
             $this->idToken = $idTokenStored;
