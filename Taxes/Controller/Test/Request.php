@@ -36,7 +36,7 @@ class Request extends Action
     public function execute()
     {
         //$product->get($id);
-        $this->productParams->setProductName("Chapeau de loup enfant");
+        $this->productParams->setProductName("Chapeau de cowboy enfant");
         $this->productParams->setWeight(1);
         $this->productParams->setWeight_unit("kg");
         $this->productParams->setQuantity(10);
@@ -63,10 +63,6 @@ class Request extends Action
         $this->transiteoProducts->setProducts(["cowboy" => $this->productParams]);
         $this->transiteoProducts->setShipmentParams($this->shipmentParams);
 
-//        $this->singleProduct->setParams($this->productParams);
-//        $this->singleProduct->setShipmentParams($this->shipmentParams);
-
-//        $this->singleProduct->getDuties();
 
         /** @var Json $jsonResult */
         $jsonResult = $this->resultFactory->create(ResultFactory::TYPE_JSON);

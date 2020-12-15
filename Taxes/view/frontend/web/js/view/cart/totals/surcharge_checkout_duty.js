@@ -8,7 +8,7 @@ define([
 
     return Component.extend({
         defaults: {
-            template: 'Transiteo_Taxes/summary/surcharge_cart'
+            template: 'Transiteo_Taxes/summary/surcharge_checkout_duty'
         },
         totals: quote.getTotals(),
 
@@ -29,14 +29,14 @@ define([
                 return null;
             }
 
-            return $t('Duty and Taxes');
+            return $t('Duty');
         },
 
         /**
          * @return {Number}
          */
         getPureValue: function () {
-            return window.checkoutConfig.transiteo_total_taxes;
+            return window.checkoutConfig.transiteo_duty;
         },
 
         /**

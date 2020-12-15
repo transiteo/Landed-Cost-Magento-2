@@ -7,7 +7,7 @@
                     <item name="components" xsi:type="array">
                         <item name="block-totals" xsi:type="array">
                             <item name="children" xsi:type="array">
-                                <item name="custom-surcharge" xsi:type="array">
+                                <item name="transiteo-duty-taxes" xsi:type="array">
                                     <item name="component" xsi:type="string">Transiteo_Taxes/js/view/cart/totals/surcharge_cart</item>
                                     <item name="sortOrder" xsi:type="string">20</item>
                                     <item name="config" xsi:type="array">

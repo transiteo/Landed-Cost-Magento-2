@@ -7,4 +7,11 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\Checkout\Model\CompositeConfigProvider">
+        <arguments>
+            <argument name="configProviders" xsi:type="array">
+                <item name="additional_provider" xsi:type="object">Transiteo\Taxes\Model\Quote\QuoteTaxesProvider</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

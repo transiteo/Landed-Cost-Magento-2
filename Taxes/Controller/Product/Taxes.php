@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace Transiteo\Taxes\Controller\Product;
 
-use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\Json;
@@ -34,11 +33,11 @@ class Taxes extends Action
         /** @var $response Json */
         $response = $this->resultFactory->create(ResultFactory::TYPE_JSON);
         $productId = $this->getRequest()->getParam('id');
+        $quantity = $this->getRequest()->getParam('quantity', 1);
 
         try {
-            $duties = $this->taxesService->getDutiesByProductId((int) $productId);
+            $duties = $this->taxesService->getDutiesByProductId((int) $productId, (int) $quantity);
         } catch (NoSuchEntityException $e) {
-
             $response->setData([
                 'error' => true,
                 'message' => $e->getMessage(),
@@ -46,7 +45,6 @@ class Taxes extends Action
             ]);
 
             return $response;
-
         } catch (\Exception $e) {
             $response->setData([
                 'error' => true,

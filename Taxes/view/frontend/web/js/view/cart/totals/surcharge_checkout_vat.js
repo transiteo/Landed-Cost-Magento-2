@@ -1,12 +1,14 @@
 define([
     'Magento_Checkout/js/view/summary/abstract-total',
-    'Magento_Checkout/js/model/quote'
-], function (Component, quote) {
+    'Magento_Checkout/js/model/quote',
+    'jquery',
+    'mage/translate'
+], function (Component, quote, $, $t) {
     'use strict';
 
     return Component.extend({
         defaults: {
-            template: 'Transiteo_Taxes/summary/surcharge_checkout'
+            template: 'Transiteo_Taxes/summary/surcharge_checkout_vat'
         },
         totals: quote.getTotals(),
 
@@ -27,19 +29,14 @@ define([
                 return null;
             }
 
-            return 'Cross Border Taxes';
+            return $t('Vat/Gst');
         },
 
         /**
          * @return {Number}
          */
         getPureValue: function () {
-            var price = 0;
-            for (var i=0; i < window.checkoutConfig.quoteItemData.length; i++) {
-                price += window.checkoutConfig.quoteItemData[i].qty * 10;
-            }
-
-            return price;
+            return window.checkoutConfig.transiteo_vat;
         },
 
         /**
