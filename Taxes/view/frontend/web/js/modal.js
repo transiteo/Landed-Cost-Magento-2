@@ -91,10 +91,11 @@ require([
     $(document).ready(() => {
         // get visitor country based on geoip
         customerData.get("geoip_country").subscribe((value) => {
-            if (!cookieExists()) {
+            if (!value.same_country_as_website && !cookieExists() && !isOpened) {
+                const popup = modal(options, $("#transiteo-modal"));
                 const visitorCountry = value.visitor_country;
-                $("#country").value = visitorCountry;
-                console.log("Reload this Districts");
+                $("#country").val(visitorCountry);
+
                 reloadDistricts(function (data) {
                     $.each(data.items, function (index, value) {
                         $("#state").append('<option value="' + value.iso + '">' + value.label + '</option>');
@@ -127,18 +128,15 @@ require([
                         let myModal = $("#transiteo-modal");
                         let popup = modal(options, myModal);
                         myModal.modal('openModal');
-                        console.log("Opening Modal")
+                        console.log("No Cookie : Opening Modal")
                     },
                 1000
             );
         }
     });
 
-
-
-    $(document).on("click", "#click-me", function() {
-        let myModal = $("#transiteo-modal");
-        let popup = modal(options, myModal);
+    $(document).on("click", "#click-me", () => {
+        const popup = modal(options, $("#transiteo-modal"));
         $("#transiteo-modal").modal("openModal");
     });
 

@@ -15,7 +15,7 @@ class Adjustment implements AdjustmentInterface
 {
     public const ADJUSTMENT_CODE = 'duties';
 
-    public const ADJUSTMENT_VALUE = 10;
+    public const ADJUSTMENT_VALUE = 0;
 
     public function getAdjustmentCode()
     {

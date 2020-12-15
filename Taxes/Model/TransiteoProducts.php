@@ -65,10 +65,17 @@ class TransiteoProducts
             $finalParams['products'][] = $param->buildArray();
         }
 
-
         $finalParams = array_merge($finalParams, $this->shipmentParams->buildArray());
         $this->apiResponseContent = json_decode(($this->apiService->getDuties($finalParams)), true);
-
+        //////////////////LOGGER//////////////
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        ob_start();
+        var_dump($this->apiResponseContent);
+        $result = ob_get_clean();
+        $logger->info($result);
+        ///////////////////////////////////////
 //        if (isset($this->apiResponseContent->httpCode) && $this->apiResponseContent->httpCode != 200) {
 //            return $this->apiResponseContent;
 //        } else {
@@ -79,7 +86,7 @@ class TransiteoProducts
         if (isset($this->apiResponseContent["products"])&& isset($this->productsParams)) {
             $this->apiResponseContent["products"] = \array_combine(\array_keys($this->productsParams), $this->apiResponseContent["products"]);
         }
-        var_dump($this->apiResponseContent);
+
         return true;
     }
 
@@ -166,8 +173,12 @@ class TransiteoProducts
 
         $totalTax = 0;
         if (isset($this->apiResponseContent["products"])) {
-            $totalTax += ($this->apiResponseContent["products"][$productId]["vat"]["product_taxes_amount"] ?? 0);
-            $totalTax += ($this->apiResponseContent["products"][$productId]["vat"]["shipping_taxes_amount"] ?? 0);
+            if (isset($this->apiResponseContent["products"][$productId]["vat"])) {
+                foreach (($this->apiResponseContent["products"][$productId]["vat"]) as $vat) {
+                    $totalTax += ($vat["product_taxes_amount"] ?? 0);
+                    $totalTax += ($vat["shipping_taxes_amount"] ?? 0);
+                }
+            }
         } else {
             return null;
         }
@@ -181,7 +192,7 @@ class TransiteoProducts
      * @param $productId
      * @return int|mixed|null
      */
-    public function getVatLabel($productId)
+    public function getVatLabels($productId)
     {
         if ($this->apiResponseContent == null) {
             $response = $this->getDuties();
@@ -189,11 +200,17 @@ class TransiteoProducts
                 return null;
             }
         }
-
+        $labels = [];
         if (isset($this->apiResponseContent["products"])) {
-            return $this->apiResponseContent["products"][$productId]["vat"]["label"] ?? null;
+            if (isset($this->apiResponseContent["products"][$productId]["vat"])) {
+                foreach (($this->apiResponseContent["products"][$productId]["vat"]) as $vat) {
+                    if (isset($vat["label"])) {
+                        $labels[] = $vat["label"];
+                    }
+                }
+            }
         }
-        return null;
+        return $labels;
     }
 
     /**
@@ -280,8 +297,10 @@ class TransiteoProducts
         }
 
         $totalTax = 0;
-        if (isset($this->apiResponseContent["shipping_global"])) {
-            $totalTax += ($this->apiResponseContent["shipping_global"]["vat"]["amount"] ?? 0);
+        if (isset($this->apiResponseContent["shipping_global"]["vat"])) {
+            foreach ($this->apiResponseContent["shipping_global"]["vat"] as $vat) {
+                $totalTax += ($vat["amount"] ?? 0);
+            }
         }
         return $totalTax;
     }
@@ -354,8 +373,12 @@ class TransiteoProducts
         $totalTax = 0;
         if (isset($this->apiResponseContent["products"])) {
             foreach ($this->apiResponseContent["products"] as $product) {
-                $totalTax += ($product["vat"]["product_taxes_amount"] ?? 0);
-                $totalTax += ($product["vat"]["shipping_taxes_amount"] ?? 0);
+                if (isset($product["vat"])) {
+                    foreach (($product["vat"]) as $vat) {
+                        $totalTax += ($vat["product_taxes_amount"] ?? 0);
+                        $totalTax += ($vat["shipping_taxes_amount"] ?? 0);
+                    }
+                }
             }
         } else {
             return null;

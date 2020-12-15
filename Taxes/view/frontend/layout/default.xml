@@ -6,7 +6,7 @@
     </head>
     <body>
         <referenceContainer name="after.body.start">
-            <block class="Transiteo\Taxes\Block\Modal" name="transiteo.modal" template="Transiteo_Taxes::modal.phtml">
+            <block class="Transiteo\Taxes\Block\Modal" name="transiteo.modal" template="Transiteo_Taxes::modal.phtml" cacheable="false">
                 <block class="Magento\Theme\Block\Html\Header\Logo"
                        template="Transiteo_Taxes::modal/logo.phtml"
                        name="transiteo.popup.logo"
