@@ -119,7 +119,7 @@ class TaxesService
         $shipmentParams->setFromCountry($this->getIso3Country($this->getWebsiteCountry())); // country from website ISO3
 
         /** TODO add from district in config */
-        $shipmentParams->setFromDistrict("US-IN-47620"); // district from DistrictRepository
+        $shipmentParams->setFromDistrict($this->getWebsiteDistrict()); // district from DistrictRepository
 
         //GET to country and to district from params or cookie
         if ((!array_key_exists(self::TO_COUNTRY, $params)
@@ -152,7 +152,7 @@ class TaxesService
         /**
          * TODO add Sender pro in config
          */
-        $shipmentParams->setSenderPro(true, 1000000, "EUR"); // true always, const
+        $shipmentParams->setSenderPro(true, 0, "EUR"); // true always, const
         //$shipmentParams->setSenderProRevenue(0); // need an input in admin
         //$shipmentParams->setSenderProRevenueCurrency("EUR"); // need an input in admin
 
@@ -270,6 +270,29 @@ class TaxesService
     }
 
     /**
+     * Get Website District code by website scope
+     *
+     * @return string
+     */
+    public function getWebsiteDistrict(): string
+    {
+        $r = $this->scopeConfig->getValue(
+            'general/country/district',
+            \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE
+        );
+        if ($r === null) {
+            $r = "";
+        }
+        //////////////////LOGGER//////////////
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/district.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        $logger->info('District : = ' . $r);
+        ///////////////////////////////////////
+        return $r;
+    }
+
+    /**
     * Get Locale Code
     *
     * @return string
@@ -291,9 +314,9 @@ class TaxesService
     {
         $locale = substr($this->getLocale(), 0, 3);
 
-        if ($locale == "fr_") {
+        if ($locale === "fr_") {
             return "fr";
-        } elseif ($locale == "es_") {
+        } elseif ($locale === "es_") {
             return "es";
         } else {
             return "en";

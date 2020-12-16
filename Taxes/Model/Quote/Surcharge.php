@@ -198,9 +198,13 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             $logger->addWriter($writer);
             $logger->info('Get Transiteo Taxes : { country_id : ' . $countryId . ' , region_id : ' . $districtId . ' , shipping_amount = ' . $shippingAmount . '} ');
             ///////////////////////////////////////
-            if ($countryId && $districtId) {
-                $params[TaxesService::TO_DISTRICT] = $districtId;
+            if ($countryId) {
                 $params[TaxesService::TO_COUNTRY] = $countryId;
+                if ($districtId) {
+                    $params[TaxesService::TO_DISTRICT] = $districtId;
+                } else {
+                    $params[TaxesService::TO_DISTRICT] = "";
+                }
             } else {
                 //$params[TaxesService::DISALLOW_GET_COUNTRY_FROM_COOKIE] = true;
             }
