@@ -8,7 +8,8 @@ declare(strict_types=1);
 
 namespace Transiteo\Taxes\Service;
 
-use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\Directory\Model\CountryFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\FlagManager;
@@ -16,7 +17,6 @@ use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Setup\Exception;
 use Magento\Store\Model\StoreManagerInterface;
 use Transiteo\Base\Model\TransiteoApiShipmentParameters;
-use Transiteo\Base\Model\TransiteoApiShipmentParametersFactory;
 use Transiteo\Base\Model\TransiteoApiSingleProductParameters;
 use Transiteo\Taxes\Model\TransiteoProducts;
 
@@ -27,6 +27,7 @@ class TaxesService
     public const RECEIVER_ACTIVITY = 'receiver_activity';
     public const TO_COUNTRY = 'to_country';
     public const TO_DISTRICT = 'to_district';
+    public const DISALLOW_GET_COUNTRY_FROM_COOKIE = 'disallow_get_country_from_cookie';
 
     public const RETURN_KEY_DUTY = 'duty';
     public const RETURN_KEY_VAT = 'vat';
@@ -37,7 +38,7 @@ class TaxesService
     protected $transiteoProducts;
     protected $shipmentParams;
     protected $productParams;
-    protected $productRepository;
+    protected $productCollectionFactory;
     protected $scopeConfig;
     protected $storeManager;
     protected $_countryFactory;
@@ -51,7 +52,7 @@ class TaxesService
      * @param StoreManagerInterface $storeManager
      * @param TransiteoApiSingleProductParameters $productParams
      * @param TransiteoApiShipmentParameters $shipmentParams
-     * @param ProductRepositoryInterface $productRepository
+     * @param CollectionFactory $productCollectionFactory
      * @param CountryFactory $countryFactory
      * @param CookieManagerInterface $cookieManager
      * @param FlagManager $flagManager
@@ -62,7 +63,7 @@ class TaxesService
         StoreManagerInterface $storeManager,
         TransiteoApiSingleProductParameters $productParams,
         TransiteoApiShipmentParameters $shipmentParams,
-        ProductRepositoryInterface $productRepository,
+        CollectionFactory $productCollectionFactory,
         CountryFactory $countryFactory,
         CookieManagerInterface $cookieManager,
         FlagManager $flagManager
@@ -71,7 +72,7 @@ class TaxesService
         $this->transiteoProducts     = $transiteoProducts;
         $this->shipmentParams    = $shipmentParams;
         $this->productParams     = $productParams;
-        $this->productRepository = $productRepository;
+        $this->productCollectionFactory = $productCollectionFactory;
         $this->scopeConfig       = $scopeConfig;
         $this->storeManager      = $storeManager;
         $this->_countryFactory = $countryFactory;
@@ -118,10 +119,16 @@ class TaxesService
         $shipmentParams->setFromCountry($this->getIso3Country($this->getWebsiteCountry())); // country from website ISO3
 
         /** TODO add from district in config */
-        $shipmentParams->setFromDistrict("FR-GES"); // district from DistrictRepository
+        $shipmentParams->setFromDistrict("US-IN-47620"); // district from DistrictRepository
 
         //GET to country and to district from params or cookie
-        if (!array_key_exists(self::TO_COUNTRY, $params) || !array_key_exists(self::TO_DISTRICT, $params)) {
+        if ((!array_key_exists(self::TO_COUNTRY, $params)
+                || !array_key_exists(self::TO_DISTRICT, $params))) {
+            if ((array_key_exists(self::DISALLOW_GET_COUNTRY_FROM_COOKIE, $params)
+                && $params[self::DISALLOW_GET_COUNTRY_FROM_COOKIE])) {
+                throw new Exception("Transiteo_Taxes getting country from cookie is disallowed.");
+            }
+
             $cookie = $this->cookieManager->getCookie('transiteo-popup-info', null);
             if ($cookie === null) {
                 throw new Exception("Transiteo_Taxes country cookie does not exists.");
@@ -181,21 +188,33 @@ class TaxesService
         $logger = new \Zend\Log\Logger();
         $logger->addWriter($writer);
         ///////////////////////////////////////
-        $weightUnit = substr($this->getWeightUnit(), 0, 2); // convert kgs to kg and lbs to lb
+        $weightUnit = $this->getWeightUnit();
         $currentStoreCurrency = $this->getCurrentStoreCurrency();
-        foreach ($products as $id => $qty) {
+        $productCollection = $this->productCollectionFactory->create()
+            ->addAttributeToSelect('*')
+            ->addFieldToFilter('entity_id', ['in' => array_keys($products)])
+            ->load();
+
+        foreach ($productCollection->getItems() as $product) {
             $productParams = $this->productParams;
-            $product = $this->productRepository->getById($id);
+            /**
+             * @var ProductInterface $product
+             */
+            $id = $product->getId();
+            $qty = $products[$id];
             ////////////
             $logger->info($product->getName());
             ///////////
             $productParams->setProductName($product->getName());
-            $productParams->setWeight(round($product->getWeight(), 2));
+            //$logger->info("Weight : " . $product->getWeight() . " -> " . round($product->getWeight(), 2));
+            $productParams->setWeight(1);
+            //$productParams->setWeight(round($product->getWeight(), 2));
             $productParams->setWeight_unit($weightUnit);
             $productParams->setQuantity($qty);
             $productParams->setUnit_price(round($product->getPrice(), 2));
             $productParams->setCurrency_unit_price($currentStoreCurrency);
-            $productParams->setUnit_ship_price($unitShipPrice); // prix du shipping, 0 default
+            //$productParams->setUnit_ship_price($unitShipPrice); // prix du shipping, 0 default
+            $productParams->setUnit_ship_price(1); // prix du shipping, 0 default
             $productsParams[$id] = $productParams;
         }
 
@@ -215,10 +234,17 @@ class TaxesService
      */
     private function getWeightUnit()
     {
-        return $this->scopeConfig->getValue(
+        $unit = $this->scopeConfig->getValue(
             'general/locale/weight_unit',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
+        if ($unit === "kgs") {
+            return "kg";
+        }
+        if ($unit === "lbs") {
+            return "lb";
+        }
+        return $unit;
     }
 
     /**

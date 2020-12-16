@@ -56,8 +56,17 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         if (!count($items)) {
             return $this;
         }
-
-        $this->getTransiteoTaxes($quote, $shippingAssignment);
+        try {
+            $this->getTransiteoTaxes($quote, $total, $shippingAssignment);
+        } catch (\Exception $exception) {
+            //////////////////LOGGER//////////////
+            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+            $logger = new \Zend\Log\Logger();
+            $logger->addWriter($writer);
+            $logger->info('Exception raised' . $exception->getMessage());
+            ///////////////////////////////////////
+            die;
+        }
 
         $amount = 0;
         //Getting total Taxes Amount previously recorded in quote
@@ -69,6 +78,13 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, $amount);
         $total->setGrandTotal($total->getGrandTotal() + $amount);
         $total->setBaseGrandTotal($total->getBaseGrandTotal() + $amount);
+
+        //////////////////LOGGER//////////////
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        $logger->info('Collect amount :' . $amount . ', Grand Total' . $total->getGrandTotal() . ' Base Grand Total ' . $total->getBaseGrandTotal());
+        ///////////////////////////////////////
         return $this;
     }
 
@@ -95,19 +111,17 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         Total $total
     ) {
         $amount = 0;
-
-        foreach ($quote->getItemsCollection() as $_quoteItem) {
-            $amount += $_quoteItem->getQty() * 0;
-        }
-
-        $this->vat = 2;
-        $this->duty = 3;
-        $this->specialTaxes = 5;
-        $this->totalTaxes = 10;
-        $this->getTransiteoTaxes($quote);
+        $this->getTransiteoTaxes($quote, $total);
         $amount = $this->totalTaxes;
         //Recording duties in quote
         $this->saveInQuote($quote);
+
+        //////////////////LOGGER//////////////
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        $logger->info('Fetch amount :' . $amount . ', Grand Total ' . $total->getGrandTotal() . ' Base Grand Total ' . $total->getBaseGrandTotal());
+        ///////////////////////////////////////
 
         return [
             'code' => $this->getCode(),
@@ -143,9 +157,10 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
      * Retrieve Transiteo Taxes
      *
      * @param Quote $quote
+     * @param Total $total
      * @param ShippingAssignmentInterface|null $shippingAssignment
      */
-    protected function getTransiteoTaxes($quote, $shippingAssignment = null)
+    protected function getTransiteoTaxes($quote, $total, $shippingAssignment = null)
     {
         /**
          * @var \Magento\Quote\Api\Data\CartItemInterface $quoteItem
@@ -153,6 +168,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $products = [];
         foreach ($quote->getItemsCollection() as $quoteItem) {
             if ($quoteItem->getHasChildren()) {
+                $quoteItem->getExtensionAttributes()
                 $id = $quoteItem->getItemId();
                 $amount = $quoteItem->getQty();
                 $products[$id] = $amount;
@@ -161,12 +177,13 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 
         $params = [];
         //getShippingAmount
-        $shippingAmount = $quote->getShippingAmount();
+        $shippingAmount = $total->getShippingAmount();
         if (!isset($shippingAmount)) {
             $params[TaxesService::SHIPPING_AMOUNT] =  0;
         } else {
             $params[TaxesService::SHIPPING_AMOUNT] = $shippingAmount;
         }
+
         /**
          * TODO
          * Get Customer pro and activity
@@ -175,16 +192,31 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         /** TODO Ensure that country is given on checkout */
         if ($shippingAssignment) {
             $countryId = $shippingAssignment->getShipping()->getAddress()->getCountryId();
-            if ($countryId) {
-                $params[TaxesService::TO_COUNTRY] = $countryId;
-            }
             $districtId = $shippingAssignment->getShipping()->getAddress()->getRegionCode();
-            if ($districtId) {
+            //////////////////LOGGER//////////////
+            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
+            $logger = new \Zend\Log\Logger();
+            $logger->addWriter($writer);
+            $logger->info('Get Transiteo Taxes : { country_id : ' . $countryId . ' , region_id : ' . $districtId . ' , shipping_amount = ' . $shippingAmount . '} ');
+            ///////////////////////////////////////
+            if ($countryId && $districtId) {
                 $params[TaxesService::TO_DISTRICT] = $districtId;
+                $params[TaxesService::TO_COUNTRY] = $countryId;
+            } else {
+                //$params[TaxesService::DISALLOW_GET_COUNTRY_FROM_COOKIE] = true;
             }
         }
         //get duties and taxes from taxes service
         $taxes= $this->taxexService->getDutiesByProducts($products, $params);
+
+        if (
+            !array_key_exists(TaxesService::RETURN_KEY_DUTY, $taxes) ||
+            !array_key_exists(TaxesService::RETURN_KEY_VAT, $taxes) ||
+            !array_key_exists(TaxesService::RETURN_KEY_SPECIAL_TAXES, $taxes) ||
+            !array_key_exists(TaxesService::RETURN_KEY_TOTAL_TAXES, $taxes)
+        ) {
+            throw new \Exception('Unable to get Duty and Taxes from Transiteo Api.');
+        }
 
         //get duties
         $this->duty = $taxes[TaxesService::RETURN_KEY_DUTY];

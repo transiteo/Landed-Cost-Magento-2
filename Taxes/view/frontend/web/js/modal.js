@@ -129,6 +129,11 @@ require([
                         let popup = modal(options, myModal);
                         myModal.modal('openModal');
                         console.log("No Cookie : Opening Modal")
+                        reloadDistricts(function (data) {
+                            $.each(data.items, function (index, value) {
+                                $("#state").append('<option value="' + value.iso + '">' + value.label + '</option>');
+                            });
+                        });
                     },
                 1000
             );

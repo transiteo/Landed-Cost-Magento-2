@@ -161,18 +161,18 @@ class TransiteoApiService
     {
         $this->refreshIdToken();
 
+        $request = [
+            'headers' => [
+                'Content-type'     => 'application/json',
+                'Authorization' => $this->idToken,
+            ],
+            'json' => $productsParams
+        ];
         $response = $this->doRequest(
             self::API_REQUEST_URI . "v1/taxsrv/dutyCalculation",
-            [
-                'headers' => [
-                    'Content-type'     => 'application/json',
-                    'Authorization' => $this->idToken,
-                ],
-                'json' => $productsParams
-            ],
+            $request,
             Request::HTTP_METHOD_POST
         );
-
         $status = $response->getStatusCode();
         $responseBody = $response->getBody();
         $responseContent = $responseBody->getContents();
@@ -184,7 +184,6 @@ class TransiteoApiService
                 $this->getDuties($productsParams);
             }
         }
-        var_dump($response);
         return $responseContent;
     }
 
