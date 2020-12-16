@@ -67,15 +67,6 @@ class TransiteoProducts
 
         $finalParams = array_merge($finalParams, $this->shipmentParams->buildArray());
         $this->apiResponseContent = json_decode(($this->apiService->getDuties($finalParams)), true);
-        //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        ob_start();
-        var_dump($this->apiResponseContent);
-        $result = ob_get_clean();
-        $logger->info($result);
-        ///////////////////////////////////////
 //        if (isset($this->apiResponseContent->httpCode) && $this->apiResponseContent->httpCode != 200) {
 //            return $this->apiResponseContent;
 //        } else {

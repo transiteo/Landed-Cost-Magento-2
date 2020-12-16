@@ -37,7 +37,7 @@ class Request extends Action
     {
         //$product->get($id);
         $this->productParams->setProductName("Chapeau de cowboy enfant");
-        $this->productParams->setWeight(1);
+        $this->productParams->setWeight(0);
         $this->productParams->setWeight_unit("kg");
         $this->productParams->setQuantity(10);
         $this->productParams->setUnit_price(10);
