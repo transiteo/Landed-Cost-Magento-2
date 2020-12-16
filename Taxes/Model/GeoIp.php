@@ -82,7 +82,7 @@ class GeoIp
         $reader = new MaxMindReader($fileName);
 
         $ipAddress = $this->getUserIp();
-        $ipAddress = "82.65.140.34";
+        //$ipAddress = "82.65.140.34";
 
         $country = $reader->get($ipAddress);
         $reader->close();
