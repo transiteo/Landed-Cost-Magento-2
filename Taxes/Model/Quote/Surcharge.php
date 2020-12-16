@@ -168,7 +168,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $products = [];
         foreach ($quote->getItemsCollection() as $quoteItem) {
             if ($quoteItem->getHasChildren()) {
-                $quoteItem->getExtensionAttributes()
                 $id = $quoteItem->getItemId();
                 $amount = $quoteItem->getQty();
                 $products[$id] = $amount;
