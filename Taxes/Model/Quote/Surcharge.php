@@ -233,6 +233,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             ///////////////////////////////////////
         }
 
+        $taxes=[];
         if ($products !== []) {
             //get duties and taxes from taxes service
             $taxes= $this->taxexService->getDutiesByProducts($products, $params);
