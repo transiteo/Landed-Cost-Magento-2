@@ -180,7 +180,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             } else {
                 $items = $quote->getItemsCollection();
             }
-
         } else {
             $items = $quote->getItemsCollection();
         }
@@ -195,7 +194,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                 $products[$id] = ['qty' => $amount, 'product' => $product];
             }
         }
-
 
         $params = [];
         //getShippingAmount
@@ -226,8 +224,11 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             $logger->info('Get Transiteo Taxes : { country_id : ' . $countryId . ' , region_id : ' . $districtId . ' , shipping_amount = ' . $shippingAmount . '} ');
             ///////////////////////////////////////
         }
-        //get duties and taxes from taxes service
-        $taxes= $this->taxexService->getDutiesByProducts($products, $params);
+
+        if ($products !== []) {
+            //get duties and taxes from taxes service
+            $taxes= $this->taxexService->getDutiesByProducts($products, $params);
+        }
 
         if (
             !array_key_exists(TaxesService::RETURN_KEY_DUTY, $taxes) ||
