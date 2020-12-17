@@ -65,7 +65,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             $logger->addWriter($writer);
             $logger->info('Exception raised' . $exception->getMessage());
             ///////////////////////////////////////
-            die;
         }
 
         $amount = 0;
@@ -111,7 +110,16 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         Total $total
     ) {
         $amount = 0;
-        $this->getTransiteoTaxes($quote, $total);
+        try {
+            $this->getTransiteoTaxes($quote, $total);
+        } catch (\Exception $exception) {
+            //////////////////LOGGER//////////////
+            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+            $logger = new \Zend\Log\Logger();
+            $logger->addWriter($writer);
+            $logger->info('Exception raised' . $exception->getMessage());
+            ///////////////////////////////////////
+        }
         $amount = $this->totalTaxes;
         //Recording duties in quote
         $this->saveInQuote($quote);
