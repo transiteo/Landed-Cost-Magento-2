@@ -166,13 +166,36 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
          * @var \Magento\Quote\Api\Data\CartItemInterface $quoteItem
          */
         $products = [];
-        foreach ($quote->getItemsCollection() as $quoteItem) {
+        if ($shippingAssignment) {
+            $items = $shippingAssignment->getItems();
+            if (count($items)>0) {
+//                //we are on checkout
+//                //////////////////LOGGER//////////////
+//                $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
+//                $logger = new \Zend\Log\Logger();
+//                $logger->addWriter($writer);
+//                $logger->info('We are in checkout ');
+//                ///////////////////////////////////////
+//                $params[TaxesService::DISALLOW_GET_COUNTRY_FROM_COOKIE] = true;
+            } else {
+                $items = $quote->getItemsCollection();
+            }
+
+        } else {
+            $items = $quote->getItemsCollection();
+        }
+//        $items = $quote->getItemsCollection();
+
+        foreach ($items as $quoteItem) {
+//            if ($shippingAssignment !== null || $quoteItem->getHasChildren()) {
             if ($quoteItem->getHasChildren()) {
-                $id = $quoteItem->getItemId();
+                $product = $quoteItem->getProduct();
+                $id = $product->getId();
                 $amount = $quoteItem->getQty();
-                $products[$id] = $amount;
+                $products[$id] = ['qty' => $amount, 'product' => $product];
             }
         }
+
 
         $params = [];
         //getShippingAmount
@@ -205,8 +228,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                 } else {
                     $params[TaxesService::TO_DISTRICT] = "";
                 }
-            } else {
-                //$params[TaxesService::DISALLOW_GET_COUNTRY_FROM_COOKIE] = true;
             }
         }
         //get duties and taxes from taxes service
@@ -226,5 +247,11 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $this->vat =$taxes[TaxesService::RETURN_KEY_VAT];
         $this->specialTaxes = $taxes[TaxesService::RETURN_KEY_SPECIAL_TAXES];
         $this->totalTaxes = $taxes[TaxesService::RETURN_KEY_TOTAL_TAXES];
+        //////////////////LOGGER//////////////
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/taxes.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        $logger->info('Duty : ' . $this->duty . ' Vat : ' . $this->vat . ' Special Taxes : ' . $this->specialTaxes . ' Total Taxes : ' . $this->totalTaxes);
+        ///////////////////////////////////////
     }
 }

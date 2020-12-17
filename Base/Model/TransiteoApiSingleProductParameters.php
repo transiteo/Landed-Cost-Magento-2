@@ -2,11 +2,8 @@
 
 namespace Transiteo\Base\Model;
 
-use Magento\Framework\Serialize\SerializerInterface;
-
 class TransiteoApiSingleProductParameters
 {
-    private $serializer;
     private $productName;
     private $weight;
     private $weight_unit;
@@ -14,12 +11,6 @@ class TransiteoApiSingleProductParameters
     private $unit_price;
     private $currency_unit_price;
     private $unit_ship_price;
-
-    public function __construct(
-        SerializerInterface $serializer
-    ) {
-        $this->serializer = $serializer;
-    }
 
     /**
      * @return array

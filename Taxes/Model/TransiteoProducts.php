@@ -77,6 +77,15 @@ class TransiteoProducts
         if (isset($this->apiResponseContent["products"])&& isset($this->productsParams)) {
             $this->apiResponseContent["products"] = \array_combine(\array_keys($this->productsParams), $this->apiResponseContent["products"]);
         }
+        //////////////////LOGGER//////////////
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/products.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        ob_start();
+        var_dump($this->apiResponseContent["products"]);
+        $result = ob_get_clean();
+        $logger->info($result);
+        ///////////////////////////////////////
 
         return true;
     }
