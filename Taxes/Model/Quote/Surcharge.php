@@ -128,7 +128,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         }
         $amount = $this->totalTaxes;
 
-
         //////////////////LOGGER//////////////
         $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
         $logger = new \Zend\Log\Logger();
@@ -200,12 +199,14 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 
         foreach ($items as $quoteItem) {
 //            if ($shippingAssignment !== null || $quoteItem->getHasChildren()) {
-            if ($quoteItem->getHasChildren()) {
-                $product = $quoteItem->getProduct();
-                $id = $product->getId();
-                $amount = $quoteItem->getQty();
-                $products[$id] = ['qty' => $amount, 'product' => $product];
+            if ($quoteItem->getParentItem()) {
+                continue;
             }
+
+            $product = $quoteItem->getProduct();
+            $id = $product->getId();
+            $amount = $quoteItem->getQty();
+            $products[$id] = ['qty' => $amount, 'product' => $product];
         }
 
         $params = [];
@@ -242,6 +243,8 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         if ($products !== []) {
             //get duties and taxes from taxes service
             $taxes= $this->taxexService->getDutiesByProducts($products, $params);
+        } else {
+            throw new \Exception('Product Cart is Empty from Transiteo Api.');
         }
 
         if (
