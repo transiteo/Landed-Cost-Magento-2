@@ -215,7 +215,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         if ($shippingAssignment) {
             $countryId = $shippingAssignment->getShipping()->getAddress()->getCountryId();
             $districtId = $shippingAssignment->getShipping()->getAddress()->getRegionCode();
-            if (!($countryId === "US" && empty($districtId))) {
+            if (!($countryId === "US" && empty($districtId)) && !empty($countryId)) {
                 $params[TaxesService::TO_COUNTRY] = $countryId;
                 $params[TaxesService::TO_DISTRICT] = $districtId;
             }
