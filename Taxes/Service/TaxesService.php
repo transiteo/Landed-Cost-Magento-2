@@ -17,7 +17,7 @@ use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Setup\Exception;
 use Magento\Store\Model\StoreManagerInterface;
 use Transiteo\Base\Model\TransiteoApiShipmentParameters;
-use Transiteo\Base\Model\TransiteoApiSingleProductParameters;
+use Transiteo\Base\Model\TransiteoApiSingleProductParametersFactory;
 use Transiteo\Taxes\Model\TransiteoProducts;
 
 class TaxesService
@@ -37,7 +37,7 @@ class TaxesService
 
     protected $transiteoProducts;
     protected $shipmentParams;
-    protected $productParams;
+    protected $productParamsFactory;
     protected $productCollectionFactory;
     protected $scopeConfig;
     protected $storeManager;
@@ -50,7 +50,7 @@ class TaxesService
      * @param TransiteoProducts $transiteoProducts
      * @param ScopeConfigInterface $scopeConfig
      * @param StoreManagerInterface $storeManager
-     * @param TransiteoApiSingleProductParameters $productParams
+     * @param TransiteoApiSingleProductParametersFactory $productParamsFactory
      * @param TransiteoApiShipmentParameters $shipmentParams
      * @param CollectionFactory $productCollectionFactory
      * @param CountryFactory $countryFactory
@@ -61,7 +61,7 @@ class TaxesService
         TransiteoProducts $transiteoProducts,
         ScopeConfigInterface $scopeConfig,
         StoreManagerInterface $storeManager,
-        TransiteoApiSingleProductParameters $productParams,
+        TransiteoApiSingleProductParametersFactory $productParamsFactory,
         TransiteoApiShipmentParameters $shipmentParams,
         CollectionFactory $productCollectionFactory,
         CountryFactory $countryFactory,
@@ -71,7 +71,7 @@ class TaxesService
         $this->cookieManager = $cookieManager;
         $this->transiteoProducts     = $transiteoProducts;
         $this->shipmentParams    = $shipmentParams;
-        $this->productParams     = $productParams;
+        $this->productParamsFactory     = $productParamsFactory;
         $this->productCollectionFactory = $productCollectionFactory;
         $this->scopeConfig       = $scopeConfig;
         $this->storeManager      = $storeManager;
@@ -79,19 +79,19 @@ class TaxesService
         $this->_flagManager = $flagManager;
     }
 
-    /**
-     * @param int $productId
-     *
-     * @return array
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     */
-    public function getDutiesByProductId(int $productId, int $quantity = 1): array
-    {
-        return $this->getDutiesByProducts([$productId => $quantity]);
-    }
+//    /**
+//     * @param int $productId
+//     *
+//     * @return array
+//     * @throws \Magento\Framework\Exception\NoSuchEntityException
+//     */
+//    public function getDutiesByProductId(int $productId, int $quantity = 1): array
+//    {
+//        return $this->getDutiesByProducts([$productId => $quantity]);
+//    }
 
     /**
-     * @param array $products
+     * @param array $products composed of row ['qty' => $qty, 'product' => $product];
      * @param array $params
      * @return array
      * @throws \Magento\Framework\Exception\NoSuchEntityException
@@ -108,11 +108,11 @@ class TaxesService
         }
         //define if shipping is global or not
         if (count($products)>1) {
+            $unitShipPrice = 0;
+            $shipmentParams->setShipmentType(true, round($shippingAmount, 2), $this->getCurrentStoreCurrency());
+        } else {
             $unitShipPrice = $shippingAmount;
             $shipmentParams->setShipmentType(false);
-        } else {
-            $unitShipPrice = 0;
-            $shipmentParams->setShipmentType(true, $shippingAmount, $this->getCurrentStoreCurrency());
         }
         $shipmentParams->setLang($this->getTransiteoLang());
 
@@ -122,20 +122,22 @@ class TaxesService
         $shipmentParams->setFromDistrict($this->getWebsiteDistrict()); // district from DistrictRepository
 
         //GET to country and to district from params or cookie
-        if ((!array_key_exists(self::TO_COUNTRY, $params)
-                || !array_key_exists(self::TO_DISTRICT, $params))) {
+        if ((!array_key_exists(self::TO_COUNTRY, $params))) {
             if ((array_key_exists(self::DISALLOW_GET_COUNTRY_FROM_COOKIE, $params)
                 && $params[self::DISALLOW_GET_COUNTRY_FROM_COOKIE])) {
                 throw new Exception("Transiteo_Taxes getting country from cookie is disallowed.");
             }
-
             $cookie = $this->cookieManager->getCookie('transiteo-popup-info', null);
             if ($cookie === null) {
                 throw new Exception("Transiteo_Taxes country cookie does not exists.");
             } else {
                 $cookie = explode('_', $cookie);
                 $toCountry = $cookie[0];
-                $toDistrict = $cookie[1];
+                if (!array_key_exists(self::TO_DISTRICT, $params) || $params[self::TO_DISTRICT] === "") {
+                    $toDistrict = $cookie[1];
+                } else {
+                    $toDistrict = $params[self::TO_DISTRICT];
+                }
             }
         } else {
             $toCountry = $params[self::TO_COUNTRY];
@@ -152,7 +154,7 @@ class TaxesService
         /**
          * TODO add Sender pro in config
          */
-        $shipmentParams->setSenderPro(true, 0, "EUR"); // true always, const
+        $shipmentParams->setSenderPro(true, 1, "EUR"); // true always, const
         //$shipmentParams->setSenderProRevenue(0); // need an input in admin
         //$shipmentParams->setSenderProRevenueCurrency("EUR"); // need an input in admin
 
@@ -190,31 +192,33 @@ class TaxesService
         ///////////////////////////////////////
         $weightUnit = $this->getWeightUnit();
         $currentStoreCurrency = $this->getCurrentStoreCurrency();
-        $productCollection = $this->productCollectionFactory->create()
-            ->addAttributeToSelect('*')
-            ->addFieldToFilter('entity_id', ['in' => array_keys($products)])
-            ->load();
+//        $productCollection = $this->productCollectionFactory->create()
+//            ->addAttributeToSelect('*')
+//            ->addFieldToFilter('entity_id', ['in' => array_keys($products)])
+//            ->load();
 
-        foreach ($productCollection->getItems() as $product) {
-            $productParams = $this->productParams;
+
+        foreach ($products as $row) {
+            $qty = $row['qty'];
+            $product = $row['product'];
+            $productParams = $this->productParamsFactory->create();
             /**
              * @var ProductInterface $product
              */
             $id = $product->getId();
-            $qty = $products[$id];
+//            $qty = $products[$id];
             ////////////
             $logger->info($product->getName());
             ///////////
             $productParams->setProductName($product->getName());
-            //$logger->info("Weight : " . $product->getWeight() . " -> " . round($product->getWeight(), 2));
-            $productParams->setWeight(1);
-            //$productParams->setWeight(round($product->getWeight(), 2));
+            $logger->info("Weight : " . $product->getWeight() . " -> " . round($product->getWeight(), 2));
+            //$productParams->setWeight(1);
+            $productParams->setWeight(round($product->getWeight(), 2));
             $productParams->setWeight_unit($weightUnit);
             $productParams->setQuantity($qty);
             $productParams->setUnit_price(round($product->getPrice(), 2));
             $productParams->setCurrency_unit_price($currentStoreCurrency);
-            //$productParams->setUnit_ship_price($unitShipPrice); // prix du shipping, 0 default
-            $productParams->setUnit_ship_price(1); // prix du shipping, 0 default
+            $productParams->setUnit_ship_price(round($unitShipPrice, 2)); // prix du shipping, 0 default
             $productsParams[$id] = $productParams;
         }
 
