@@ -215,20 +215,16 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         if ($shippingAssignment) {
             $countryId = $shippingAssignment->getShipping()->getAddress()->getCountryId();
             $districtId = $shippingAssignment->getShipping()->getAddress()->getRegionCode();
+            if (!($countryId === "US" && empty($districtId))) {
+                $params[TaxesService::TO_COUNTRY] = $countryId;
+                $params[TaxesService::TO_DISTRICT] = $districtId;
+            }
             //////////////////LOGGER//////////////
             $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
             $logger = new \Zend\Log\Logger();
             $logger->addWriter($writer);
             $logger->info('Get Transiteo Taxes : { country_id : ' . $countryId . ' , region_id : ' . $districtId . ' , shipping_amount = ' . $shippingAmount . '} ');
             ///////////////////////////////////////
-            if ($countryId) {
-                $params[TaxesService::TO_COUNTRY] = $countryId;
-                if ($districtId) {
-                    $params[TaxesService::TO_DISTRICT] = $districtId;
-                } else {
-                    $params[TaxesService::TO_DISTRICT] = "";
-                }
-            }
         }
         //get duties and taxes from taxes service
         $taxes= $this->taxexService->getDutiesByProducts($products, $params);
