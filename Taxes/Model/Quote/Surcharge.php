@@ -65,6 +65,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             $logger->addWriter($writer);
             $logger->info('Exception raised' . $exception->getMessage());
             ///////////////////////////////////////
+            $this->totalTaxes = 0;
         }
 
         $amount = 0;
@@ -119,6 +120,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             $logger->addWriter($writer);
             $logger->info('Exception raised' . $exception->getMessage());
             ///////////////////////////////////////
+            $this->totalTaxes =0;
         }
         $amount = $this->totalTaxes;
         //Recording duties in quote
