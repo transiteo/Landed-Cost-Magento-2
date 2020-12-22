@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <columns name="sales_order_columns">
+        <column name="base_transiteo_total_taxes" class="Magento\Sales\Ui\Component\Listing\Column\Price">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Transiteo Total Taxes</label>
+                <visible>true</visible>
+            </settings>
+        </column>
+        <column name="base_transiteo_duty" class="Magento\Sales\Ui\Component\Listing\Column\Price">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Transiteo Total Duty</label>
+                <visible>false</visible>
+            </settings>
+        </column>
+        <column name="base_transiteo_vat" class="Magento\Sales\Ui\Component\Listing\Column\Price">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Transiteo VAT/GST</label>
+                <visible>false</visible>
+            </settings>
+        </column>
+        <column name="base_transiteo_special_taxes" class="Magento\Sales\Ui\Component\Listing\Column\Price">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Transiteo Special Taxes</label>
+                <visible>false</visible>
+            </settings>
+        </column>
+    </columns>
+</listing>

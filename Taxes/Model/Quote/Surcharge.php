@@ -56,30 +56,42 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         if (!count($items)) {
             return $this;
         }
-        try {
-            $this->getTransiteoTaxes($quote, $total, $shippingAssignment);
-            //Recording duties in quote
-            $this->saveInQuote($quote);
-        } catch (\Exception $exception) {
-            //////////////////LOGGER//////////////
-            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-            $logger = new \Zend\Log\Logger();
-            $logger->addWriter($writer);
-            $logger->info('Exception raised' . $exception->getMessage());
-            ///////////////////////////////////////
-            $this->totalTaxes = 0;
+        $amount = 0;
+        $isCheckoutCart = $quote->getIsCheckoutCart();
+        if (($isCheckoutCart && $this->taxexService->isActivatedOnCheckout()) ||
+            (!$isCheckoutCart && $this->taxexService->isActivatedOnCartView())
+        ) {
+            try {
+                $this->getTransiteoTaxes($quote, $total, $shippingAssignment);
+                //Recording duties in quote
+                $this->saveInQuote($quote);
+                //Getting total Taxes Amount previously recorded in quote and add it to grand total if ddp is activated
+                if ($this->taxexService->isDDPActivated()) {
+                    $amount += $this->totalTaxes;
+                }
+            } catch (\Exception $exception) {
+                //////////////////LOGGER//////////////
+                $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+                $logger = new \Zend\Log\Logger();
+                $logger->addWriter($writer);
+                $logger->info('Exception raised' . $exception->getMessage());
+                ///////////////////////////////////////
+                $this->totalTaxes = 0;
+            }
         }
 
-        $amount = 0;
-        //Getting total Taxes Amount previously recorded in quote
-        $amount += $this->totalTaxes;
-
-        $total->setCustomAmount($amount);
-        $total->setBaseCustomAmount($amount);
+        $total->setTransiteoDutyAmount($this->duty);
+        $total->setBaseTransiteoDutyAmount($this->duty / $this->taxexService->getCurrentCurrencyRate());
+        $total->setTransiteoVatAmount($this->vat);
+        $total->setBaseTransiteoVatAmount($this->vat / $this->taxexService->getCurrentCurrencyRate());
+        $total->setTransiteoSpecialTaxesAmount($this->specialTaxes);
+        $total->setBaseTransiteoSpecialTaxesAmount($this->specialTaxes / $this->taxexService->getCurrentCurrencyRate());
+        $total->setTransiteoTotalTaxesAmount($this->totalTaxes);
+        $total->setBaseTransiteoTotalTaxesAmount($this->totalTaxes / $this->taxexService->getCurrentCurrencyRate());
         $total->setTotalAmount(self::COLLECTOR_TYPE_CODE, $amount);
         $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, $amount);
         $total->setGrandTotal($total->getGrandTotal() + $amount);
-        $total->setBaseGrandTotal($total->getBaseGrandTotal() + $amount);
+        $total->setBaseGrandTotal($total->getBaseGrandTotal() + ($amount / $this->taxexService->getCurrentCurrencyRate()));
 
         //////////////////LOGGER//////////////
         $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
@@ -101,6 +113,15 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, 0);
         $total->setSubtotalInclTax(0);
         $total->setBaseSubtotalInclTax(0);
+        $total->setTransiteoDutyAmount(0);
+        $total->setBaseTransiteoDutyAmount(0);
+        $total->setTransiteoVatAmount(0);
+        $total->setBaseTransiteoVatAmount(0);
+        $total->setTransiteoSpecialTaxesAmount(0);
+        $total->setBaseTransiteoSpecialTaxesAmount(0);
+        $total->setTransiteoTotalTaxesAmount(0);
+        $total->setBaseTransiteoTotalTaxesAmount(0);
+
     }
 
     /**
@@ -113,20 +134,30 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         Total $total
     ) {
         $amount = 0;
-        try {
-            $this->getTransiteoTaxes($quote, $total);
-            //Recording duties in quote
-            $this->saveInQuote($quote);
-        } catch (\Exception $exception) {
-            //////////////////LOGGER//////////////
-            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-            $logger = new \Zend\Log\Logger();
-            $logger->addWriter($writer);
-            $logger->info('Exception raised' . $exception->getMessage());
-            ///////////////////////////////////////
-            $this->totalTaxes =0;
+        $isCheckoutCart = $quote->getIsCheckoutCart();
+        if (($isCheckoutCart && $this->taxexService->isActivatedOnCheckout()) ||
+            (!$isCheckoutCart && $this->taxexService->isActivatedOnCartView())
+        ) {
+            try {
+                $this->getTransiteoTaxes($quote, $total);
+                //Recording duties in quote
+                $this->saveInQuote($quote);
+                //Getting total Taxes Amount previously recorded in quote and add it to grand total if ddp is activated
+                if ($this->taxexService->isDDPActivated()) {
+                    $amount += $this->totalTaxes;
+                }
+            } catch (\Exception $exception) {
+                //////////////////LOGGER//////////////
+                $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+                $logger = new \Zend\Log\Logger();
+                $logger->addWriter($writer);
+                $logger->info('Exception raised' . $exception->getMessage());
+                ///////////////////////////////////////
+                $this->totalTaxes =0;
+            }
         }
-        $amount = $this->totalTaxes;
+
+
 
         //////////////////LOGGER//////////////
         $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
@@ -160,9 +191,13 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
     protected function saveInQuote($quote)
     {
         $quote->setTransiteoDuty($this->duty);
+        $quote->setBaseTransiteoDuty($this->duty / $this->taxexService->getCurrentCurrencyRate());
         $quote->setTransiteoVat($this->vat);
+        $quote->setBaseTransiteoVat($this->vat / $this->taxexService->getCurrentCurrencyRate());
         $quote->setTransiteoSpecialTaxes($this->specialTaxes);
+        $quote->setBaseTransiteoSpecialTaxes($this->specialTaxes / $this->taxexService->getCurrentCurrencyRate());
         $quote->setTransiteoTotalTaxes($this->totalTaxes);
+        $quote->setBaseTransiteoTotalTaxes($this->totalTaxes / $this->taxexService->getCurrentCurrencyRate());
     }
 
     /**
@@ -181,14 +216,16 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         if ($shippingAssignment) {
             $items = $shippingAssignment->getItems();
             if (count($items)>0) {
-//                //we are on checkout
-//                //////////////////LOGGER//////////////
-//                $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
-//                $logger = new \Zend\Log\Logger();
-//                $logger->addWriter($writer);
-//                $logger->info('We are in checkout ');
-//                ///////////////////////////////////////
-//                $params[TaxesService::DISALLOW_GET_COUNTRY_FROM_COOKIE] = true;
+                //we are on checkout
+                if ($quote->getIsCheckoutCart()) {
+                    //////////////////LOGGER//////////////
+                    $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
+                    $logger = new \Zend\Log\Logger();
+                    $logger->addWriter($writer);
+                    $logger->info('We are in checkout ');
+                    ///////////////////////////////////////
+                    $params[TaxesService::DISALLOW_GET_COUNTRY_FROM_COOKIE] = true;
+                }
             } else {
                 $items = $quote->getItemsCollection();
             }

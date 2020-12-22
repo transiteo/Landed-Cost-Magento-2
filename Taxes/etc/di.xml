@@ -17,5 +17,22 @@
     <type name="Magento\Cron\Model\Config\Source\Frequency">
         <plugin name="transiteo_add_hourly_cron_curreny" type="Transiteo\Taxes\Plugin\AddHourlyCurrencyCronUpdate" sortOrder="1" disabled="false" />
     </type>
+
+    <type name="Magento\Quote\Model\Quote\Item\ToOrderItem">
+        <plugin name="transiteo_taxes_to_order_item" type="Transiteo\Taxes\Plugin\Quote\TransiteoTaxesToOrderItem"/>
+    </type>
+
+    <!--Sync the sales_order table and sales_order_grid-->
+    <virtualType name="Magento\Sales\Model\ResourceModel\Order\Grid" type="Magento\Sales\Model\ResourceModel\Grid">
+        <arguments>
+            <argument name="columns" xsi:type="array">
+                <item name="base_transiteo_total_taxes" xsi:type="string">sales_order.base_transiteo_total_taxes</item>
+                <item name="base_transiteo_duty" xsi:type="string">sales_order.base_transiteo_duty</item>
+                <item name="base_transiteo_vat" xsi:type="string">sales_order.base_transiteo_vat</item>
+                <item name="base_transiteo_special_taxes" xsi:type="string">sales_order.base_transiteo_special_taxes</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
 </config>
 

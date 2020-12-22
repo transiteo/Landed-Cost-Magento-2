@@ -418,11 +418,12 @@ class TransiteoProducts
     }
 
     /**
-     * Return total taxes amount
+     * Return total taxes amount for a product if a product id is passed or for all tes products
      *
+     * @param int|null $productId
      * @return mixed|null
      */
-    public function getTotalTaxes()
+    public function getTotalTaxes($productId = null)
     {
         if ($this->apiResponseContent == null) {
             $response = $this->getDuties();
@@ -431,10 +432,17 @@ class TransiteoProducts
             }
         }
 
-        if (isset($this->apiResponseContent['global'])) {
-            $total = $this->apiResponseContent['global']['amount'];
+        if ($productId !== null) {
+            $total = 0;
+            $total += $this->getDuty($productId);
+            $total += $this->getVat($productId);
+            $total += $this->getSpecialTaxes($productId);
         } else {
-            return null;
+            if (isset($this->apiResponseContent['global'])) {
+                $total = $this->apiResponseContent['global']['amount'];
+            } else {
+                return null;
+            }
         }
 
         return $total;

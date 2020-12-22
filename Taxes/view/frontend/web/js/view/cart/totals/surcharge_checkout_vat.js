@@ -16,7 +16,7 @@ define([
          * @return {*|Boolean}
          */
         isDisplayed: function () {
-            return this.isFullMode() && this.getPureValue() != 0;
+            return this.isFullMode() && this.getPureValue() != null;
         },
 
         /**

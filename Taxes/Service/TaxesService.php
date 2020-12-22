@@ -8,12 +8,12 @@ declare(strict_types=1);
 
 namespace Transiteo\Taxes\Service;
 
-use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\Directory\Model\CountryFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\FlagManager;
 use Magento\Framework\Stdlib\CookieManagerInterface;
+use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Setup\Exception;
 use Magento\Store\Model\StoreManagerInterface;
 use Transiteo\Base\Model\TransiteoApiShipmentParameters;
@@ -197,13 +197,12 @@ class TaxesService
 //            ->addFieldToFilter('entity_id', ['in' => array_keys($products)])
 //            ->load();
 
-
         foreach ($products as $row) {
             $qty = $row['qty'];
             $product = $row['product'];
             $productParams = $this->productParamsFactory->create();
             /**
-             * @var ProductInterface $product
+             * @var \Magento\Quote\Api\Data\CartItemInterface $product
              */
             $id = $product->getId();
 //            $qty = $products[$id];
@@ -216,7 +215,7 @@ class TaxesService
             $productParams->setWeight(round($product->getWeight(), 2));
             $productParams->setWeight_unit($weightUnit);
             $productParams->setQuantity($qty);
-            $productParams->setUnit_price(round($product->getPrice(), 2));
+            $productParams->setUnit_price(round($product->getPrice() * $this->getCurrentCurrencyRate(), 2));
             $productParams->setCurrency_unit_price($currentStoreCurrency);
             $productParams->setUnit_ship_price(round($unitShipPrice, 2)); // prix du shipping, 0 default
             $productsParams[$id] = $productParams;
@@ -224,6 +223,32 @@ class TaxesService
 
         $this->transiteoProducts->setProducts($productsParams);
         $this->transiteoProducts->setShipmentParams($shipmentParams);
+
+        foreach ($products as $row) {
+            $qty = $row['qty'];
+            $product = $row['product'];
+            /**
+             * @var CartItemInterface $product
+             */
+            $id = $product->getId();
+            $product->setTransiteoVat($this->transiteoProducts->getVat($id));
+            $product->setTransiteoDuty($this->transiteoProducts->getDuty($id));
+            $product->setTransiteoSpecialTaxes($this->transiteoProducts->getSpecialTaxes($id));
+            $taxeAmount = $this->transiteoProducts->getTotalTaxes($id);
+            $product->setTransiteoTotalTaxes($taxeAmount);
+            $product->setTaxAmount($taxeAmount);
+            //////////////////LOGGER//////////////
+            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/saveQuotItemTaxes.log');
+            $logger = new \Zend\Log\Logger();
+            $logger->addWriter($writer);
+            $logger->info('Product ' . $product->getName()
+                . ' vat ' . $product->getTransiteoVat()
+                . ' duty ' . $product->getTransiteoDuty()
+                . ' special taxes  ' . $product->getTransiteoSpecialTaxes()
+                . ' Total Taxes ' . $product->getTransiteoTotalTaxes());
+            ///////////////////////////////////////
+//            $product->setTaxPercent($this->transiteoProducts->getVatPercentage($id));
+        }
 
         return [
             self::RETURN_KEY_DUTY          => $this->transiteoProducts->getTotalDuty(),
@@ -333,5 +358,78 @@ class TaxesService
         $country = $this->_countryFactory->create();
         $country->loadByCode($countryIsoCode2);
         return $country->getData('iso3_code');
+    }
+
+    /**
+     *  Return if ddp is activate.
+     *
+     * @return bool|mixed
+     */
+    public function isDDPActivated()
+    {
+        if ($this->scopeConfig->getValue(
+            'transiteo_settings/duties/incoterm',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        ) === 'ddp') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Return true if is activated on checkout
+     *
+     * @return bool
+     */
+    public function isActivatedOnCheckout()
+    {
+        $values = explode(',', $this->scopeConfig->getValue(
+            'transiteo_settings/duties/enabled_on',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        ));
+        foreach ($values as $value) {
+            if ($value = 'checkout') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Return true if is activated on cart view
+     *
+     * @return bool
+     */
+    public function isActivatedOnCartView()
+    {
+        $values = explode(',', $this->scopeConfig->getValue(
+            'transiteo_settings/duties/enabled_on',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        ));
+        foreach ($values as $value) {
+            if ($value = 'cart') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return StoreManagerInterface
+     */
+    public function getStoreManager()
+    {
+        return $this->storeManager;
+    }
+
+    /**
+     * @return float
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function getCurrentCurrencyRate()
+    {
+        return $this->storeManager->getStore()->getCurrentCurrencyRate();
     }
 }
