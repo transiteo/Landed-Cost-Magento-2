@@ -12,9 +12,16 @@ class QuoteTaxesProvider implements ConfigProviderInterface
      */
     protected $checkoutSession;
 
+    /**
+     * @var \Magento\Framework\UrlInterface
+     */
+    protected $urlBuilder;
+
     public function __construct(
-        Session $checkoutSession
+        Session $checkoutSession,
+        \Magento\Framework\UrlInterface $urlBuilder
     ) {
+        $this->urlBuilder = $urlBuilder;
         $this->checkoutSession = $checkoutSession;
     }
 
@@ -35,10 +42,12 @@ class QuoteTaxesProvider implements ConfigProviderInterface
         $vat = $this->checkoutSession->getQuote()->getTransiteoVat();
         $specialTaxes = $this->checkoutSession->getQuote()->getTransiteoSpecialTaxes();
         $totalTaxes = $this->checkoutSession->getQuote()->getTransiteoTotalTaxes();
+        $additionalVariables['quote_id'] = $this->checkoutSession->getQuoteId();
         $additionalVariables['transiteo_duty'] = $duty;
         $additionalVariables['transiteo_vat'] = $vat;
         $additionalVariables['transiteo_special_taxes'] = $specialTaxes;
         $additionalVariables['transiteo_total_taxes'] = $totalTaxes;
+        $additionalVariables['transiteo_checkout_taxes_url'] = $this->urlBuilder->getBaseUrl() . 'transiteo/checkout/taxes';
         return $additionalVariables;
     }
 }

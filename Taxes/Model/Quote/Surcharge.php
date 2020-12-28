@@ -139,12 +139,9 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             (!$isCheckoutCart && $this->taxexService->isActivatedOnCartView())
         ) {
             try {
-                $this->getTransiteoTaxes($quote, $total);
-                //Recording duties in quote
-                $this->saveInQuote($quote);
                 //Getting total Taxes Amount previously recorded in quote and add it to grand total if ddp is activated
                 if ($this->taxexService->isDDPActivated()) {
-                    $amount += $this->totalTaxes;
+                    $amount += $quote->getTransiteoTotalTaxesAmount();
                 }
             } catch (\Exception $exception) {
                 //////////////////LOGGER//////////////
@@ -198,6 +195,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $quote->setBaseTransiteoSpecialTaxes($this->specialTaxes / $this->taxexService->getCurrentCurrencyRate());
         $quote->setTransiteoTotalTaxes($this->totalTaxes);
         $quote->setBaseTransiteoTotalTaxes($this->totalTaxes / $this->taxexService->getCurrentCurrencyRate());
+        $quote->save();
     }
 
     /**
