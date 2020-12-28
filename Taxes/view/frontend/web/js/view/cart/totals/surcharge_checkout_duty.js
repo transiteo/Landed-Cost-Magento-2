@@ -6,6 +6,7 @@ define([
 ], function (Component, quote, $, $t) {
     'use strict';
 
+
     return Component.extend({
         defaults: {
             template: 'Transiteo_Taxes/summary/surcharge_checkout_duty'
@@ -16,7 +17,18 @@ define([
          * @return {*|Boolean}
          */
         isDisplayed: function () {
-            return this.isFullMode() && this.getPureValue() != null;
+            //get pure value
+            const pureValue = this.getPureValue();
+
+            const test = this.isFullMode() && pureValue != null;
+            if(test){
+                //change value
+                const transiteo_total_taxes = document.getElementById('transiteo_duty_amount');
+                transiteo_total_taxes.innerHTML = this.getFormattedPrice(pureValue);
+
+                $(".totals-tax").remove();
+            }
+            return test;
         },
 
         /**
@@ -32,10 +44,29 @@ define([
             return $t('Duty');
         },
 
+
         /**
          * @return {Number}
          */
         getPureValue: function () {
+            var url = window.checkoutConfig.transiteo_checkout_taxes_url
+            // fetch states with country id
+            var param = "quote=" + window.checkoutConfig.quote_id;
+            $.ajax({
+                url: url,
+                async: false,
+                data: param,
+                type: "POST",
+                dataType: "json",
+                error(data) {
+                    console.log("no taxes response !");
+                }
+            }).done(function (data){
+                window.checkoutConfig.transiteo_duty = data.transiteo_duty;
+                window.checkoutConfig.transiteo_vat = data.transiteo_vat;
+                window.checkoutConfig.transiteo_total_taxes = data.transiteo_total_taxes;
+                window.checkoutConfig.transiteo_special_taxes = data.transiteo_special_taxes;
+            });
             return window.checkoutConfig.transiteo_duty;
         },
 
