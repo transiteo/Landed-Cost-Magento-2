@@ -19,7 +19,7 @@ define([
             //get pure value
             const pureValue = this.getPureValue();
 
-            const test = this.isFullMode() && pureValue != 0;
+            const test = this.isFullMode() && pureValue != null;
             if(test){
                 //change value
                 const transiteo_total_taxes = document.getElementById('transiteo_total_taxes_amount');

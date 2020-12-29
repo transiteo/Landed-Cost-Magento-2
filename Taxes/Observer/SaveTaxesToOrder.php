@@ -12,12 +12,6 @@ class SaveTaxesToOrder implements \Magento\Framework\Event\ObserverInterface
     {
         $order = $observer->getOrder();
         $quote = $observer->getQuote();
-        //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        $logger->info('Observer Run');
-        ///////////////////////////////////////
         if ($order && $quote) {
             $order->setTransiteoVat($quote->getTransiteoVat());
             $order->setTransiteoDuty($quote->getTransiteoDuty());

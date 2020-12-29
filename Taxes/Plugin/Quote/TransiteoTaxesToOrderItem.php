@@ -20,6 +20,7 @@ class TransiteoTaxesToOrderItem
         $orderItem->setBaseTransiteoSpecialTaxes($item->getBaseTransiteoSpecialTaxes());
         $orderItem->setBaseTransiteoTotalTaxes($item->getBaseTransiteoTotalTaxes());
         $orderItem->setTaxAmount($item->getTaxAmount());
+        $orderItem->setBaseTaxAmount($item->getBaseTaxAmount());
         $orderItem->setTaxPercent($item->getTaxPercent());
         return $orderItem;
     }

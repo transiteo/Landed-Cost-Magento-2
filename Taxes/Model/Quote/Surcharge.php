@@ -28,12 +28,26 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
     protected $taxexService;
 
     /**
+     * @var \Magento\Framework\App\RequestInterface
+     */
+    protected $request;
+
+    /**
+     * @var \Magento\Checkout\Model\Session
+     */
+    protected $checkoutSession;
+
+    /**
      * Custom constructor.
      */
     public function __construct(
-        TaxesService $taxesService
+        TaxesService $taxesService,
+        \Magento\Framework\App\RequestInterface $request,
+        \Magento\Checkout\Model\Session $checkoutSession
     ) {
+        $this->request = $request;
         $this->taxexService = $taxesService;
+        $this->checkoutSession = $checkoutSession;
         $this->setCode(self::COLLECTOR_TYPE_CODE);
     }
 
@@ -50,6 +64,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         ShippingAssignmentInterface $shippingAssignment,
         Total $total
     ) {
+        $quote->setTransiteoDisplay(false);
         parent::collect($quote, $shippingAssignment, $total);
 
         $items = $shippingAssignment->getItems();
@@ -57,11 +72,20 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             return $this;
         }
         $amount = 0;
-        $isCheckoutCart = $quote->getIsCheckoutCart();
+        $isCheckoutCart = $this->manageCheckoutState();
+        //////////////////LOGGER//////////////
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/incart.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        $logger->info('Is in checkout ? :' . (($isCheckoutCart) ? "true" : "false"));
+        $logger->info('Is activated in cart ? :' . ((!$isCheckoutCart && $this->taxexService->isActivatedOnCartView()) ? "true" : "false"));
+        $logger->info('Is activated in checkout ? :' . (($isCheckoutCart && $this->taxexService->isActivatedOnCheckout()) ? "true" : "false"));
+        ///////////////////////////////////////
         if (($isCheckoutCart && $this->taxexService->isActivatedOnCheckout()) ||
             (!$isCheckoutCart && $this->taxexService->isActivatedOnCartView())
         ) {
             try {
+                $quote->setTransiteoDisplay(true);
                 $this->getTransiteoTaxes($quote, $total, $shippingAssignment);
                 //Recording duties in quote
                 $this->saveInQuote($quote);
@@ -78,28 +102,58 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                 ///////////////////////////////////////
                 $this->totalTaxes = 0;
             }
+
+            $currencyRate = $this->taxexService->getCurrentCurrencyRate();
+            $total->setTransiteoDutyAmount($this->duty);
+            $total->setBaseTransiteoDutyAmount($this->duty / $currencyRate);
+            $total->setTransiteoVatAmount($this->vat);
+            $total->setBaseTransiteoVatAmount($this->vat / $currencyRate);
+            $total->setTransiteoSpecialTaxesAmount($this->specialTaxes);
+            $total->setBaseTransiteoSpecialTaxesAmount($this->specialTaxes / $currencyRate);
+            $total->setTransiteoTotalTaxesAmount($this->totalTaxes);
+            $total->setBaseTransiteoTotalTaxesAmount($this->totalTaxes / $currencyRate);
+            $total->setTotalAmount(self::COLLECTOR_TYPE_CODE, $amount);
+            $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, $amount);
+            $total->setGrandTotal($total->getGrandTotal() + $amount);
+            $total->setBaseGrandTotal($total->getBaseGrandTotal() + ($amount / $currencyRate));
+
+            //////////////////LOGGER//////////////
+            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
+            $logger = new \Zend\Log\Logger();
+            $logger->addWriter($writer);
+            $logger->info('Collect amount :' . $amount . ', Grand Total' . $total->getGrandTotal() . ' Base Grand Total ' . $total->getBaseGrandTotal());
+            ///////////////////////////////////////
         }
 
-        $total->setTransiteoDutyAmount($this->duty);
-        $total->setBaseTransiteoDutyAmount($this->duty / $this->taxexService->getCurrentCurrencyRate());
-        $total->setTransiteoVatAmount($this->vat);
-        $total->setBaseTransiteoVatAmount($this->vat / $this->taxexService->getCurrentCurrencyRate());
-        $total->setTransiteoSpecialTaxesAmount($this->specialTaxes);
-        $total->setBaseTransiteoSpecialTaxesAmount($this->specialTaxes / $this->taxexService->getCurrentCurrencyRate());
-        $total->setTransiteoTotalTaxesAmount($this->totalTaxes);
-        $total->setBaseTransiteoTotalTaxesAmount($this->totalTaxes / $this->taxexService->getCurrentCurrencyRate());
-        $total->setTotalAmount(self::COLLECTOR_TYPE_CODE, $amount);
-        $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, $amount);
-        $total->setGrandTotal($total->getGrandTotal() + $amount);
-        $total->setBaseGrandTotal($total->getBaseGrandTotal() + ($amount / $this->taxexService->getCurrentCurrencyRate()));
+        return $this;
+    }
 
+    /**
+     * ManageCheckoutState, Save Checkout state and retrieve current is in checkout value
+     *
+     * @return boolean
+     */
+    protected function manageCheckoutState()
+    {
+        $controllerName = $this->request->getControllerName();
         //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/controller.log');
         $logger = new \Zend\Log\Logger();
         $logger->addWriter($writer);
-        $logger->info('Collect amount :' . $amount . ', Grand Total' . $total->getGrandTotal() . ' Base Grand Total ' . $total->getBaseGrandTotal());
+        $logger->info('Controller : ' . $controllerName);
+        if ($controllerName === "cart") {
+            $this->checkoutSession->setIsInCheckout(false);
+        }
+        if ($controllerName === "index") {
+            $this->checkoutSession->setIsInCheckout(true);
+        }
+        //////////////////LOGGER//////////////
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/inCheckout.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        $logger->info('Is in Checkout ? : ' . $this->checkoutSession->getIsInCheckout());
         ///////////////////////////////////////
-        return $this;
+        return $this->checkoutSession->getIsInCheckout();
     }
 
     /**
@@ -113,15 +167,14 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, 0);
         $total->setSubtotalInclTax(0);
         $total->setBaseSubtotalInclTax(0);
-        $total->setTransiteoDutyAmount(0);
-        $total->setBaseTransiteoDutyAmount(0);
-        $total->setTransiteoVatAmount(0);
-        $total->setBaseTransiteoVatAmount(0);
-        $total->setTransiteoSpecialTaxesAmount(0);
-        $total->setBaseTransiteoSpecialTaxesAmount(0);
-        $total->setTransiteoTotalTaxesAmount(0);
-        $total->setBaseTransiteoTotalTaxesAmount(0);
-
+        $total->setTransiteoDutyAmount(null);
+        $total->setBaseTransiteoDutyAmount(null);
+        $total->setTransiteoVatAmount(null);
+        $total->setBaseTransiteoVatAmount(null);
+        $total->setTransiteoSpecialTaxesAmount(null);
+        $total->setBaseTransiteoSpecialTaxesAmount(null);
+        $total->setTransiteoTotalTaxesAmount(null);
+        $total->setBaseTransiteoTotalTaxesAmount(null);
     }
 
     /**
@@ -134,11 +187,13 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         Total $total
     ) {
         $amount = 0;
-        $isCheckoutCart = $quote->getIsCheckoutCart();
+        $quote->setTransiteoDisplay(false);
+        $isCheckoutCart = $this->manageCheckoutState();
         if (($isCheckoutCart && $this->taxexService->isActivatedOnCheckout()) ||
             (!$isCheckoutCart && $this->taxexService->isActivatedOnCartView())
         ) {
             try {
+                $quote->setTransiteoDisplay(true);
                 //Getting total Taxes Amount previously recorded in quote and add it to grand total if ddp is activated
                 if ($this->taxexService->isDDPActivated()) {
                     $amount += $quote->getTransiteoTotalTaxesAmount();
@@ -152,16 +207,14 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                 ///////////////////////////////////////
                 $this->totalTaxes =0;
             }
+
+            //////////////////LOGGER//////////////
+            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
+            $logger = new \Zend\Log\Logger();
+            $logger->addWriter($writer);
+            $logger->info('Fetch amount :' . $amount . ', Grand Total ' . $total->getGrandTotal() . ' Base Grand Total ' . $total->getBaseGrandTotal());
+            ///////////////////////////////////////
         }
-
-
-
-        //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        $logger->info('Fetch amount :' . $amount . ', Grand Total ' . $total->getGrandTotal() . ' Base Grand Total ' . $total->getBaseGrandTotal());
-        ///////////////////////////////////////
 
         return [
             'code' => $this->getCode(),
@@ -238,10 +291,9 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                 continue;
             }
 
-            $product = $quoteItem->getProduct();
-            $id = $product->getId();
-            $amount = $quoteItem->getQty();
-            $products[$id] = ['qty' => $amount, 'product' => $product];
+            $product = $quoteItem;
+            $id = $quoteItem->getProduct()->getId();
+            $products[$id] = $quoteItem;
         }
 
         $params = [];
@@ -278,6 +330,22 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         if ($products !== []) {
             //get duties and taxes from taxes service
             $taxes= $this->taxexService->getDutiesByProducts($products, $params);
+
+            //saving changes in products to quote
+            foreach ($products as $product) {
+                //////////////////LOGGER//////////////
+                $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/saveQuotItemTaxes.log');
+                $logger = new \Zend\Log\Logger();
+                $logger->addWriter($writer);
+                $logger->info('Product ' . $product->getName()
+                    . ' vat ' . $product->getData('transiteo_vat')
+                    . ' duty ' . $product->getData('transiteo_duty')
+                    . ' special taxes  ' . $product->getData('transiteo_special_taxes')
+                    . ' Total Taxes ' . $product->getData('transiteo_total_taxes'));
+                ///////////////////////////////////////
+            }
+            $quote->setItems($products);
+            $quote->save();
         } else {
             throw new \Exception('Product Cart is Empty from Transiteo Api.');
         }

@@ -117,26 +117,15 @@ class Taxes extends \Magento\Framework\View\Element\Template
             $transiteoSpecialTaxes = $order->getTransiteoSpecialTaxes();
             $baseTransiteoSpecialTaxes = $order->getBaseTransiteoSpecialTaxes();
 
-            if ($transiteoDuty && $transiteoDuty!=0) {
-                $totals['transiteo_duty'] = new \Magento\Framework\DataObject(
+            if (!($transiteoVat != 0 xor $transiteoDuty != 0 xor $transiteoSpecialTaxes != 0)) {
+                $totals['transiteo_total_taxes'] = new \Magento\Framework\DataObject(
                     [
-                        'code' => 'transiteo_duty',
-                        'field' => 'transiteo_duty_amount',
-                        'value' => $transiteoDuty,
-                        'base_value' => $baseTransiteoDuty,
-                        'label' => __('Cross Border Duty'),
-                    ]
-                );
-            }
-
-            if ($transiteoVat && $transiteoVat!=0) {
-                $totals['transiteo_vat'] = new \Magento\Framework\DataObject(
-                    [
-                        'code' => 'transiteo_vat',
-                        'field' => 'transiteo_vat_amount',
-                        'value' => $transiteoVat,
-                        'base_value' => $baseTransiteoVat,
-                        'label' => __('Cross Border VAT / GST'),
+                        'code' => 'transiteo_total_taxes',
+                        'field' => 'transiteo_total_taxes_amount',
+                        'strong' => true,
+                        'value' => $transiteoTotalTaxes,
+                        'base_value' => $baseTransiteoTotalTaxes,
+                        'label' => __('Cross Border Total Taxes'),
                     ]
                 );
             }
@@ -153,16 +142,29 @@ class Taxes extends \Magento\Framework\View\Element\Template
                 );
             }
 
-            $totals['transiteo_total_taxes'] = new \Magento\Framework\DataObject(
-                [
-                    'code' => 'transiteo_total_taxes',
-                    'field' => 'transiteo_total_taxes_amount',
-                    'strong' => true,
-                    'value' => $transiteoTotalTaxes,
-                    'base_value' => $baseTransiteoTotalTaxes,
-                    'label' => __('Cross Border Total Taxes'),
-                ]
-            );
+            if ($transiteoVat && $transiteoVat!=0) {
+                $totals['transiteo_vat'] = new \Magento\Framework\DataObject(
+                    [
+                        'code' => 'transiteo_vat',
+                        'field' => 'transiteo_vat_amount',
+                        'value' => $transiteoVat,
+                        'base_value' => $baseTransiteoVat,
+                        'label' => __('Cross Border VAT / GST'),
+                    ]
+                );
+            }
+
+            if ($transiteoDuty && $transiteoDuty!=0) {
+                $totals['transiteo_duty'] = new \Magento\Framework\DataObject(
+                    [
+                        'code' => 'transiteo_duty',
+                        'field' => 'transiteo_duty_amount',
+                        'value' => $transiteoDuty,
+                        'base_value' => $baseTransiteoDuty,
+                        'label' => __('Cross Border Duty'),
+                    ]
+                );
+            }
 
 //            $returnTotals = [];
 //
@@ -181,7 +183,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
 //            $this->_totals = $returnTotals;
 
             foreach ($totals as $value) {
-                $parent->addTotal($value);
+                $parent->addTotal($value, "shipping");
             }
 
 //            $parent->addTotal($fee, 'fee');
