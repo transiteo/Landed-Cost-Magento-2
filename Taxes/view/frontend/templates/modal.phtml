@@ -42,6 +42,8 @@ $table        = explode(",", $currencyList);
             <span id='currency_error'></span>
         </div>
         <input type="hidden" id="getUrl" value="<?php echo $block->getBaseUrl() . 'transiteo/page/index'; ?>"/>
+        <input type="hidden" id="getCurrencyUrl"
+               value="<?php echo $block->getBaseUrl() . 'directory/currency/switch'; ?>"/>
         <input type="hidden" id="getUrlStates"
                value="<?php echo $block->getBaseUrl() . 'transiteo/district/index'; ?>"/>
         <input type="hidden" id="getCookie" value="<?php echo $block->getCookie('transiteo-popup-info'); ?>"/>

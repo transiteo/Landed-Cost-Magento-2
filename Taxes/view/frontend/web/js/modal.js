@@ -60,18 +60,23 @@ require([
                     const url = $("#getUrl").val();
 
                     const thisPopup = this;
+
+                    //save cookie
                     //if (!$form.valid()) return false;
                     jQuery.ajax({
                         url,
                         type: "POST",
                         data: form_data,
                         success(data) {
+                            changeCurrency();
                             thisPopup.closeModal();
                         },
                         error(result) {
                             console.log("no response !");
                         },
                     });
+
+
                 },
             },
         ],
@@ -164,6 +169,18 @@ require([
         cookie = $("#getCookie").val();
         return cookie;
     }
+
+    function changeCurrency() {
+        //change currency
+        var currency = $("#currency-select").val();
+        currency = currency.replace(';', '');
+        const currencyUrl = $("#getCurrencyUrl").val();
+        var param = "currency=" + currency;
+        const url = currencyUrl + '?' + param;
+        console.log(url);
+        window.location.href = url;
+    }
+
 
     function cookieExists() {
         return !!(getCookie() != "" && getCookie() != null);
