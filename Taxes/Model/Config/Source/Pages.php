@@ -8,13 +8,17 @@ class Pages implements \Magento\Framework\Data\OptionSourceInterface
     {
         return [
             [
-                'value' => 'plp',
-                'label' => __('Product Listing Page')
+                'value' => 'disable',
+                'label' => __('Disable')
             ],
-            [
-                'value' => 'pdp',
-                'label' => __('Product Page')
-            ],
+//            [
+//                'value' => 'plp',
+//                'label' => __('Product Listing Page')
+//            ],
+//            [
+//                'value' => 'pdp',
+//                'label' => __('Product Page')
+//            ],
             [
                 'value' => 'cart',
                 'label' => __('Cart Page')

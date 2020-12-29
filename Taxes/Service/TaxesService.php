@@ -91,7 +91,7 @@ class TaxesService
 //    }
 
     /**
-     * @param array $products composed of row ['qty' => $qty, 'product' => $product];
+     * @param array $products array of quote items
      * @param array $params
      * @return array
      * @throws \Magento\Framework\Exception\NoSuchEntityException
@@ -197,15 +197,11 @@ class TaxesService
 //            ->addFieldToFilter('entity_id', ['in' => array_keys($products)])
 //            ->load();
 
-        foreach ($products as $row) {
-            $qty = $row['qty'];
-            $product = $row['product'];
+        foreach ($products as $quoteItem) {
+            $qty = $quoteItem->getQty();
+            $product = $quoteItem->getProduct();
             $productParams = $this->productParamsFactory->create();
-            /**
-             * @var \Magento\Quote\Api\Data\CartItemInterface $product
-             */
             $id = $product->getId();
-//            $qty = $products[$id];
             ////////////
             $logger->info($product->getName());
             ///////////
@@ -224,30 +220,36 @@ class TaxesService
         $this->transiteoProducts->setProducts($productsParams);
         $this->transiteoProducts->setShipmentParams($shipmentParams);
 
-        foreach ($products as $row) {
-            $qty = $row['qty'];
-            $product = $row['product'];
+        foreach ($products as $quoteItem) {
+            $product = $quoteItem->getProduct();
             /**
              * @var CartItemInterface $product
              */
             $id = $product->getId();
-            $product->setTransiteoVat($this->transiteoProducts->getVat($id));
-            $product->setTransiteoDuty($this->transiteoProducts->getDuty($id));
-            $product->setTransiteoSpecialTaxes($this->transiteoProducts->getSpecialTaxes($id));
-            $taxeAmount = $this->transiteoProducts->getTotalTaxes($id);
-            $product->setTransiteoTotalTaxes($taxeAmount);
-            $product->setTaxAmount($taxeAmount);
-            //////////////////LOGGER//////////////
-            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/saveQuotItemTaxes.log');
-            $logger = new \Zend\Log\Logger();
-            $logger->addWriter($writer);
-            $logger->info('Product ' . $product->getName()
-                . ' vat ' . $product->getTransiteoVat()
-                . ' duty ' . $product->getTransiteoDuty()
-                . ' special taxes  ' . $product->getTransiteoSpecialTaxes()
-                . ' Total Taxes ' . $product->getTransiteoTotalTaxes());
-            ///////////////////////////////////////
-//            $product->setTaxPercent($this->transiteoProducts->getVatPercentage($id));
+
+            $currencyRate = $this->getCurrentCurrencyRate();
+            $duty = $this->transiteoProducts->getDuty($id);
+            $specialTaxes = $this->transiteoProducts->getSpecialTaxes($id);
+            $totalTaxes = $this->transiteoProducts->getTotalTaxes($id);
+            $vatAmount = $this->transiteoProducts->getVat($id);
+
+            //Set Transiteo Taxes
+            $quoteItem->setData('transiteo_vat', $vatAmount);
+            $quoteItem->setData('transiteo_duty', $duty);
+            $quoteItem->setData('transiteo_special_taxes', $specialTaxes);
+            $quoteItem->setData('transiteo_total_taxes', $totalTaxes);
+
+            $quoteItem->setData('base_transiteo_vat', $vatAmount / $currencyRate);
+            $quoteItem->setData('base_transiteo_duty', $duty / $currencyRate);
+            $quoteItem->setData('base_transiteo_special_taxes', $specialTaxes / $currencyRate);
+            $quoteItem->setData('base_transiteo_total_taxes', $totalTaxes / $currencyRate);
+
+            //Set Tax Amount if incoterm is ddp
+            if ($this->isDDPActivated()) {
+                $quoteItem->setTaxAmount($totalTaxes);
+                $quoteItem->setBaseTaxAmount($totalTaxes / $currencyRate);
+                $quoteItem->setTaxPercent(0);
+            }
         }
 
         return [
@@ -312,12 +314,6 @@ class TaxesService
         if ($r === null) {
             $r = "";
         }
-        //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/district.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        $logger->info('District : = ' . $r);
-        ///////////////////////////////////////
         return $r;
     }
 
@@ -389,7 +385,7 @@ class TaxesService
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         ));
         foreach ($values as $value) {
-            if ($value = 'checkout') {
+            if ($value === 'checkout') {
                 return true;
             }
         }
@@ -408,7 +404,7 @@ class TaxesService
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         ));
         foreach ($values as $value) {
-            if ($value = 'cart') {
+            if ($value === 'cart') {
                 return true;
             }
         }

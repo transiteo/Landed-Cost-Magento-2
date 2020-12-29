@@ -30,24 +30,20 @@ class QuoteTaxesProvider implements ConfigProviderInterface
      */
     public function getConfig()
     {
+        $additionalVariables = [];
         $quote = $this->checkoutSession->getQuote();
-        $total = $quote->getTotals()['transiteo-duty-taxes'];
-        //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        $logger->info($total->getTransiteoDuty());
-        ///////////////////////////////////////
-        $duty = $quote->getTransiteoDuty();
-        $vat = $this->checkoutSession->getQuote()->getTransiteoVat();
-        $specialTaxes = $this->checkoutSession->getQuote()->getTransiteoSpecialTaxes();
-        $totalTaxes = $this->checkoutSession->getQuote()->getTransiteoTotalTaxes();
-        $additionalVariables['quote_id'] = $this->checkoutSession->getQuoteId();
-        $additionalVariables['transiteo_duty'] = $duty;
-        $additionalVariables['transiteo_vat'] = $vat;
-        $additionalVariables['transiteo_special_taxes'] = $specialTaxes;
-        $additionalVariables['transiteo_total_taxes'] = $totalTaxes;
-        $additionalVariables['transiteo_checkout_taxes_url'] = $this->urlBuilder->getBaseUrl() . 'transiteo/checkout/taxes';
+        if ($quote->getTransiteoDisplay()) {
+            $duty = $quote->getTransiteoDuty();
+            $vat = $this->checkoutSession->getQuote()->getTransiteoVat();
+            $specialTaxes = $this->checkoutSession->getQuote()->getTransiteoSpecialTaxes();
+            $totalTaxes = $this->checkoutSession->getQuote()->getTransiteoTotalTaxes();
+            $additionalVariables['quote_id'] = $this->checkoutSession->getQuoteId();
+            $additionalVariables['transiteo_duty'] = $duty;
+            $additionalVariables['transiteo_vat'] = $vat;
+            $additionalVariables['transiteo_special_taxes'] = $specialTaxes;
+            $additionalVariables['transiteo_total_taxes'] = $totalTaxes;
+            $additionalVariables['transiteo_checkout_taxes_url'] = $this->urlBuilder->getBaseUrl() . 'transiteo/checkout/taxes';
+        }
         return $additionalVariables;
     }
 }

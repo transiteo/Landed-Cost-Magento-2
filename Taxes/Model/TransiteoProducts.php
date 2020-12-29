@@ -227,10 +227,18 @@ class TransiteoProducts
             }
         }
 
+        $totalPercentage = 0;
         if (isset($this->apiResponseContent["products"])) {
-            return $this->apiResponseContent["products"][$productId]["vat"]["percentage"] ?? null;
+            if (isset($this->apiResponseContent["products"][$productId]["vat"])) {
+                foreach (($this->apiResponseContent["products"][$productId]["vat"]) as $vat) {
+                    $totalPercentage += ($vat["percentage"] ?? 0);
+                }
+            }
+        } else {
+            return null;
         }
-        return null;
+
+        return $totalPercentage;
     }
 
     /**
