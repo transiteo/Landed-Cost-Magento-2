@@ -73,14 +73,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         }
         $amount = 0;
         $isCheckoutCart = $this->manageCheckoutState();
-        //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/incart.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        $logger->info('Is in checkout ? :' . (($isCheckoutCart) ? "true" : "false"));
-        $logger->info('Is activated in cart ? :' . ((!$isCheckoutCart && $this->taxexService->isActivatedOnCartView()) ? "true" : "false"));
-        $logger->info('Is activated in checkout ? :' . (($isCheckoutCart && $this->taxexService->isActivatedOnCheckout()) ? "true" : "false"));
-        ///////////////////////////////////////
         if (($isCheckoutCart && $this->taxexService->isActivatedOnCheckout()) ||
             (!$isCheckoutCart && $this->taxexService->isActivatedOnCartView())
         ) {
@@ -94,12 +86,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                     $amount += $this->totalTaxes;
                 }
             } catch (\Exception $exception) {
-                //////////////////LOGGER//////////////
-                $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-                $logger = new \Zend\Log\Logger();
-                $logger->addWriter($writer);
-                $logger->info('Exception raised' . $exception->getMessage());
-                ///////////////////////////////////////
                 $this->totalTaxes = 0;
             }
 
@@ -116,13 +102,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, $amount);
             $total->setGrandTotal($total->getGrandTotal() + $amount);
             $total->setBaseGrandTotal($total->getBaseGrandTotal() + ($amount / $currencyRate));
-
-            //////////////////LOGGER//////////////
-            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
-            $logger = new \Zend\Log\Logger();
-            $logger->addWriter($writer);
-            $logger->info('Collect amount :' . $amount . ', Grand Total' . $total->getGrandTotal() . ' Base Grand Total ' . $total->getBaseGrandTotal());
-            ///////////////////////////////////////
         }
 
         return $this;
@@ -136,23 +115,12 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
     protected function manageCheckoutState()
     {
         $controllerName = $this->request->getControllerName();
-        //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/controller.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        $logger->info('Controller : ' . $controllerName);
         if ($controllerName === "cart") {
             $this->checkoutSession->setIsInCheckout(false);
         }
         if ($controllerName === "index") {
             $this->checkoutSession->setIsInCheckout(true);
         }
-        //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/inCheckout.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        $logger->info('Is in Checkout ? : ' . $this->checkoutSession->getIsInCheckout());
-        ///////////////////////////////////////
         return $this->checkoutSession->getIsInCheckout();
     }
 
@@ -199,21 +167,8 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                     $amount += $quote->getTransiteoTotalTaxesAmount();
                 }
             } catch (\Exception $exception) {
-                //////////////////LOGGER//////////////
-                $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-                $logger = new \Zend\Log\Logger();
-                $logger->addWriter($writer);
-                $logger->info('Exception raised' . $exception->getMessage());
-                ///////////////////////////////////////
                 $this->totalTaxes =0;
             }
-
-            //////////////////LOGGER//////////////
-            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
-            $logger = new \Zend\Log\Logger();
-            $logger->addWriter($writer);
-            $logger->info('Fetch amount :' . $amount . ', Grand Total ' . $total->getGrandTotal() . ' Base Grand Total ' . $total->getBaseGrandTotal());
-            ///////////////////////////////////////
         }
 
         return [
@@ -269,12 +224,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             if (count($items)>0) {
                 //we are on checkout
                 if ($quote->getIsCheckoutCart()) {
-                    //////////////////LOGGER//////////////
-                    $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
-                    $logger = new \Zend\Log\Logger();
-                    $logger->addWriter($writer);
-                    $logger->info('We are in checkout ');
-                    ///////////////////////////////////////
                     $params[TaxesService::DISALLOW_GET_COUNTRY_FROM_COOKIE] = true;
                 }
             } else {
@@ -318,12 +267,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                 $params[TaxesService::TO_COUNTRY] = $countryId;
                 $params[TaxesService::TO_DISTRICT] = $districtId;
             }
-            //////////////////LOGGER//////////////
-            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/surcharge.log');
-            $logger = new \Zend\Log\Logger();
-            $logger->addWriter($writer);
-            $logger->info('Get Transiteo Taxes : { country_id : ' . $countryId . ' , region_id : ' . $districtId . ' , shipping_amount = ' . $shippingAmount . '} ');
-            ///////////////////////////////////////
         }
 
         $taxes=[];
@@ -332,18 +275,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             $taxes= $this->taxexService->getDutiesByProducts($products, $params);
 
             //saving changes in products to quote
-            foreach ($products as $product) {
-                //////////////////LOGGER//////////////
-                $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/saveQuotItemTaxes.log');
-                $logger = new \Zend\Log\Logger();
-                $logger->addWriter($writer);
-                $logger->info('Product ' . $product->getName()
-                    . ' vat ' . $product->getData('transiteo_vat')
-                    . ' duty ' . $product->getData('transiteo_duty')
-                    . ' special taxes  ' . $product->getData('transiteo_special_taxes')
-                    . ' Total Taxes ' . $product->getData('transiteo_total_taxes'));
-                ///////////////////////////////////////
-            }
             $quote->setItems($products);
             $quote->save();
         } else {
@@ -364,11 +295,5 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $this->vat =$taxes[TaxesService::RETURN_KEY_VAT];
         $this->specialTaxes = $taxes[TaxesService::RETURN_KEY_SPECIAL_TAXES];
         $this->totalTaxes = $taxes[TaxesService::RETURN_KEY_TOTAL_TAXES];
-        //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/taxes.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        $logger->info('Duty : ' . $this->duty . ' Vat : ' . $this->vat . ' Special Taxes : ' . $this->specialTaxes . ' Total Taxes : ' . $this->totalTaxes);
-        ///////////////////////////////////////
     }
 }

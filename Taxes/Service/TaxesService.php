@@ -17,7 +17,7 @@ use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Setup\Exception;
 use Magento\Store\Model\StoreManagerInterface;
 use Transiteo\Base\Model\TransiteoApiShipmentParameters;
-use Transiteo\Base\Model\TransiteoApiSingleProductParametersFactory;
+use Transiteo\Base\Model\TransiteoApiProductParametersFactory;
 use Transiteo\Taxes\Model\TransiteoProducts;
 
 class TaxesService
@@ -50,7 +50,7 @@ class TaxesService
      * @param TransiteoProducts $transiteoProducts
      * @param ScopeConfigInterface $scopeConfig
      * @param StoreManagerInterface $storeManager
-     * @param TransiteoApiSingleProductParametersFactory $productParamsFactory
+     * @param TransiteoApiProductParametersFactory $productParamsFactory
      * @param TransiteoApiShipmentParameters $shipmentParams
      * @param CollectionFactory $productCollectionFactory
      * @param CountryFactory $countryFactory
@@ -61,7 +61,7 @@ class TaxesService
         TransiteoProducts $transiteoProducts,
         ScopeConfigInterface $scopeConfig,
         StoreManagerInterface $storeManager,
-        TransiteoApiSingleProductParametersFactory $productParamsFactory,
+        TransiteoApiProductParametersFactory $productParamsFactory,
         TransiteoApiShipmentParameters $shipmentParams,
         CollectionFactory $productCollectionFactory,
         CountryFactory $countryFactory,
