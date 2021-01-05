@@ -2,7 +2,7 @@
 
 namespace Transiteo\Base\Model;
 
-class TransiteoApiSingleProductParameters
+class TransiteoApiProductParameters
 {
     private $productName;
     private $weight;
