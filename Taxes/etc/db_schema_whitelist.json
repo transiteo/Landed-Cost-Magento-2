@@ -14,5 +14,61 @@
         "constraint": {
             "PRIMARY": true
         }
+    },
+    "sales_order": {
+        "column": {
+            "base_transiteo_total_taxes": true,
+            "transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "transiteo_vat": true,
+            "base_transiteo_special_taxes": true,
+            "transiteo_special_taxes": true
+        }
+    },
+    "sales_order_item": {
+        "column": {
+            "base_transiteo_total_taxes": true,
+            "transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "transiteo_vat": true,
+            "base_transiteo_special_taxes": true,
+            "transiteo_special_taxes": true
+        }
+    },
+    "sales_order_grid": {
+        "column": {
+            "base_transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "base_transiteo_special_taxes": true
+        }
+    },
+    "quote": {
+        "column": {
+            "base_transiteo_total_taxes": true,
+            "transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "transiteo_vat": true,
+            "base_transiteo_special_taxes": true,
+            "transiteo_special_taxes": true
+        }
+    },
+    "quote_item": {
+        "column": {
+            "base_transiteo_total_taxes": true,
+            "transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "transiteo_vat": true,
+            "base_transiteo_special_taxes": true,
+            "transiteo_special_taxes": true
+        }
     }
 }

@@ -90,7 +90,7 @@ class DistrictRepository implements DistrictRepositoryInterface
         $district = $this->districtFactory->create();
         $this->resourceDistrict->load($district, $districtId);
 
-        if ( ! $district->getId()) {
+        if (! $district->getId()) {
             throw new NoSuchEntityException(__('District with id "%1" does not exist', $districtId));
         }
 
@@ -137,5 +137,14 @@ class DistrictRepository implements DistrictRepositoryInterface
         $searchResult->setTotalCount($collection->getSize());
 
         return $searchResult;
+    }
+
+    /**
+     * Delete all Districts
+     */
+    public function deleteAllDistricts()
+    {
+        $collection = $this->districtCollectionFactory->create();
+        $collection->getConnection()->delete($collection->getMainTable());
     }
 }
