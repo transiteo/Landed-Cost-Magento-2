@@ -36,6 +36,11 @@ interface DistrictRepositoryInterface
     public function delete(Data\DistrictInterface $district);
 
     /**
+     * @throws CouldNotDeleteException
+     */
+    public function deleteAllDistricts();
+
+    /**
      * @param int $districtId
      * @return Data\DistrictInterface
      * @throws NoSuchEntityException

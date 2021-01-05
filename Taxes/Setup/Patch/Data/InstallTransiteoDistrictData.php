@@ -8,31 +8,30 @@ declare(strict_types=1);
 
 namespace Transiteo\Taxes\Setup\Patch\Data;
 
-use Magento\Framework\Component\ComponentRegistrar;
 use Magento\Framework\Exception\CouldNotSaveException;
+use Magento\Framework\File\Csv;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Setup\SampleData\FixtureManager;
 use Transiteo\Taxes\Api\Data\DistrictInterface;
 use Transiteo\Taxes\Api\Data\DistrictInterfaceFactory;
 use Transiteo\Taxes\Api\DistrictRepositoryInterface;
-use Magento\Framework\File\Csv;
 
 class InstallTransiteoDistrictData implements DataPatchInterface
 {
     /**
      * @var DistrictInterfaceFactory
      */
-    private $districtFactory;
+    protected $districtFactory;
 
     /**
      * @var DistrictRepositoryInterface
      */
-    private $districtRepository;
+    protected $districtRepository;
 
     /**
      * @var FixtureManager
      */
-    private $fixtureManager;
+    protected $fixtureManager;
 
     /**
      * @var Csv
@@ -44,6 +43,8 @@ class InstallTransiteoDistrictData implements DataPatchInterface
      *
      * @param DistrictInterfaceFactory $districtFactory
      * @param DistrictRepositoryInterface $districtRepository
+     * @param FixtureManager $fixtureManager
+     * @param Csv $csvReader
      */
     public function __construct(
         DistrictInterfaceFactory $districtFactory,
@@ -60,10 +61,10 @@ class InstallTransiteoDistrictData implements DataPatchInterface
     public function apply()
     {
         $fileName = $this->fixtureManager->getFixture('Transiteo_Taxes::fixtures/districts.csv');
-
-        if ( ! file_exists($fileName)) {
+        if (! file_exists($fileName)) {
             return;
         }
+        $this->districtRepository->deleteAllDistricts();
 
         $rows = $this->csvReader->getData($fileName);
         $header = array_shift($rows);
@@ -127,7 +128,7 @@ class InstallTransiteoDistrictData implements DataPatchInterface
     {
         $isoParts = explode('-', $iso);
 
-        if (count($isoParts) < 3) {
+        if (count($isoParts) < 2) {
             return null;
         }
 
