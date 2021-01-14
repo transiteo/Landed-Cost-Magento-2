@@ -195,6 +195,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
      */
     protected function saveInQuote($quote)
     {
+        $quote->setTransiteoIncoterm($this->taxexService->getIncoterm());
         $quote->setTransiteoDuty($this->duty);
         $quote->setBaseTransiteoDuty($this->duty / $this->taxexService->getCurrentCurrencyRate());
         $quote->setTransiteoVat($this->vat);
@@ -232,10 +233,8 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         } else {
             $items = $quote->getItemsCollection();
         }
-//        $items = $quote->getItemsCollection();
 
         foreach ($items as $quoteItem) {
-//            if ($shippingAssignment !== null || $quoteItem->getHasChildren()) {
             if ($quoteItem->getParentItem()) {
                 continue;
             }
@@ -259,21 +258,38 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
          * Get Customer pro and activity
          */
 
-        /** TODO Ensure that country is given on checkout */
         if ($shippingAssignment) {
             $countryId = $shippingAssignment->getShipping()->getAddress()->getCountryId();
             $districtId = $shippingAssignment->getShipping()->getAddress()->getRegionCode();
-            if (!($countryId === "US" && empty($districtId)) && !empty($countryId)) {
+            if ($countryId) {
                 $params[TaxesService::TO_COUNTRY] = $countryId;
-                $params[TaxesService::TO_DISTRICT] = $districtId;
+                if ($districtId) {
+                    $districtId = $countryId . '-' . $districtId;
+                    //If country is us, append postcode to id
+                    if ($countryId === "US") {
+                        $zip = $shippingAssignment->getShipping()->getAddress()->getPostcode();
+                        if ($zip) {
+                            $districtId .= '-' . $zip;
+                            $params[TaxesService::TO_DISTRICT] = $districtId;
+                        }
+                    } else {
+                        $params[TaxesService::TO_DISTRICT] = $districtId;
+                    }
+                }
             }
         }
 
         $taxes=[];
         if ($products !== []) {
+            //////////////////LOGGER//////////////
+            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+            $logger = new \Zend\Log\Logger();
+            $logger->addWriter($writer);
+            $logger->info('Get Duties By Products');
+            ///////////////////////////////////////
             //get duties and taxes from taxes service
             $taxes= $this->taxexService->getDutiesByProducts($products, $params);
-
+            $logger->info('Duties Get');
             //saving changes in products to quote
             $quote->setItems($products);
             $quote->save();
@@ -295,5 +311,16 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $this->vat =$taxes[TaxesService::RETURN_KEY_VAT];
         $this->specialTaxes = $taxes[TaxesService::RETURN_KEY_SPECIAL_TAXES];
         $this->totalTaxes = $taxes[TaxesService::RETURN_KEY_TOTAL_TAXES];
+        //////////////////LOGGER//////////////
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/taxes.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        $logger->info(
+            'Duty : ' . $taxes[TaxesService::RETURN_KEY_DUTY] .
+            ' VAT : ' . $taxes[TaxesService::RETURN_KEY_VAT] .
+            ' SPECIAL TAXES : ' . $taxes[TaxesService::RETURN_KEY_SPECIAL_TAXES] .
+            ' TOTAL TAXES : ' . $taxes[TaxesService::RETURN_KEY_TOTAL_TAXES]
+        );
+        ///////////////////////////////////////
     }
 }

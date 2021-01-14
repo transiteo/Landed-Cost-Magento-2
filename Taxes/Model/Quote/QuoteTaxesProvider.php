@@ -37,11 +37,13 @@ class QuoteTaxesProvider implements ConfigProviderInterface
             $vat = $this->checkoutSession->getQuote()->getTransiteoVat();
             $specialTaxes = $this->checkoutSession->getQuote()->getTransiteoSpecialTaxes();
             $totalTaxes = $this->checkoutSession->getQuote()->getTransiteoTotalTaxes();
+            $incoterm = $this->checkoutSession->getQuote()->getTransiteoIncoterm();
             $additionalVariables['quote_id'] = $this->checkoutSession->getQuoteId();
             $additionalVariables['transiteo_duty'] = $duty;
             $additionalVariables['transiteo_vat'] = $vat;
             $additionalVariables['transiteo_special_taxes'] = $specialTaxes;
             $additionalVariables['transiteo_total_taxes'] = $totalTaxes;
+            $additionalVariables['transiteo_incoterm'] = $incoterm;
             $additionalVariables['transiteo_checkout_taxes_url'] = $this->urlBuilder->getBaseUrl() . 'transiteo/checkout/taxes';
         }
         return $additionalVariables;
