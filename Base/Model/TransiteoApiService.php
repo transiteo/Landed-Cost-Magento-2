@@ -168,12 +168,33 @@ class TransiteoApiService
             ],
             'json' => $productsParams
         ];
+        //////////////////LOGGER//////////////
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/request.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        ob_start();
+        var_dump($request);
+        $result = ob_get_clean();
+        $logger->info($request);
+        ///////////////////////////////////////
+
 
         $response = $this->doRequest(
             self::API_REQUEST_URI . "v1/taxsrv/dutyCalculation",
             $request,
             Request::HTTP_METHOD_POST
         );
+
+        //////////////////LOGGER//////////////
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/response.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        ob_start();
+        var_dump($response);
+        $result = ob_get_clean();
+        $logger->info($result);
+        ///////////////////////////////////////
+
         $status = $response->getStatusCode();
         $responseBody = $response->getBody();
         $responseContent = $responseBody->getContents();

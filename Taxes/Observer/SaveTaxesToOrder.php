@@ -13,6 +13,7 @@ class SaveTaxesToOrder implements \Magento\Framework\Event\ObserverInterface
         $order = $observer->getOrder();
         $quote = $observer->getQuote();
         if ($order && $quote) {
+            $order->setTransiteoIncoterm($quote->getTransiteoIncoterm());
             $order->setTransiteoVat($quote->getTransiteoVat());
             $order->setTransiteoDuty($quote->getTransiteoDuty());
             $order->setTransiteoSpecialTaxes($quote->getTransiteoSpecialTaxes());

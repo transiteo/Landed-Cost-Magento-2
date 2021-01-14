@@ -10,14 +10,14 @@ namespace Transiteo\Taxes\Service;
 
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\Directory\Model\CountryFactory;
+use Magento\Directory\Model\RegionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\FlagManager;
 use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
-use Magento\Setup\Exception;
 use Magento\Store\Model\StoreManagerInterface;
-use Transiteo\Base\Model\TransiteoApiShipmentParameters;
 use Transiteo\Base\Model\TransiteoApiProductParametersFactory;
+use Transiteo\Base\Model\TransiteoApiShipmentParameters;
 use Transiteo\Taxes\Model\TransiteoProducts;
 
 class TaxesService
@@ -42,6 +42,7 @@ class TaxesService
     protected $scopeConfig;
     protected $storeManager;
     protected $_countryFactory;
+    protected $regionFactory;
     protected $_flagManager;
     protected $cookieManager;
 
@@ -65,9 +66,11 @@ class TaxesService
         TransiteoApiShipmentParameters $shipmentParams,
         CollectionFactory $productCollectionFactory,
         CountryFactory $countryFactory,
+        RegionFactory $regionFactory,
         CookieManagerInterface $cookieManager,
         FlagManager $flagManager
     ) {
+        $this->regionFactory = $regionFactory;
         $this->cookieManager = $cookieManager;
         $this->transiteoProducts     = $transiteoProducts;
         $this->shipmentParams    = $shipmentParams;
@@ -130,18 +133,32 @@ class TaxesService
             $cookie = $this->cookieManager->getCookie('transiteo-popup-info', null);
             if ($cookie === null) {
                 throw new Exception("Transiteo_Taxes country cookie does not exists.");
+            }
+
+            $cookie = explode('_', $cookie);
+            $toCountry = $cookie[0];
+            if (!array_key_exists(self::TO_DISTRICT, $params) || $params[self::TO_DISTRICT] === "") {
+                $toDistrict = $cookie[1];
             } else {
-                $cookie = explode('_', $cookie);
-                $toCountry = $cookie[0];
-                if (!array_key_exists(self::TO_DISTRICT, $params) || $params[self::TO_DISTRICT] === "") {
-                    $toDistrict = $cookie[1];
-                } else {
-                    $toDistrict = $params[self::TO_DISTRICT];
-                }
+                $toDistrict = $params[self::TO_DISTRICT];
             }
         } else {
             $toCountry = $params[self::TO_COUNTRY];
-            $toDistrict = $params[self::TO_DISTRICT];
+            if ((!array_key_exists(self::TO_DISTRICT, $params)) || $params[self::TO_DISTRICT] === "") {
+                if ((array_key_exists(self::DISALLOW_GET_COUNTRY_FROM_COOKIE, $params)
+                    && $params[self::DISALLOW_GET_COUNTRY_FROM_COOKIE])) {
+                    throw new Exception("Transiteo_Taxes getting country from cookie is disallowed.");
+                }
+                $cookie = $this->cookieManager->getCookie('transiteo-popup-info', null);
+                if ($cookie === null) {
+                    throw new Exception("Transiteo_Taxes country cookie does not exists.");
+                }
+
+                $cookie = explode('_', $cookie);
+                $toDistrict = $cookie[1];
+            } else {
+                $toDistrict = $params[self::TO_DISTRICT];
+            }
         }
 
         //IF country is ISO2 get ISO3 code
@@ -185,29 +202,15 @@ class TaxesService
 
         ///PRODUCTS
         $productsParams = [];
-        //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        ///////////////////////////////////////
         $weightUnit = $this->getWeightUnit();
         $currentStoreCurrency = $this->getCurrentStoreCurrency();
-//        $productCollection = $this->productCollectionFactory->create()
-//            ->addAttributeToSelect('*')
-//            ->addFieldToFilter('entity_id', ['in' => array_keys($products)])
-//            ->load();
 
         foreach ($products as $quoteItem) {
             $qty = $quoteItem->getQty();
             $product = $quoteItem->getProduct();
             $productParams = $this->productParamsFactory->create();
             $id = $product->getId();
-            ////////////
-            $logger->info($product->getName());
-            ///////////
             $productParams->setProductName($product->getName());
-            $logger->info("Weight : " . $product->getWeight() . " -> " . round($product->getWeight(), 2));
-            //$productParams->setWeight(1);
             $productParams->setWeight(round($product->getWeight(), 2));
             $productParams->setWeight_unit($weightUnit);
             $productParams->setQuantity($qty);
@@ -252,6 +255,24 @@ class TaxesService
             }
         }
 
+        //////////////////LOGGER//////////////
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        $logger->info('Before ask getTotalDuty');
+        ///////////////////////////////////////
+        $res = [];
+
+        $res[self::RETURN_KEY_DUTY ] = $this->transiteoProducts->getTotalDuty();
+        $logger->info('Before ask getTotalVat');
+        $res[self::RETURN_KEY_VAT ] = $this->transiteoProducts->getTotalVat();
+        $logger->info('Before ask getTotalSpecialTaxes');
+        $res[self::RETURN_KEY_SPECIAL_TAXES ] = $this->transiteoProducts->getTotalSpecialTaxes();
+        $logger->info('Before ask getTotalTaxes');
+        $res[self::RETURN_KEY_TOTAL_TAXES  ] = $this->transiteoProducts->getTotalTaxes();
+
+
+        return $res;
         return [
             self::RETURN_KEY_DUTY          => $this->transiteoProducts->getTotalDuty(),
             self::RETURN_KEY_VAT           => $this->transiteoProducts->getTotalVat(),
@@ -295,7 +316,7 @@ class TaxesService
     public function getWebsiteCountry(): string
     {
         return $this->scopeConfig->getValue(
-            'general/country/default',
+            'shipping/origin/country_id',
             \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE
         );
     }
@@ -307,12 +328,19 @@ class TaxesService
      */
     public function getWebsiteDistrict(): string
     {
-        $r = $this->scopeConfig->getValue(
-            'general/country/district',
+        $country = $this->getWebsiteCountry();
+        $regionId = $this->scopeConfig->getValue(
+            'shipping/origin/region_id',
             \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE
         );
-        if ($r === null) {
-            $r = "";
+        $region =  $this->regionFactory->create()->load($regionId)->getCode();
+        $zip = $this->scopeConfig->getValue(
+            'shipping/origin/postcode',
+            \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE
+        );
+        $r = $country . '-' . $region;
+        if ($country === "US") {
+            $r .= '-' . $zip;
         }
         return $r;
     }
@@ -354,6 +382,19 @@ class TaxesService
         $country = $this->_countryFactory->create();
         $country->loadByCode($countryIsoCode2);
         return $country->getData('iso3_code');
+    }
+
+    /**
+     *  Return if ddp is activate.
+     *
+     * @return bool|mixed
+     */
+    public function getIncoterm()
+    {
+        return $this->scopeConfig->getValue(
+            'transiteo_settings/duties/incoterm',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
     }
 
     /**

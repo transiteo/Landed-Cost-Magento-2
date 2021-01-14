@@ -68,6 +68,14 @@ define([
             return window.checkoutConfig.transiteo_total_taxes;
         },
 
+        getIncluded: function (){
+            if(window.checkoutConfig.transiteo_incoterm === 'ddp'){
+                return $t('(Included)');
+            }else{
+                return $t('(Not included)');
+            }
+        },
+
         /**
          * @return {*|String}
          */

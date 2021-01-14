@@ -26,6 +26,8 @@
         </index>
     </table>
     <table name="sales_order" resource="sales" engine="innodb" comment="Sales Order">
+        <column xsi:type="varchar" name="transiteo_incoterm" length="255"
+                nullable="true" comment="Incoterm Applied To Order"/>
         <column xsi:type="decimal" name="base_transiteo_total_taxes" scale="4" precision="20" unsigned="false"
                 nullable="true" comment="Base Transiteo Total Taxes"/>
         <column xsi:type="decimal" name="transiteo_total_taxes" scale="4" precision="20" unsigned="false"
@@ -62,6 +64,8 @@
                 nullable="true" comment="Transiteo Special Taxes"/>
     </table>
     <table name="sales_order_grid" resource="sales" engine="innodb" comment="Sales Order">
+        <column xsi:type="varchar" name="transiteo_incoterm" length="255"
+                nullable="true" comment="Incoterm Applied To Order"/>
         <column xsi:type="decimal" name="base_transiteo_total_taxes" scale="4" precision="20" unsigned="false"
                 nullable="true" comment="Transiteo Total Taxes"/>
         <column xsi:type="decimal" name="base_transiteo_duty" scale="4" precision="20" unsigned="false"
@@ -72,6 +76,8 @@
                 nullable="true" comment="Transiteo Special Taxes"/>
     </table>
     <table name="quote" resource="default" engine="innodb" comment="Quote Order">
+        <column xsi:type="varchar" name="transiteo_incoterm" length="255"
+                nullable="true" comment="Incoterm Applied To Order"/>
         <column xsi:type="decimal" name="base_transiteo_total_taxes" scale="4" precision="20" unsigned="false"
                 nullable="true" comment="Base Transiteo Total Taxes"/>
         <column xsi:type="decimal" name="transiteo_total_taxes" scale="4" precision="20" unsigned="false"

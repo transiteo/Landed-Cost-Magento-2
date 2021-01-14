@@ -65,8 +65,7 @@ class Taxes extends Action
                     $values['value'] = $quote->getTransiteoTotalTaxes();
                 }
             }
-
-            $values['ddp'] = $this->taxesService->isDDPActivated();
+            $values['transiteo_incoterm'] =  $quote->getTransiteoIncoterm();
         } catch (NoSuchEntityException $e) {
             $response->setData([
                 'error' => true,

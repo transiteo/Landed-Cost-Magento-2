@@ -30,6 +30,7 @@
                 <item name="base_transiteo_duty" xsi:type="string">sales_order.base_transiteo_duty</item>
                 <item name="base_transiteo_vat" xsi:type="string">sales_order.base_transiteo_vat</item>
                 <item name="base_transiteo_special_taxes" xsi:type="string">sales_order.base_transiteo_special_taxes</item>
+                <item name="transiteo_incoterm" xsi:type="string">sales_order.transiteo_incoterm</item>
             </argument>
         </arguments>
     </virtualType>

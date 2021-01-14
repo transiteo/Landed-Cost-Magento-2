@@ -101,13 +101,6 @@ class Taxes extends \Magento\Framework\View\Element\Template
         $transiteoTotalTaxes = $order->getTransiteoTotalTaxes();
         $baseTransiteoTotalTaxes = $order->getBaseTransiteoTotalTaxes();
 
-        //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        $logger->info('Init Totals : ' . $transiteoTotalTaxes);
-        ///////////////////////////////////////
-
         if ($transiteoTotalTaxes) {
             $totals = [];
             $transiteoDuty = $order->getTransiteoDuty();
@@ -116,6 +109,12 @@ class Taxes extends \Magento\Framework\View\Element\Template
             $baseTransiteoVat = $order->getBaseTransiteoVat();
             $transiteoSpecialTaxes = $order->getTransiteoSpecialTaxes();
             $baseTransiteoSpecialTaxes = $order->getBaseTransiteoSpecialTaxes();
+            $included = $order->getTransiteoIncoterm();
+            if ($included === "ddp") {
+                $included = ' ' . __('included');
+            } else {
+                $included = "";
+            }
 
             if (!($transiteoVat != 0 xor $transiteoDuty != 0 xor $transiteoSpecialTaxes != 0)) {
                 $totals['transiteo_total_taxes'] = new \Magento\Framework\DataObject(
@@ -125,7 +124,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
                         'strong' => true,
                         'value' => $transiteoTotalTaxes,
                         'base_value' => $baseTransiteoTotalTaxes,
-                        'label' => __('Cross Border Total Taxes'),
+                        'label' => __('Duty & Taxes Total' . $included),
                     ]
                 );
             }
@@ -137,7 +136,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
                         'field' => 'transiteo_special_taxes_amount',
                         'value' => $transiteoSpecialTaxes,
                         'base_value' => $baseTransiteoSpecialTaxes,
-                        'label' => __('Cross Border Special Taxes'),
+                        'label' => __('Special Taxes SubTotal' . $included),
                     ]
                 );
             }
@@ -149,7 +148,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
                         'field' => 'transiteo_vat_amount',
                         'value' => $transiteoVat,
                         'base_value' => $baseTransiteoVat,
-                        'label' => __('Cross Border VAT / GST'),
+                        'label' => __('VAT/GST SubTotal' . $included),
                     ]
                 );
             }
@@ -161,34 +160,14 @@ class Taxes extends \Magento\Framework\View\Element\Template
                         'field' => 'transiteo_duty_amount',
                         'value' => $transiteoDuty,
                         'base_value' => $baseTransiteoDuty,
-                        'label' => __('Cross Border Duty'),
+                        'label' => __('Duty SubTotal' . $included),
                     ]
                 );
             }
 
-//            $returnTotals = [];
-//
-//            //Set totals at the right place in the totals array (before grand total)
-//            $memTotals = $this->_totals;
-//            foreach ($memTotals as $key => $value) {
-//                if ($key !== 'grand_total') {
-//                    $returnTotals[$key] = $value;
-//                } else {
-//                    foreach ($totals as $tKey => $tValue) {
-//                        $returnTotals[$tKey] = $tValue;
-//                    }
-//                    $returnTotals[$key] = $value;
-//                }
-//            }
-//            $this->_totals = $returnTotals;
-
             foreach ($totals as $value) {
                 $parent->addTotal($value, "shipping");
             }
-
-//            $parent->addTotal($fee, 'fee');
-//            // $this->_addTax('grand_total');
-//            $parent->addTotal($fee, 'fee');
         }
         return $this;
     }
