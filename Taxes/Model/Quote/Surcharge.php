@@ -86,7 +86,16 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                     $amount += $this->totalTaxes;
                 }
             } catch (\Exception $exception) {
-                $this->totalTaxes = 0;
+                //////////////////LOGGER//////////////
+                $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+                $logger = new \Zend\Log\Logger();
+                $logger->addWriter($writer);
+                $logger->info($exception->getMessage());
+                ///////////////////////////////////////
+                $this->totalTaxes = null;
+                $this->specialTaxes = null;
+                $this->duty = null;
+                $this->vat = null;
             }
 
             $currencyRate = $this->taxexService->getCurrentCurrencyRate();
@@ -187,7 +196,12 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                     $amount += $quote->getTransiteoTotalTaxesAmount();
                 }
             } catch (\Exception $exception) {
-                $this->totalTaxes =0;
+                //////////////////LOGGER//////////////
+                $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+                $logger = new \Zend\Log\Logger();
+                $logger->addWriter($writer);
+                $logger->info($exception->getMessage());
+                ///////////////////////////////////////
             }
         }
 
@@ -295,14 +309,26 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                     } else {
                         $params[TaxesService::TO_DISTRICT] = $districtId;
                     }
+                } else {
+                    $districtId = $shippingAssignment->getShipping()->getAddress()->getRegion();
+                    if ($districtId) {
+                        $params[TaxesService::TO_DISTRICT] = $districtId;
+                    }
                 }
             }
         }
 
         $taxes=[];
         if ($products !== []) {
+            //////////////////LOGGER//////////////
+            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+            $logger = new \Zend\Log\Logger();
+            $logger->addWriter($writer);
+            $logger->info('Get Duties');
+            ///////////////////////////////////////
             //get duties and taxes from taxes service
             $taxes= $this->taxexService->getDutiesByProducts($products, $params);
+            $logger->info('Duties received');
 
             //saving changes in products to quote
             $quote->setItems($products);

@@ -13,6 +13,10 @@ class TransiteoProducts
     private $serializer;
     private $productsParams;
     private $shipmentParams;
+    private $responseIsOk;
+    private $isProductsInitialized = false;
+    private $isShipmentInitialized = false;
+    private $getDutiesCalled = false;
 
     public function __construct(
         TransiteoApiService $apiService,
@@ -33,7 +37,7 @@ class TransiteoProducts
     public function setProducts($products)
     {
         $this->productsParams = $products;
-
+        $this->isProductsInitialized = true;
         return $this;
     }
 
@@ -46,6 +50,7 @@ class TransiteoProducts
     public function setShipmentParams($shipmentParams)
     {
         $this->shipmentParams = $shipmentParams;
+        $this->isShipmentInitialized = true;
 
         return $this;
     }
@@ -58,8 +63,22 @@ class TransiteoProducts
         return $this->apiService;
     }
 
+    /**
+     * Return True if Shipment and Products param are set and Response is valid
+     *
+     * @return bool
+     */
+    public function isValid()
+    {
+        return $this->responseIsOk && $this->isProductsInitialized && $this->isShipmentInitialized;
+    }
+
     public function getDuties()
     {
+        if ($this->getDutiesCalled || !($this->isProductsInitialized && $this->isShipmentInitialized)) {
+            return false;
+        }
+        $this->getDutiesCalled = true;
         $finalParams = [];
         foreach ($this->productsParams as $param) {
             $finalParams['products'][] = $param->buildArray();
@@ -81,6 +100,10 @@ class TransiteoProducts
         //set products ids as keys for results products
         if (isset($this->apiResponseContent["products"])&& isset($this->productsParams)) {
             $this->apiResponseContent["products"] = \array_combine(\array_keys($this->productsParams), $this->apiResponseContent["products"]);
+            $this->responseIsOk = true;
+        } else {
+            $this->responseIsOk = false;
+            return false;
         }
         return true;
     }
@@ -110,7 +133,7 @@ class TransiteoProducts
      */
     public function getDutyFeesGlobal()
     {
-        if ($this->apiResponseContent == null) {
+        if (!$this->isValid()) {
             $response = $this->getDuties();
             if ($response !== true) {
                 return null;
@@ -128,7 +151,7 @@ class TransiteoProducts
      */
     public function getDuty($productId)
     {
-        if ($this->apiResponseContent == null) {
+        if (!$this->isValid()) {
             $response = $this->getDuties();
             if ($response !== true) {
                 return null;
@@ -154,7 +177,7 @@ class TransiteoProducts
      */
     public function getVat($productId)
     {
-        if ($this->apiResponseContent == null) {
+        if (!$this->isValid()) {
             $response = $this->getDuties();
             if ($response !== true) {
                 return null;
@@ -180,7 +203,7 @@ class TransiteoProducts
      */
     public function getVatLabels($productId)
     {
-        if ($this->apiResponseContent == null) {
+        if (!$this->isValid()) {
             $response = $this->getDuties();
             if ($response !== true) {
                 return null;
@@ -204,7 +227,7 @@ class TransiteoProducts
      */
     public function getVatPercentage($productId)
     {
-        if ($this->apiResponseContent == null) {
+        if (!$this->isValid()) {
             $response = $this->getDuties();
             if ($response !== true) {
                 return null;
@@ -229,7 +252,7 @@ class TransiteoProducts
      */
     public function getSpecialTaxes($productId)
     {
-        if ($this->apiResponseContent == null) {
+        if (!$this->isValid()) {
             $response = $this->getDuties();
             if ($response !== true) {
                 return null;
@@ -254,7 +277,7 @@ class TransiteoProducts
      */
     public function getShippingDuty()
     {
-        if ($this->apiResponseContent == null) {
+        if (!$this->isValid()) {
             $response = $this->getDuties();
             if ($response !== true) {
                 return null;
@@ -278,7 +301,7 @@ class TransiteoProducts
      */
     public function getShippingVat()
     {
-        if ($this->apiResponseContent == null) {
+        if (!$this->isValid()) {
             $response = $this->getDuties();
             if ($response !== true) {
                 return null;
@@ -302,7 +325,7 @@ class TransiteoProducts
      */
     public function getShippingSpecialTaxes()
     {
-        if ($this->apiResponseContent == null) {
+        if (!$this->isValid()) {
             $response = $this->getDuties();
             if ($response !== true) {
                 return null;
@@ -338,7 +361,7 @@ class TransiteoProducts
      */
     public function getTotalDuty()
     {
-        if ($this->apiResponseContent == null) {
+        if (!$this->isValid()) {
             $response = $this->getDuties();
             if ($response !== true) {
                 return null;
@@ -376,7 +399,7 @@ class TransiteoProducts
      */
     public function getTotalVat()
     {
-        if ($this->apiResponseContent == null) {
+        if (!$this->isValid()) {
             $response = $this->getDuties();
             if ($response !== true) {
                 return null;
@@ -412,7 +435,7 @@ class TransiteoProducts
      */
     public function getTotalSpecialTaxes()
     {
-        if ($this->apiResponseContent == null) {
+        if (!$this->isValid()) {
             $response = $this->getDuties();
             if ($response !== true) {
                 return null;
@@ -449,7 +472,7 @@ class TransiteoProducts
      */
     public function getTotalTaxes($productId = null)
     {
-        if ($this->apiResponseContent == null) {
+        if (!$this->isValid()) {
             $response = $this->getDuties();
             if ($response !== true) {
                 return null;

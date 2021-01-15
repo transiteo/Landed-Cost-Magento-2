@@ -272,23 +272,23 @@ class TaxesService
             }
         }
 
-//        //////////////////LOGGER//////////////
-//        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-//        $logger = new \Zend\Log\Logger();
-//        $logger->addWriter($writer);
-//        $logger->info('Before ask getTotalDuty');
-//        ///////////////////////////////////////
+        //////////////////LOGGER//////////////
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        $logger->info('Before ask getTotalDuty');
+        ///////////////////////////////////////
         $res = [];
 
-//        $res[self::RETURN_KEY_DUTY ] = $this->transiteoProducts->getTotalDuty();
-//        $logger->info('Before ask getTotalVat');
-//        $res[self::RETURN_KEY_VAT ] = $this->transiteoProducts->getTotalVat();
-//        $logger->info('Before ask getTotalSpecialTaxes');
-//        $res[self::RETURN_KEY_SPECIAL_TAXES ] = $this->transiteoProducts->getTotalSpecialTaxes();
-//        $logger->info('Before ask getTotalTaxes');
-//        $res[self::RETURN_KEY_TOTAL_TAXES  ] = $this->transiteoProducts->getTotalTaxes();
-//
-//        return $res;
+        $res[self::RETURN_KEY_DUTY ] = $this->transiteoProducts->getTotalDuty();
+        $logger->info('Before ask getTotalVat');
+        $res[self::RETURN_KEY_VAT ] = $this->transiteoProducts->getTotalVat();
+        $logger->info('Before ask getTotalSpecialTaxes');
+        $res[self::RETURN_KEY_SPECIAL_TAXES ] = $this->transiteoProducts->getTotalSpecialTaxes();
+        $logger->info('Before ask getTotalTaxes');
+        $res[self::RETURN_KEY_TOTAL_TAXES  ] = $this->transiteoProducts->getTotalTaxes();
+
+        return $res;
         return [
             self::RETURN_KEY_DUTY          => $this->transiteoProducts->getTotalDuty(),
             self::RETURN_KEY_VAT           => $this->transiteoProducts->getTotalVat(),
