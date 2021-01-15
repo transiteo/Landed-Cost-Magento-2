@@ -87,7 +87,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
     /**
      * Initialize all order totals relates with tax
      *
-     * @return \Magento\Tax\Block\Sales\Order\Tax
+     * @return $this
      */
     public function initTotals()
     {
@@ -111,12 +111,12 @@ class Taxes extends \Magento\Framework\View\Element\Template
             $baseTransiteoSpecialTaxes = $order->getBaseTransiteoSpecialTaxes();
             $included = $order->getTransiteoIncoterm();
             if ($included === "ddp") {
-                $included = ' ' . __('included');
+                $included = ' ' . __('(included)');
             } else {
                 $included = "";
             }
 
-            if (!($transiteoVat != 0 xor $transiteoDuty != 0 xor $transiteoSpecialTaxes != 0)) {
+            if (!((isset($transiteoVat) && $transiteoVat != 0) xor (isset($transiteoDuty) && $transiteoDuty != 0) xor (isset($transiteoSpecialTaxes) && $transiteoSpecialTaxes != 0))) {
                 $totals['transiteo_total_taxes'] = new \Magento\Framework\DataObject(
                     [
                         'code' => 'transiteo_total_taxes',
@@ -129,7 +129,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
                 );
             }
 
-            if ($transiteoSpecialTaxes && $transiteoSpecialTaxes!=0) {
+            if (isset($transiteoSpecialTaxes)) {
                 $totals['transiteo_special_taxes'] = new \Magento\Framework\DataObject(
                     [
                         'code' => 'transiteo_special_taxes',
@@ -141,7 +141,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
                 );
             }
 
-            if ($transiteoVat && $transiteoVat!=0) {
+            if (isset($transiteoVat)) {
                 $totals['transiteo_vat'] = new \Magento\Framework\DataObject(
                     [
                         'code' => 'transiteo_vat',
@@ -153,7 +153,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
                 );
             }
 
-            if ($transiteoDuty && $transiteoDuty!=0) {
+            if (isset($transiteoDuty)) {
                 $totals['transiteo_duty'] = new \Magento\Framework\DataObject(
                     [
                         'code' => 'transiteo_duty',

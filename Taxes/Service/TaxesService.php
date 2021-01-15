@@ -144,20 +144,19 @@ class TaxesService
             }
         } else {
             $toCountry = $params[self::TO_COUNTRY];
-            if ((!array_key_exists(self::TO_DISTRICT, $params)) || $params[self::TO_DISTRICT] === "") {
-                if ((array_key_exists(self::DISALLOW_GET_COUNTRY_FROM_COOKIE, $params)
-                    && $params[self::DISALLOW_GET_COUNTRY_FROM_COOKIE])) {
-                    throw new \Exception("Transiteo_Taxes getting country from cookie is disallowed.");
-                }
-                $cookie = $this->cookieManager->getCookie('transiteo-popup-info', null);
-                if ($cookie === null) {
-                    throw new \Exception("Transiteo_Taxes country cookie does not exists.");
-                }
-
-                $cookie = explode('_', $cookie);
-                $toDistrict = $cookie[1];
-            } else {
+            if (isset($params[self::TO_COUNTRY])) {
                 $toDistrict = $params[self::TO_DISTRICT];
+            } else {
+                //set default district for usa, and Brazil and Canada.
+                if ($toCountry === "USA") {
+                    $toDistrict = "US-CA-90034";
+                }
+                if ($toCountry === "CAN") {
+                    $toDistrict = "CA-AB";
+                }
+                if ($toCountry === "BRA") {
+                    $toDistrict = "BR-AC";
+                }
             }
         }
 
@@ -242,10 +241,28 @@ class TaxesService
             $quoteItem->setData('transiteo_special_taxes', $specialTaxes);
             $quoteItem->setData('transiteo_total_taxes', $totalTaxes);
 
-            $quoteItem->setData('base_transiteo_vat', $vatAmount / $currencyRate);
-            $quoteItem->setData('base_transiteo_duty', $duty / $currencyRate);
-            $quoteItem->setData('base_transiteo_special_taxes', $specialTaxes / $currencyRate);
-            $quoteItem->setData('base_transiteo_total_taxes', $totalTaxes / $currencyRate);
+            if (isset($vatAmount)) {
+                $quoteItem->setData('base_transiteo_vat', $vatAmount / $currencyRate);
+            } else {
+                $quoteItem->setData('base_transiteo_vat', null);
+            }
+
+            if (isset($duty)) {
+                $quoteItem->setData('base_transiteo_duty', $duty / $currencyRate);
+            } else {
+                $quoteItem->setData('base_transiteo_duty', null);
+            }
+
+            if (isset($specialTaxes)) {
+                $quoteItem->setData('base_transiteo_special_taxes', $specialTaxes / $currencyRate);
+            } else {
+                $quoteItem->setData('base_transiteo_special_taxes', null);
+            }
+            if (isset($totalTaxes)) {
+                $quoteItem->setData('base_transiteo_total_taxes', $totalTaxes / $currencyRate);
+            } else {
+                $quoteItem->setData('base_transiteo_total_taxes', null);
+            }
 
             //Set Tax Amount if incoterm is ddp
             if ($this->isDDPActivated()) {
@@ -255,24 +272,23 @@ class TaxesService
             }
         }
 
-        //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        $logger->info('Before ask getTotalDuty');
-        ///////////////////////////////////////
+//        //////////////////LOGGER//////////////
+//        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+//        $logger = new \Zend\Log\Logger();
+//        $logger->addWriter($writer);
+//        $logger->info('Before ask getTotalDuty');
+//        ///////////////////////////////////////
         $res = [];
 
-        $res[self::RETURN_KEY_DUTY ] = $this->transiteoProducts->getTotalDuty();
-        $logger->info('Before ask getTotalVat');
-        $res[self::RETURN_KEY_VAT ] = $this->transiteoProducts->getTotalVat();
-        $logger->info('Before ask getTotalSpecialTaxes');
-        $res[self::RETURN_KEY_SPECIAL_TAXES ] = $this->transiteoProducts->getTotalSpecialTaxes();
-        $logger->info('Before ask getTotalTaxes');
-        $res[self::RETURN_KEY_TOTAL_TAXES  ] = $this->transiteoProducts->getTotalTaxes();
-
-
-        return $res;
+//        $res[self::RETURN_KEY_DUTY ] = $this->transiteoProducts->getTotalDuty();
+//        $logger->info('Before ask getTotalVat');
+//        $res[self::RETURN_KEY_VAT ] = $this->transiteoProducts->getTotalVat();
+//        $logger->info('Before ask getTotalSpecialTaxes');
+//        $res[self::RETURN_KEY_SPECIAL_TAXES ] = $this->transiteoProducts->getTotalSpecialTaxes();
+//        $logger->info('Before ask getTotalTaxes');
+//        $res[self::RETURN_KEY_TOTAL_TAXES  ] = $this->transiteoProducts->getTotalTaxes();
+//
+//        return $res;
         return [
             self::RETURN_KEY_DUTY          => $this->transiteoProducts->getTotalDuty(),
             self::RETURN_KEY_VAT           => $this->transiteoProducts->getTotalVat(),
