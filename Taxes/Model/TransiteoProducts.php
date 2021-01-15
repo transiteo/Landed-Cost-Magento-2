@@ -236,7 +236,10 @@ class TransiteoProducts
             }
         }
 
-        if (isset($this->apiResponseContent["products"][$productId]["special_taxes"]["special_taxes_amount"])) {
+        if (isset($this->apiResponseContent["products"])
+        && isset($this->apiResponseContent["products"][$productId])
+        && isset($this->apiResponseContent["products"][$productId]["special_taxes"])
+        ) {
             $totalTax = 0;
             $totalTax += ($this->apiResponseContent["products"][$productId]["special_taxes"]["special_taxes_amount"] ?? 0);
             return $totalTax;
@@ -258,7 +261,7 @@ class TransiteoProducts
             }
         }
 
-        if (isset($this->apiResponseContent["shipping_global"]["duty"])) {
+        if (isset($this->apiResponseContent["shipping_global"]) && isset($this->apiResponseContent["shipping_global"]["duty"])) {
             $totalTax = 0;
             $totalTax += ($this->apiResponseContent["shipping_global"]["duty"]["amount"] ?? 0);
             $totalTax += ($this->apiResponseContent["shipping_global"]["duty"]["vat_amount"] ?? 0);
@@ -282,7 +285,7 @@ class TransiteoProducts
             }
         }
 
-        if (isset($this->apiResponseContent["shipping_global"]["vat"])) {
+        if (isset($this->apiResponseContent["shipping_global"])&& isset($this->apiResponseContent["shipping_global"]["vat"])) {
             $totalTax = 0;
             foreach ($this->apiResponseContent["shipping_global"]["vat"] as $vat) {
                 $totalTax += ($vat["amount"] ?? 0);
@@ -306,7 +309,7 @@ class TransiteoProducts
             }
         }
 
-        if (isset($this->apiResponseContent["products"]["special_taxes"]["amount"])) {
+        if (isset($this->apiResponseContent["products"]) && isset($this->apiResponseContent["products"]["special_taxes"])) {
             $totalTax = 0;
             $totalTax += ($this->apiResponseContent["products"]["special_taxes"]["amount"] ?? 0);
             return $totalTax;
@@ -345,17 +348,19 @@ class TransiteoProducts
         $totalTax = 0;
         if (isset($this->apiResponseContent["products"])) {
             foreach ($this->apiResponseContent["products"] as $product) {
-                $isNull &= $this->safeSum($totalTax, $product["duty"]["product_taxes_amount"]);
-                $isNull &= $this->safeSum($totalTax, $product["duty"]["vat_taxes_amount"]);
-                $isNull &= $this->safeSum($totalTax, $product["duty"]["shipping_taxes_amount"]);
+                if (isset($product["duty"])) {
+                    $isNull &= $this->safeSum($totalTax, $product["duty"]["product_taxes_amount"] ?? null);
+                    $isNull &= $this->safeSum($totalTax, $product["duty"]["vat_taxes_amount"] ?? null);
+                    $isNull &= $this->safeSum($totalTax, $product["duty"]["shipping_taxes_amount"] ?? null);
+                }
             }
         }
 
         //Get Shipping Duty
-        $isNull &= $this->safeSum($totalTax, $this->getShippingDuty());
+        $isNull &= $this->safeSum($totalTax, $this->getShippingDuty() ?? null);
 
         //Get Duty Fees Global
-        $isNull &= $this->safeSum($totalTax, $this->getDutyFeesGlobal());
+        $isNull &= $this->safeSum($totalTax, $this->getDutyFeesGlobal() ?? null);
 
         if ($isNull) {
             return null;
@@ -383,8 +388,8 @@ class TransiteoProducts
             foreach ($this->apiResponseContent["products"] as $product) {
                 if (isset($product["vat"])) {
                     foreach (($product["vat"]) as $vat) {
-                        $isNull &= $this->safeSum($totalTax, $vat["product_taxes_amount"]);
-                        $isNull &= $this->safeSum($totalTax, $vat["shipping_taxes_amount"]);
+                        $isNull &= $this->safeSum($totalTax, $vat["product_taxes_amount"] ?? null);
+                        $isNull &= $this->safeSum($totalTax, $vat["shipping_taxes_amount"] ?? null);
                     }
                 }
             }
@@ -419,9 +424,9 @@ class TransiteoProducts
             foreach ($this->apiResponseContent["products"] as $product) {
                 if (isset($product["special_taxes"])) {
                     foreach (($product["special_taxes"]) as $specialTaxes) {
-                        $isNull &= $this->safeSum($totalTax, $specialTaxes["product_taxes_amount"]);
-                        $isNull &= $this->safeSum($totalTax, $specialTaxes["shipping_taxes_amount"]);
-                        $isNull &= $this->safeSum($totalTax, $specialTaxes["vat_taxes_amount"]);
+                        $isNull &= $this->safeSum($totalTax, $specialTaxes["product_taxes_amount"] ?? null);
+                        $isNull &= $this->safeSum($totalTax, $specialTaxes["shipping_taxes_amount"] ?? null);
+                        $isNull &= $this->safeSum($totalTax, $specialTaxes["vat_taxes_amount"] ?? null);
                     }
                 }
             }
@@ -458,7 +463,7 @@ class TransiteoProducts
             $isNull &= $this->safeSum($total, $this->getVat($productId));
             $isNull &= $this->safeSum($total, $this->getSpecialTaxes($productId));
         } else {
-            $isNull &= $this->safeSum($total, $this->apiResponseContent['global']['amount']);
+            $isNull &= $this->safeSum($total, $this->apiResponseContent['global']['amount'] ?? null);
         }
 
         if ($isNull) {
