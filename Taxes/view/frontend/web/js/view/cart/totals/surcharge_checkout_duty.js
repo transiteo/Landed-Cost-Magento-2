@@ -23,8 +23,10 @@ define([
             const test = this.isFullMode() && pureValue != null;
             if(test){
                 //change value
-                const transiteo_total_taxes = document.getElementById('transiteo_duty_amount');
-                transiteo_total_taxes.innerHTML = this.getFormattedPrice(pureValue);
+                const price = document.getElementById('transiteo_duty_amount');
+                if(price){
+                    price.innerHTML = this.getFormattedPrice(pureValue);
+                }
 
                 $(".totals-tax").remove();
             }
@@ -66,6 +68,7 @@ define([
                 window.checkoutConfig.transiteo_vat = data.transiteo_vat;
                 window.checkoutConfig.transiteo_total_taxes = data.transiteo_total_taxes;
                 window.checkoutConfig.transiteo_special_taxes = data.transiteo_special_taxes;
+                window.checkoutConfig.transiteo_incoterm = data.transiteo_incoterm;
             });
             return window.checkoutConfig.transiteo_duty;
         },

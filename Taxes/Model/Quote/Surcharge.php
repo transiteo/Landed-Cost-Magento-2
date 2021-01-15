@@ -91,13 +91,33 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 
             $currencyRate = $this->taxexService->getCurrentCurrencyRate();
             $total->setTransiteoDutyAmount($this->duty);
-            $total->setBaseTransiteoDutyAmount($this->duty / $currencyRate);
+            if (isset($this->duty)) {
+                $total->setBaseTransiteoDutyAmount($this->duty / $currencyRate);
+            } else {
+                $total->setBaseTransiteoDutyAmount(null);
+            }
+
             $total->setTransiteoVatAmount($this->vat);
-            $total->setBaseTransiteoVatAmount($this->vat / $currencyRate);
+            if (isset($this->vat)) {
+                $total->setBaseTransiteoVatAmount($this->vat / $currencyRate);
+            } else {
+                $total->setBaseTransiteoVatAmount(null);
+            }
+
             $total->setTransiteoSpecialTaxesAmount($this->specialTaxes);
-            $total->setBaseTransiteoSpecialTaxesAmount($this->specialTaxes / $currencyRate);
+            if (isset($this->specialTaxes)) {
+                $total->setBaseTransiteoSpecialTaxesAmount($this->specialTaxes / $currencyRate);
+            } else {
+                $total->setBaseTransiteoSpecialTaxesAmount(null);
+            }
+
             $total->setTransiteoTotalTaxesAmount($this->totalTaxes);
-            $total->setBaseTransiteoTotalTaxesAmount($this->totalTaxes / $currencyRate);
+            if (isset($this->totalTaxes)) {
+                $total->setBaseTransiteoTotalTaxesAmount($this->totalTaxes / $currencyRate);
+            } else {
+                $total->setBaseTransiteoTotalTaxesAmount(null);
+            }
+
             $total->setTotalAmount(self::COLLECTOR_TYPE_CODE, $amount);
             $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, $amount);
             $total->setGrandTotal($total->getGrandTotal() + $amount);
@@ -281,15 +301,9 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 
         $taxes=[];
         if ($products !== []) {
-            //////////////////LOGGER//////////////
-            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-            $logger = new \Zend\Log\Logger();
-            $logger->addWriter($writer);
-            $logger->info('Get Duties By Products');
-            ///////////////////////////////////////
             //get duties and taxes from taxes service
             $taxes= $this->taxexService->getDutiesByProducts($products, $params);
-            $logger->info('Duties Get');
+
             //saving changes in products to quote
             $quote->setItems($products);
             $quote->save();
