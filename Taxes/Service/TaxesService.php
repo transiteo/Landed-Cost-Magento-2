@@ -128,11 +128,11 @@ class TaxesService
         if ((!array_key_exists(self::TO_COUNTRY, $params))) {
             if ((array_key_exists(self::DISALLOW_GET_COUNTRY_FROM_COOKIE, $params)
                 && $params[self::DISALLOW_GET_COUNTRY_FROM_COOKIE])) {
-                throw new Exception("Transiteo_Taxes getting country from cookie is disallowed.");
+                throw new \Exception("Transiteo_Taxes getting country from cookie is disallowed.");
             }
             $cookie = $this->cookieManager->getCookie('transiteo-popup-info', null);
             if ($cookie === null) {
-                throw new Exception("Transiteo_Taxes country cookie does not exists.");
+                throw new \Exception("Transiteo_Taxes country cookie does not exists.");
             }
 
             $cookie = explode('_', $cookie);
@@ -147,11 +147,11 @@ class TaxesService
             if ((!array_key_exists(self::TO_DISTRICT, $params)) || $params[self::TO_DISTRICT] === "") {
                 if ((array_key_exists(self::DISALLOW_GET_COUNTRY_FROM_COOKIE, $params)
                     && $params[self::DISALLOW_GET_COUNTRY_FROM_COOKIE])) {
-                    throw new Exception("Transiteo_Taxes getting country from cookie is disallowed.");
+                    throw new \Exception("Transiteo_Taxes getting country from cookie is disallowed.");
                 }
                 $cookie = $this->cookieManager->getCookie('transiteo-popup-info', null);
                 if ($cookie === null) {
-                    throw new Exception("Transiteo_Taxes country cookie does not exists.");
+                    throw new \Exception("Transiteo_Taxes country cookie does not exists.");
                 }
 
                 $cookie = explode('_', $cookie);
@@ -193,7 +193,7 @@ class TaxesService
             if (array_key_exists(self::RECEIVER_ACTIVITY, $params)) {
                 $receiverActivity = $params[self::RECEIVER_ACTIVITY];
             } else {
-                throw new Exception("Receiver for transiteo taxe calculation is set to pro but activity is not set.");
+                throw new \Exception("Receiver for transiteo taxe calculation is set to pro but activity is not set.");
             }
             $shipmentParams->setReceiverPro($receiverPro, $receiverActivity); // need an input in customer attribute
         } else {
