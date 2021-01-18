@@ -13,25 +13,11 @@
                                             <item name="children" xsi:type="array">
                                                 <item name="totals" xsi:type="array">
                                                     <item name="children" xsi:type="array">
-                                                        <item name="transiteo_duty" xsi:type="array">
-                                                            <item name="component" xsi:type="string">Transiteo_Taxes/js/view/cart/totals/surcharge_checkout_duty</item>
+                                                        <item name="transiteo_taxes" xsi:type="array">
+                                                            <item name="component" xsi:type="string">Transiteo_Taxes/js/view/cart/totals/surcharge_checkout_taxes</item>
                                                             <item name="sortOrder" xsi:type="string">50</item>
                                                             <item name="config" xsi:type="array">
-                                                                <item name="title" xsi:type="string" translate="true">Transiteo Duty</item>
-                                                            </item>
-                                                        </item>
-                                                        <item name="transiteo_vat" xsi:type="array">
-                                                            <item name="sortOrder" xsi:type="string">51</item>
-                                                            <item name="component" xsi:type="string">Transiteo_Taxes/js/view/cart/totals/surcharge_checkout_vat</item>
-                                                            <item name="config" xsi:type="array">
-                                                                <item name="title" xsi:type="string" translate="true">Transiteo Vat</item>
-                                                            </item>
-                                                        </item>
-                                                        <item name="transiteo_special_taxes" xsi:type="array">
-                                                            <item name="sortOrder" xsi:type="string">52</item>
-                                                            <item name="component" xsi:type="string">Transiteo_Taxes/js/view/cart/totals/surcharge_checkout_special_taxes</item>
-                                                            <item name="config" xsi:type="array">
-                                                                <item name="title" xsi:type="string" translate="true">Transiteo Special Taxes</item>
+                                                                <item name="title" xsi:type="string" translate="true">Transiteo Taxes</item>
                                                             </item>
                                                         </item>
                                                     </item>

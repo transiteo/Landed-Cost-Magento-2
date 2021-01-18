@@ -1,0 +1,40 @@
+<!-- ko if: isDisplayed('transiteo_duty') -->
+<tr class="totals transiteo_duty">
+    <th class="mark" scope="row">
+        <span class="title" data-bind="text: getTitle('transiteo_duty')"></span>
+        <br/><span class="value" data-bind="text: getIncluded()"></span>
+    </th>
+    <td class="amount">
+        <span class="price" id="transiteo_duty_amount" data-bind="text: getValue('transiteo_duty')"></span>
+    </td>
+</tr>
+<!-- /ko -->
+<!-- ko if: isDisplayed('transiteo_duty') -->
+<tr class="totals transiteo_vat">
+    <th class="mark" scope="row">
+        <span class="title" data-bind="text: getTitle('transiteo_vat')"></span>
+        <br/><span class="value" data-bind="text: getIncluded()"></span>
+    </th>
+    <td class="amount">
+        <span class="price" id="transiteo_vat_amount" data-bind="text: getValue('transiteo_vat')"></span>
+    </td>
+</tr>
+<!-- /ko -->
+<!-- ko if: isDisplayed('transiteo_duty') -->
+<tr class="totals transiteo_special_taxes">
+    <th class="mark" scope="row">
+        <span class="title" data-bind="text: getTitle('transiteo_special_taxes')"></span>
+        <br/><span class="value" data-bind="text: getIncluded()"></span>
+    </th>
+    <td class="amount">
+        <span class="price" id="transiteo_special_taxes_amount" data-bind="text: getValue('transiteo_special_taxes')"></span>
+    </td>
+</tr>
+<!-- /ko -->
+<!-- ko if: isDisplayed('transiteo_incoterm') -->
+<tr class="totals transiteo_incoterm">
+    <th class="mark" scope="row" colspan="2">
+        <strong class="value" data-bind="text: getIncoterm()"></strong>
+    </th>
+</tr>
+<!-- /ko -->
