@@ -64,12 +64,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         ShippingAssignmentInterface $shippingAssignment,
         Total $total
     ) {
-        //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        $logger->info('Surcharge collect');
-        ///////////////////////////////////////
         $quote->setTransiteoDisplay(false);
         parent::collect($quote, $shippingAssignment, $total);
 
