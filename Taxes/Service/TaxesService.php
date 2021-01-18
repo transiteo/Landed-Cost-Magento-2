@@ -82,17 +82,6 @@ class TaxesService
         $this->_flagManager = $flagManager;
     }
 
-//    /**
-//     * @param int $productId
-//     *
-//     * @return array
-//     * @throws \Magento\Framework\Exception\NoSuchEntityException
-//     */
-//    public function getDutiesByProductId(int $productId, int $quantity = 1): array
-//    {
-//        return $this->getDutiesByProducts([$productId => $quantity]);
-//    }
-
     /**
      * @param array $products array of quote items
      * @param array $params
@@ -144,9 +133,11 @@ class TaxesService
             }
         } else {
             $toCountry = $params[self::TO_COUNTRY];
-            if (isset($params[self::TO_COUNTRY])) {
+            if (array_key_exists(self::TO_DISTRICT, $params)) {
                 $toDistrict = $params[self::TO_DISTRICT];
             } else {
+                //Set to district = ""
+                $toDistrict = "";
                 //set default district for usa, and Brazil and Canada.
                 if ($toCountry === "USA") {
                     $toDistrict = "US-CA-90034";
@@ -272,23 +263,6 @@ class TaxesService
             }
         }
 
-        //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        $logger->info('Before ask getTotalDuty');
-        ///////////////////////////////////////
-        $res = [];
-
-        $res[self::RETURN_KEY_DUTY ] = $this->transiteoProducts->getTotalDuty();
-        $logger->info('Before ask getTotalVat');
-        $res[self::RETURN_KEY_VAT ] = $this->transiteoProducts->getTotalVat();
-        $logger->info('Before ask getTotalSpecialTaxes');
-        $res[self::RETURN_KEY_SPECIAL_TAXES ] = $this->transiteoProducts->getTotalSpecialTaxes();
-        $logger->info('Before ask getTotalTaxes');
-        $res[self::RETURN_KEY_TOTAL_TAXES  ] = $this->transiteoProducts->getTotalTaxes();
-
-        return $res;
         return [
             self::RETURN_KEY_DUTY          => $this->transiteoProducts->getTotalDuty(),
             self::RETURN_KEY_VAT           => $this->transiteoProducts->getTotalVat(),
