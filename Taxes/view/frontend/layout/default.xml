@@ -17,7 +17,7 @@
         <referenceContainer name="header.panel">
             <block class="Magento\Framework\View\Element\Template"
                    template="Transiteo_Taxes::button.phtml"
-                   name="button.link"
+                   name="transiteo.modal.button.link"
                    before="-" />
         </referenceContainer>
     </body>
