@@ -26,7 +26,7 @@ class RemoveBlock implements ObserverInterface
         $show = $this->_scopeConfig->getValue('transiteo_settings/modal/show', ScopeInterface::SCOPE_STORE);
         if ($block) {
             if (!$show) {
-                $layout->unsetElement('start.transiteo.modal');
+                $layout->unsetElement('transiteo.modal');
             }
         }
 
