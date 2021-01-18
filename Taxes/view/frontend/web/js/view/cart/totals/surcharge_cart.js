@@ -67,7 +67,8 @@ define([
                 window.checkoutConfig.transiteo_total_taxes = data.transiteo_total_taxes;
                 window.checkoutConfig.transiteo_special_taxes = data.transiteo_special_taxes;
                 window.checkoutConfig.transiteo_incoterm = data.transiteo_incoterm;
-            });
+            })
+
             return window.checkoutConfig.transiteo_total_taxes;
         },
 

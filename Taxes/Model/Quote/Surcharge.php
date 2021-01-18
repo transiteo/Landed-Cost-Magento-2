@@ -64,6 +64,12 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         ShippingAssignmentInterface $shippingAssignment,
         Total $total
     ) {
+        //////////////////LOGGER//////////////
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        $logger->info('Surcharge collect');
+        ///////////////////////////////////////
         $quote->setTransiteoDisplay(false);
         parent::collect($quote, $shippingAssignment, $total);
 
@@ -79,8 +85,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             try {
                 $quote->setTransiteoDisplay(true);
                 $this->getTransiteoTaxes($quote, $total, $shippingAssignment);
-                //Recording duties in quote
-                $this->saveInQuote($quote);
                 //Getting total Taxes Amount previously recorded in quote and add it to grand total if ddp is activated
                 if ($this->taxexService->isDDPActivated()) {
                     $amount += $this->totalTaxes;
@@ -97,6 +101,8 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                 $this->duty = null;
                 $this->vat = null;
             }
+            //Recording duties in quote
+            $this->saveInQuote($quote);
 
             $currencyRate = $this->taxexService->getCurrentCurrencyRate();
             $total->setTransiteoDutyAmount($this->duty);
@@ -193,7 +199,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                 $quote->setTransiteoDisplay(true);
                 //Getting total Taxes Amount previously recorded in quote and add it to grand total if ddp is activated
                 if ($this->taxexService->isDDPActivated()) {
-                    $amount += $quote->getTransiteoTotalTaxesAmount();
+                    $amount += $quote->getTransiteoTotalTaxesAmount() ?? 0;
                 }
             } catch (\Exception $exception) {
                 //////////////////LOGGER//////////////
@@ -231,13 +237,29 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
     {
         $quote->setTransiteoIncoterm($this->taxexService->getIncoterm());
         $quote->setTransiteoDuty($this->duty);
-        $quote->setBaseTransiteoDuty($this->duty / $this->taxexService->getCurrentCurrencyRate());
+        if (isset($this->duty)) {
+            $quote->setBaseTransiteoDuty($this->duty / $this->taxexService->getCurrentCurrencyRate());
+        } else {
+            $quote->setBaseTransiteoDuty(null);
+        }
         $quote->setTransiteoVat($this->vat);
-        $quote->setBaseTransiteoVat($this->vat / $this->taxexService->getCurrentCurrencyRate());
+        if (isset($this->vat)) {
+            $quote->setBaseTransiteoVat($this->vat / $this->taxexService->getCurrentCurrencyRate());
+        } else {
+            $quote->setBaseTransiteoVat(null);
+        }
         $quote->setTransiteoSpecialTaxes($this->specialTaxes);
-        $quote->setBaseTransiteoSpecialTaxes($this->specialTaxes / $this->taxexService->getCurrentCurrencyRate());
+        if (isset($this->specialTaxes)) {
+            $quote->setBaseTransiteoSpecialTaxes($this->specialTaxes / $this->taxexService->getCurrentCurrencyRate());
+        } else {
+            $quote->setBaseTransiteoSpecialTaxes(null);
+        }
         $quote->setTransiteoTotalTaxes($this->totalTaxes);
-        $quote->setBaseTransiteoTotalTaxes($this->totalTaxes / $this->taxexService->getCurrentCurrencyRate());
+        if (isset($this->totalTaxes)) {
+            $quote->setBaseTransiteoTotalTaxes($this->totalTaxes / $this->taxexService->getCurrentCurrencyRate());
+        } else {
+            $quote->setBaseTransiteoTotalTaxes(null);
+        }
         $quote->save();
     }
 
@@ -320,15 +342,8 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 
         $taxes=[];
         if ($products !== []) {
-            //////////////////LOGGER//////////////
-            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-            $logger = new \Zend\Log\Logger();
-            $logger->addWriter($writer);
-            $logger->info('Get Duties');
-            ///////////////////////////////////////
             //get duties and taxes from taxes service
             $taxes= $this->taxexService->getDutiesByProducts($products, $params);
-            $logger->info('Duties received');
 
             //saving changes in products to quote
             $quote->setItems($products);
