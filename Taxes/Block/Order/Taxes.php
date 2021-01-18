@@ -116,7 +116,18 @@ class Taxes extends \Magento\Framework\View\Element\Template
                 $included = "";
             }
 
-            if (!((isset($transiteoVat) && $transiteoVat != 0) xor (isset($transiteoDuty) && $transiteoDuty != 0) xor (isset($transiteoSpecialTaxes) && $transiteoSpecialTaxes != 0))) {
+            $totalSetted = 0;
+            if (isset($transiteoVat)) {
+                $totalSetted++;
+            }
+            if (isset($transiteoDuty)) {
+                $totalSetted++;
+            }
+            if (isset($transiteoSpecialTaxes)) {
+                $totalSetted++;
+            }
+
+            if (($totalSetted > 1)) {
                 $totals['transiteo_total_taxes'] = new \Magento\Framework\DataObject(
                     [
                         'code' => 'transiteo_total_taxes',
