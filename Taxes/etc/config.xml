@@ -3,6 +3,7 @@
     <default>
         <transiteo_settings>
             <modal>
+                <show>0</show>
                 <button_color>#000000</button_color>
                 <title>Welcome !</title>
                 <css><![CDATA[
