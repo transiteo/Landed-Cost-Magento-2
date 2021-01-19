@@ -50,7 +50,7 @@ define([
             //get pure value
             const pureValue = this.getPureValue(myValue);
 
-            const test = this.isFullMode() && pureValue != null;
+            const test = this.isFullMode() && pureValue != null && window.checkoutConfig.transiteo_total_taxes !== 0 ;
             if(test){
                 this.nbElementDisplayed++;
                 $(".totals-tax").remove();
