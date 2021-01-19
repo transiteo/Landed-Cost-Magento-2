@@ -100,10 +100,10 @@ class TaxesService
         }
         //define if shipping is global or not
         if (count($products)>1) {
-            $unitShipPrice = 0;
+            $globalShipPrice = 0;
             $shipmentParams->setShipmentType(true, round($shippingAmount, 2), $this->getCurrentStoreCurrency());
         } else {
-            $unitShipPrice = $shippingAmount;
+            $globalShipPrice = $shippingAmount;
             $shipmentParams->setShipmentType(false);
         }
         $shipmentParams->setLang($this->getTransiteoLang());
@@ -202,11 +202,16 @@ class TaxesService
             $id = $product->getId();
             $productParams->setProductName($product->getName());
             $productParams->setWeight(round($product->getWeight(), 2));
+            $productParams->setWeight(0);
             $productParams->setWeight_unit($weightUnit);
             $productParams->setQuantity($qty);
             $productParams->setUnit_price(round($product->getPrice() * $this->getCurrentCurrencyRate(), 2));
             $productParams->setCurrency_unit_price($currentStoreCurrency);
-            $productParams->setUnit_ship_price(round($unitShipPrice, 2)); // prix du shipping, 0 default
+            if ($globalShipPrice === 0) {
+                $productParams->setUnit_ship_price(0); // 0 default
+            } else {
+                $productParams->setUnit_ship_price(round($globalShipPrice/$qty, 2)); // prix du shipping
+            }
             $productsParams[$id] = $productParams;
         }
 
