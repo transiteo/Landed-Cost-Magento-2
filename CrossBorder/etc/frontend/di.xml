@@ -3,14 +3,14 @@
     <type name="Magento\Customer\CustomerData\SectionPoolInterface">
         <arguments>
             <argument name="sectionSourceMap" xsi:type="array">
-                <item name="geoip_country" xsi:type="string">Transiteo\Taxes\CustomerData\GeoIpCountry</item>
+                <item name="geoip_country" xsi:type="string">Transiteo\CrossBorder\CustomerData\GeoIpCountry</item>
             </argument>
         </arguments>
     </type>
     <type name="Magento\Checkout\Model\CompositeConfigProvider">
         <arguments>
             <argument name="configProviders" xsi:type="array">
-                <item name="additional_provider" xsi:type="object">Transiteo\Taxes\Model\Quote\QuoteTaxesProvider</item>
+                <item name="additional_provider" xsi:type="object">Transiteo\CrossBorder\Model\Quote\QuoteTaxesProvider</item>
             </argument>
         </arguments>
     </type>

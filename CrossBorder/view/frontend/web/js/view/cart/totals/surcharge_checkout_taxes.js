@@ -9,7 +9,7 @@ define([
 
     return Component.extend({
         defaults: {
-            template: 'Transiteo_Taxes/summary/surcharge_checkout_taxes'
+            template: 'Transiteo_CrossBorder/summary/surcharge_checkout_taxes'
         },
         totals: quote.getTotals(),
 

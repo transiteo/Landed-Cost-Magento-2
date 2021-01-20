@@ -21,7 +21,7 @@ require([
 
 
     const options = {
-        id: 'transiteo_taxes_modal',
+        id: 'Transiteo_CrossBorder_modal',
         type: "popup",
         title: "",
         responsive: true,
