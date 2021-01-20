@@ -14,7 +14,7 @@ use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Setup\SampleData\FixtureManager;
 use Transiteo\CrossBorder\Api\Data\DistrictInterface;
 use Transiteo\CrossBorder\Api\Data\DistrictInterfaceFactory;
-use Transiteo\CrossBorder\Model\DistrictRepository as DistrictRepositoryInterface;
+use Transiteo\CrossBorder\Api\DistrictRepositoryInterface;
 
 class InstallTransiteoDistrictData implements DataPatchInterface
 {

@@ -1,6 +1,6 @@
 {
-    "name": "transiteo/module-base",
-    "description": "Transiteo Base",
+    "name": "transiteo/module-cross-border",
+    "description": "Transiteo Cross Border",
     "type": "magento2-module",
     "version": "1.0.0",
     "license": [
@@ -14,7 +14,7 @@
     "autoload": {
       "files": ["registration.php"],
       "psr-4": {
-        "Transiteo\\Base\\": ""
+        "Transiteo\\CrossBorder\\": ""
       }
     }
   }
