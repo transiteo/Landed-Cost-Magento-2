@@ -8,7 +8,7 @@ use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Module\Dir as ModuleDir;
 use MaxMind\Db\Reader as MaxMindReader;
 use PhpParser\Node\Expr\AssignOp\Mod;
-use Transiteo\Taxes\Service\GeoIpUpdater;
+use Transiteo\CrossBorder\Service\GeoIpUpdater;
 
 class GeoIp
 {
