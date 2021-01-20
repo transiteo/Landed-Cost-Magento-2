@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config>
+    <router id="standard">
+        <route id="Transiteo_CrossBorder" frontName="transiteo">
+            <module name="Transiteo_CrossBorder" />
+        </route>
+    </router>
+</config>
+
