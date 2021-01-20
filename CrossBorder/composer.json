@@ -1,6 +1,6 @@
 {
-    "name": "transiteo/cross-border",
-    "description": "Transiteo CrossBorder",
+    "name": "transiteo/module-cross-border",
+    "description": "Transiteo Cross Border",
     "type": "magento2-module",
     "version": "1.0.0",
     "license": [
