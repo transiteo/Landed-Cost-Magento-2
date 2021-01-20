@@ -1,6 +1,6 @@
 <?php
 
-namespace Transiteo\Taxes\Block\Order;
+namespace Transiteo\CrossBorder\Block\Order;
 
 class Taxes extends \Magento\Framework\View\Element\Template
 {
@@ -113,7 +113,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
             if ($included === "ddp") {
                 $included = ' ' . __('(included)');
             } else {
-                $included = "";
+                $included = ' ' . __('(not included)');
             }
 
             $totalSetted = 0;

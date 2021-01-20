@@ -1,6 +1,6 @@
 var config = {
     paths: {
-        'transiteomodal': "Transiteo_Taxes/js/modal"
+        'transiteomodal': "Transiteo_CrossBorder/js/modal"
     },
     shim: {
         'transiteomodal': {
@@ -9,7 +9,7 @@ var config = {
     },
     map: {
         '*': {
-            'transiteoduties': 'Transiteo_Taxes/js/duties'
+            'transiteoduties': 'Transiteo_CrossBorder/js/duties'
         }
     }
 }

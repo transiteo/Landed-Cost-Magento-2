@@ -1,11 +1,11 @@
 <?php
 
-namespace Transiteo\Taxes\CustomerData;
+namespace Transiteo\CrossBorder\CustomerData;
 
 use Magento\Customer\CustomerData\SectionSourceInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
-use Transiteo\Taxes\Model\GeoIp;
+use Transiteo\CrossBorder\Model\GeoIp;
 
 /**
  * Example data source

@@ -1,6 +1,6 @@
 <?php
 
-namespace Transiteo\Taxes\Model;
+namespace Transiteo\CrossBorder\Model;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Filesystem\Directory\ReadFactory;
@@ -8,7 +8,7 @@ use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Module\Dir as ModuleDir;
 use MaxMind\Db\Reader as MaxMindReader;
 use PhpParser\Node\Expr\AssignOp\Mod;
-use Transiteo\Taxes\Service\GeoIpUpdater;
+use Transiteo\CrossBorder\Service\GeoIpUpdater;
 
 class GeoIp
 {
@@ -64,7 +64,7 @@ class GeoIp
             return $databasePath;
         }
 
-        $modulePath = $this->moduleDir->getDir('Transiteo_Taxes');
+        $modulePath = $this->moduleDir->getDir('Transiteo_CrossBorder');
 
         return $modulePath . DIRECTORY_SEPARATOR . 'lib/internal/GeoLite2-Country.mmdb';
     }
