@@ -8,7 +8,7 @@
             <class>separator-top</class>
             <label>Activation</label>
             <tab>crossborder</tab>
-            <resource>Transiteo_Taxes::activation</resource>
+            <resource>Transiteo_CrossBorder::activation</resource>
             <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>Token and Client Id</label>
                 <!--<field id="enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
@@ -39,7 +39,7 @@
             <class>separator-top</class>
             <label>Settings</label>
             <tab>crossborder</tab>
-            <resource>Transiteo_Taxes::settings</resource>
+            <resource>Transiteo_CrossBorder::settings</resource>
             <group id="modal" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>Opening Pop-up</label>
                 <field id="show" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">

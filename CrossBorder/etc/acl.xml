@@ -4,13 +4,17 @@
         <resources>
             <resource id="Magento_Backend::admin">
                 <resource id="Magento_Backend::stores">
-                    <resource id="Transiteo_CrossBorder::cross_border_head" title="Cross Border" sortOrder="100" >
-                        <resource id="Transiteo_CrossBorder::settings" title="Settings" sortOrder="20">
-                            <resource id="Transiteo_CrossBorder::popup_customize" title="Customize Popup" sortOrder="10" />
-                            <resource id="Transiteo_CrossBorder::duties_display_update" title="Update Duties Display" sortOrder="20" />
-                        </resource>
-                        <resource id="Transiteo_CrossBorder::activation" title="Activation" sortOrder="10">
-                            <resource id="Transiteo_CrossBorder::token_update" title="Update Token" sortOrder="10" />
+                    <resource id="Magento_Backend::stores_settings">
+                        <resource id="Magento_Config::config">
+                            <resource id="Transiteo_CrossBorder::cross_border_head" title="Transiteo CrossBorder" sortOrder="100" >
+                                <resource id="Transiteo_CrossBorder::settings" title="Settings" sortOrder="20">
+                                    <resource id="Transiteo_CrossBorder::popup_customize" title="Customize Popup" sortOrder="10" />
+                                    <resource id="Transiteo_CrossBorder::duties_display_update" title="Update Duties Display" sortOrder="20" />
+                                </resource>
+                                <resource id="Transiteo_CrossBorder::activation" title="Activation" sortOrder="10">
+                                    <resource id="Transiteo_CrossBorder::token_update" title="Update Token" sortOrder="10" />
+                                </resource>
+                            </resource>
                         </resource>
                     </resource>
                 </resource>
