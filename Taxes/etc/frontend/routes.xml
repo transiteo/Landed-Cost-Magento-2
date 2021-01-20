@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<config>
-    <router id="standard">
-        <route id="transiteo_taxes" frontName="transiteo">
-            <module name="Transiteo_Taxes" />
-        </route>
-    </router>
-</config>
-

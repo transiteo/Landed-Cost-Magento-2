@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
-    <menu>
-     <add id="Transiteo_Taxes::settings" title="Settings" module="Transiteo_Taxes" sortOrder="20" parent="Transiteo_Base::cross_border_head" action="admin/system_config/edit/section/transiteo_settings" resource="Transiteo_Taxes::settings" />
-    </menu>
-</config>
