@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
-/**
- * @author Joris HART <jhart@efaktory.fr>
- * @copyright Copyright (c) 2020 eFaktory (https://www.efaktory.fr)
- * @link https://www.efaktory.fr
- */
--->
+  ~ @author Blackbird Agency, Joris HART
+  ~ @copyright Open Software License (OSL 3.0)
+  ~ @link <hello@bird.eu>, <jhart@efaktory.fr>
+  -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="Transiteo\CrossBorder\Api\Data\DistrictInterface" type="Transiteo\CrossBorder\Model\District" />
     <preference for="Transiteo\CrossBorder\Api\DistrictRepositoryInterface" type="Transiteo\CrossBorder\Model\DistrictRepository" />

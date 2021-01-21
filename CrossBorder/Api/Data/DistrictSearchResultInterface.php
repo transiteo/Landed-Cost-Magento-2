@@ -1,8 +1,8 @@
 <?php
-/**
- * @author Joris HART <jhart@efaktory.fr>
- * @copyright Copyright (c) 2020 eFaktory (https://www.efaktory.fr)
- * @link https://www.efaktory.fr
+/*
+ * @author Blackbird Agency, Joris HART
+ * @copyright Open Software License (OSL 3.0)
+ * @link <hello@bird.eu>, <jhart@efaktory.fr>
  */
 
 namespace Transiteo\CrossBorder\Api\Data;

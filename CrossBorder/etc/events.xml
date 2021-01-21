@@ -1,4 +1,10 @@
 <?xml version="1.0" ?>
+<!--
+  ~ @author Blackbird Agency
+  ~ @copyright Open Software License (OSL 3.0)
+  ~ @link <hello@bird.eu>
+  -->
+
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <event name="sales_model_service_quote_submit_before">
         <observer name="save_Transiteo_CrossBorder_order" instance="Transiteo\CrossBorder\Observer\SaveTaxesToOrder"/>
