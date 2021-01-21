@@ -107,7 +107,7 @@
                         </ul>]]>
                     </comment>
                 </field>
-                <field id="debug_mode" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="debug_mode" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
                     <label>Enable Debug Mode</label>
                     <comment>We will trace the events in the /var/log/transiteo_crossborder.log file.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
