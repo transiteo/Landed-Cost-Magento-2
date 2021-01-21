@@ -87,16 +87,6 @@ class TransiteoProducts
         $finalParams = array_merge($finalParams, $this->shipmentParams->buildArray());
         $this->apiResponseContent = json_decode(($this->apiService->getDuties($finalParams)), true);
 
-        //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/response_product.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        ob_start();
-        var_dump($this->apiResponseContent["products"]);
-        $result = ob_get_clean();
-        $logger->info($result);
-        ///////////////////////////////////////
-
         //set products ids as keys for results products
         if (isset($this->apiResponseContent["products"])&& isset($this->productsParams)) {
             $this->apiResponseContent["products"] = \array_combine(\array_keys($this->productsParams), $this->apiResponseContent["products"]);

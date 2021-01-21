@@ -23,15 +23,19 @@
                 </field>
             </group>
             <group id="geoip" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>Maxmind GeoIP</label>
+                <label>Maxmind GeoIP2 Lite</label>
 
                 <field id="enable_geoip_download" translate="label" type="select" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
                     <label>Enable GeoIp Database download</label>
+                    <comment>To use with Modal to locate the visitor's country.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
 
-                <field id="key" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <field id="key" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>GeoIp License Key</label>
+                    <depends>
+                        <field id="enable_geoip_download">1</field>
+                    </depends>
                 </field>
             </group>
         </section>
@@ -87,15 +91,20 @@
                     <can_be_empty>1</can_be_empty>
                 </field>
 
-                <field id="incoterm" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <field id="incoterm" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Incoterm</label>
                     <source_model>Transiteo\CrossBorder\Model\Config\Source\Incoterm</source_model>
                     <comment>
                         <![CDATA[<ul>
-                        <li>DAP, VAT will not be added to the order</li>
-                        <li>DDP, VAT will be added to the order</li>
+                        <li>DAP, Taxes will not be added to the order</li>
+                        <li>DDP, Taxes will be added to the order</li>
                         </ul>]]>
                     </comment>
+                </field>
+                <field id="debug_mode" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Enable Debug Mode</label>
+                    <comment>We will trace the events in the /var/log/transiteo_crossborder.log file.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
         </section>

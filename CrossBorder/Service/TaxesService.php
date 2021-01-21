@@ -16,6 +16,7 @@ use Magento\Framework\FlagManager;
 use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Transiteo\CrossBorder\Logger\Logger;
 use Transiteo\CrossBorder\Model\TransiteoApiProductParametersFactory;
 use Transiteo\CrossBorder\Model\TransiteoApiShipmentParameters;
 use Transiteo\CrossBorder\Model\TransiteoProducts;
@@ -45,6 +46,10 @@ class TaxesService
     protected $regionFactory;
     protected $_flagManager;
     protected $cookieManager;
+    /**
+     * @var Logger
+     */
+    protected $logger;
 
     /**
      * TaxesService constructor.
@@ -55,8 +60,10 @@ class TaxesService
      * @param TransiteoApiShipmentParameters $shipmentParams
      * @param CollectionFactory $productCollectionFactory
      * @param CountryFactory $countryFactory
+     * @param RegionFactory $regionFactory
      * @param CookieManagerInterface $cookieManager
      * @param FlagManager $flagManager
+     * @param Logger $logger
      */
     public function __construct(
         TransiteoProducts $transiteoProducts,
@@ -68,8 +75,10 @@ class TaxesService
         CountryFactory $countryFactory,
         RegionFactory $regionFactory,
         CookieManagerInterface $cookieManager,
-        FlagManager $flagManager
+        FlagManager $flagManager,
+        Logger $logger
     ) {
+        $this->logger = $logger;
         $this->regionFactory = $regionFactory;
         $this->cookieManager = $cookieManager;
         $this->transiteoProducts     = $transiteoProducts;
@@ -463,5 +472,13 @@ class TaxesService
     public function getCurrentCurrencyRate()
     {
         return $this->storeManager->getStore()->getCurrentCurrencyRate();
+    }
+
+    /**
+     * @return Logger
+     */
+    public function getLogger()
+    {
+        return $this->logger;
     }
 }

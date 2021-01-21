@@ -73,4 +73,18 @@
             </argument>
         </arguments>
     </type>
+    <!-- Logger -->
+    <type name="Transiteo\CrossBorder\Logger\Handler">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+    <type name="Transiteo\CrossBorder\Logger\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">crossborder</argument>
+            <argument name="handlers"  xsi:type="array">
+                <item name="system" xsi:type="object">Transiteo\CrossBorder\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </type>
 </config>
