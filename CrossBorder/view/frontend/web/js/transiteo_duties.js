@@ -1,3 +1,9 @@
+/*
+ * @author Blackbird Agency
+ * @copyright Open Software License (OSL 3.0)
+ * @link <hello@bird.eu>
+ */
+
 define([
     'jquery',
     'uiComponent',

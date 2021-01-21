@@ -1,9 +1,9 @@
 <?php
 
-/**
- * @author Bruno FACHE <bruno@bird.eu>
- * @copyright Copyright (c) 2020 Blackbird ((https://black.bird.eu))
- * @link (https://black.bird.eu)
+/*
+ * @author Blackbird Agency
+ * @copyright Open Software License (OSL 3.0)
+ * @link <hello@bird.eu>
  */
 
 namespace Transiteo\CrossBorder\Model\Quote;
