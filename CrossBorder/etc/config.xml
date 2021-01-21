@@ -27,6 +27,7 @@
             <duties>
                 <enabled_on>cart,checkout</enabled_on>
                 <incoterm>dap</incoterm>
+                <debug_mode>0</debug_mode>
             </duties>
         </transiteo_settings>
     </default>

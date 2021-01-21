@@ -85,10 +85,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                 }
             } catch (\Exception $exception) {
                 //////////////////LOGGER//////////////
-                $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-                $logger = new \Zend\Log\Logger();
-                $logger->addWriter($writer);
-                $logger->info($exception->getMessage());
+                $this->taxexService->getLogger()->addError($exception->getMessage());
                 ///////////////////////////////////////
                 $this->totalTaxes = null;
                 $this->specialTaxes = null;
@@ -189,19 +186,10 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         if (($isCheckoutCart && $this->taxexService->isActivatedOnCheckout()) ||
             (!$isCheckoutCart && $this->taxexService->isActivatedOnCartView())
         ) {
-            try {
-                $quote->setTransiteoDisplay(true);
-                //Getting total Taxes Amount previously recorded in quote and add it to grand total if ddp is activated
-                if ($this->taxexService->isDDPActivated()) {
-                    $amount += $quote->getTransiteoTotalTaxesAmount() ?? 0;
-                }
-            } catch (\Exception $exception) {
-                //////////////////LOGGER//////////////
-                $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-                $logger = new \Zend\Log\Logger();
-                $logger->addWriter($writer);
-                $logger->info($exception->getMessage());
-                ///////////////////////////////////////
+            $quote->setTransiteoDisplay(true);
+            //Getting total Taxes Amount previously recorded in quote and add it to grand total if ddp is activated
+            if ($this->taxexService->isDDPActivated()) {
+                $amount += $quote->getTransiteoTotalTaxesAmount() ?? 0;
             }
         }
 
@@ -266,6 +254,8 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
      */
     protected function getTransiteoTaxes($quote, $total, $shippingAssignment = null)
     {
+        ////LOGGER////
+        $this->taxexService->getLogger()->addDebug('Request for quoteID => ' . ($quote->getId() ?? '') . ' ' . ($quote->getCustomerEmail() ?? ''));
         /**
          * @var \Magento\Quote\Api\Data\CartItemInterface $quoteItem
          */
@@ -361,14 +351,12 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $this->specialTaxes = $taxes[TaxesService::RETURN_KEY_SPECIAL_TAXES];
         $this->totalTaxes = $taxes[TaxesService::RETURN_KEY_TOTAL_TAXES];
         //////////////////LOGGER//////////////
-        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/taxes.log');
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        $logger->info(
-            'Duty : ' . $taxes[TaxesService::RETURN_KEY_DUTY] .
-            ' VAT : ' . $taxes[TaxesService::RETURN_KEY_VAT] .
-            ' SPECIAL TAXES : ' . $taxes[TaxesService::RETURN_KEY_SPECIAL_TAXES] .
-            ' TOTAL TAXES : ' . $taxes[TaxesService::RETURN_KEY_TOTAL_TAXES]
+        $this->taxexService->getLogger()->addDebug(
+            'Result for quoteID => ' . ($quote->getId() ?? '') . ' ' . ($quote->getCustomerEmail() ?? '') . ' : ' .
+            ',Duty => ' . ($taxes[TaxesService::RETURN_KEY_DUTY] ?? 'null') .
+            ' ,VAT => ' . ($taxes[TaxesService::RETURN_KEY_VAT] ?? 'null') .
+            ' ,SPECIAL TAXES => ' . ($taxes[TaxesService::RETURN_KEY_SPECIAL_TAXES]  ?? 'null') .
+            ' ,TOTAL TAXES => ' . ($taxes[TaxesService::RETURN_KEY_TOTAL_TAXES] ?? 'null')
         );
         ///////////////////////////////////////
     }
