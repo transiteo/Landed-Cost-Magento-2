@@ -1,0 +1,84 @@
+<?php
+/*
+ * @author Blackbird Agency
+ * @copyright Open Software License (OSL 3.0)
+ * @link <hello@bird.eu>
+ */
+
+/**
+ * @var \Transiteo\DutiesTaxesCalculator\Block\Modal $block
+ */
+$countryList  = $block->getCountries();
+$currencyList = $block->getCurrency();
+$table        = explode(",", $currencyList);
+?>
+
+<div id="transiteo-modal" class="d-flex flex-column" style="display:none">
+    <form id='transiteo-form-validate'>
+        <div class='modal-header'>
+            <?= $block->getChildBlock('logo')->toHtml() ?>
+        </div>
+        <h1 class='header_title'><?= $block->getModalTitle() ?></h1>
+        <div class='d-flex'>
+            <div>
+                <div class="field country">
+                    <?= $countryList ?>
+                </div>
+                <span id='country_error'></span>
+            </div>
+            <div>
+                <div class="field country ml-2">
+                    <select name="state" id="state">
+                        <option></option>
+                    </select>
+                </div>
+                <span id='region_error' class='ml-2'></span>
+            </div>
+        </div>
+        <div class='d-flex justify-content-center flex-column'>
+            <div class='currency mt-2'>
+                <select name="currency" id="currency-select">
+                    <option value="" selected disabled hidden>Choose your currency...</option>
+                    <?php foreach ($table as $currencyValue) {
+                        ?>
+                        <option value="<?php echo $currencyValue ?>;"><?php echo $currencyValue ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+            <span id='currency_error'></span>
+        </div>
+        <input type="hidden" id="getUrl" value="<?php echo $block->getBaseUrl() . 'transiteo/page/index'; ?>"/>
+        <input type="hidden" id="getCurrencyUrl"
+               value="<?php echo $block->getBaseUrl() . 'directory/currency/switch'; ?>"/>
+        <input type="hidden" id="getUrlStates"
+               value="<?php echo $block->getBaseUrl() . 'transiteo/district/index'; ?>"/>
+        <input type="hidden" id="getCookie" value="<?php echo $block->getCookie('transiteo-popup-info'); ?>"/>
+    </form>
+</div>
+
+<style type="text/css">
+    <?php if ($block->getModalButtonColor()): ?>
+    .transiteo_modal_button.button_submit {
+        background-color: <?= $block->getModalButtonColor() ?>;
+    }
+    <?php endif; ?>
+
+    <?php if ($block->getModalCss()): ?>
+        <?= $block->getModalCss() ?>
+    <?php endif; ?>
+</style>
+
+<script type="text/x-magento-init">
+{
+    "*": {
+        "Magento_Ui/js/core/app": {
+            "components": {
+                "geoip_country": {
+                    "component": "Transiteo_DutiesTaxesCalculator/js/geoip_country"
+                }
+            }
+        }
+    }
+}
+
+</script>
