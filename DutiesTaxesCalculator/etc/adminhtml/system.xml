@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<!--
+  ~ @author Blackbird Agency
+  ~ @copyright Open Software License (OSL 3.0)
+  ~ @link <hello@bird.eu>
+  -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="transiteo" translate="label" sortOrder="900">
+            <label>Duty &amp; Taxes Calculator</label>
+        </tab>
+        <section id="transiteo_activation" translate="label" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Activation</label>
+            <tab>transiteo</tab>
+            <resource>Transiteo_DutiesTaxesCalculator::activation</resource>
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Token and Client Id</label>
+                <!--<field id="enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Module Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>-->
+                <field id="client_id" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Client ID</label>
+                </field>
+                <field id="refresh_token" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Refresh Token</label>
+                </field>
+            </group>
+            <group id="geoip" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Maxmind GeoIP2 Lite</label>
+
+                <field id="enable_geoip_download" translate="label" type="select" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Enable GeoIp Database download</label>
+                    <comment>To use with Modal to locate the visitor's country.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+
+                <field id="key" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>GeoIp License Key</label>
+                    <depends>
+                        <field id="enable_geoip_download">1</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+        <!--    Transiteo Taxes-->
+        <section id="currency">
+            <group id="transiteo" translate="label" sortOrder="42" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Transiteo</label>
+                <field id="timeout" translate="label" type="text" sortOrder="0" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Connection Timeout in Seconds</label>
+                </field>
+                <field id="delay" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Connection Delay Time in Seconds</label>
+                </field>
+            </group>
+        </section>
+        <!--    Transiteo CrossBorder-->
+        <section id="transiteo_settings" translate="label" sortOrder="131" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Settings</label>
+            <tab>transiteo</tab>
+            <resource>Transiteo_DutiesTaxesCalculator::settings</resource>
+            <group id="modal" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Opening Pop-up</label>
+                <field id="show" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Enable Popup</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="title" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Title</label>
+                    <depends>
+                        <field id="show">1</field>
+                    </depends>
+                </field>
+                <field id="button_color" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Button Color</label>
+                    <frontend_model>Transiteo\DutiesTaxesCalculator\Block\Admin\Color</frontend_model>
+                    <depends>
+                        <field id="show">1</field>
+                    </depends>
+                </field>
+                <field id="css" translate="label" type="textarea" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Additional CSS</label>
+                    <depends>
+                        <field id="show">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="duties" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Duties and Taxes Display</label>
+                <field id="enabled_on" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="1"  showInStore="1" canRestore="1">
+                    <label>Pages to enable duties and taxes </label>
+                    <source_model>Transiteo\DutiesTaxesCalculator\Model\Config\Source\Pages</source_model>
+                    <can_be_empty>1</can_be_empty>
+                </field>
+
+                <field id="incoterm" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Incoterm</label>
+                    <source_model>Transiteo\DutiesTaxesCalculator\Model\Config\Source\Incoterm</source_model>
+                    <comment>
+                        <![CDATA[<ul>
+                        <li>DAP, Taxes will not be added to the order</li>
+                        <li>DDP, Taxes will be added to the order</li>
+                        </ul>]]>
+                    </comment>
+                </field>
+                <field id="debug_mode" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Enable Debug Mode</label>
+                    <comment>We will trace the events in the /var/log/Transiteo_DutiesTaxesCalculator.log file.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
