@@ -1,0 +1,11 @@
+<!-- ko if: isDisplayed() -->
+<tr class="totals transiteo_total_taxes">
+    <th class="mark" scope="row">
+        <span class="title" data-bind="text: getTitle()"></span>
+        <br/><span class="value" data-bind="text: getIncluded()" style="font-style: italic"></span>
+    </th>
+    <td data-bind="attr: {'data-th': title}" class="amount">
+        <span class="price" id="transiteo_total_taxes_amount" data-bind="text: getValue()"></span>
+    </td>
+</tr>
+<!-- /ko -->

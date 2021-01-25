@@ -1,0 +1,18 @@
+<?php
+/*
+ * @author Blackbird Agency
+ * @copyright Open Software License (OSL 3.0)
+ * @link <hello@bird.eu>
+ */
+
+/**
+ * @var \Magento\Theme\Block\Html\Header\Logo $block
+ */
+?>
+<img src="<?= $block->escapeUrl($block->getLogoSrc()) ?>"
+     title="<?= $block->escapeHtmlAttr($block->getLogoAlt()) ?>"
+     alt="<?= $block->escapeHtmlAttr($block->getLogoAlt()) ?>"
+    <?= $block->getLogoWidth() ? 'width="' . $block->escapeHtmlAttr($block->getLogoWidth()) . '"' : '' ?>
+    <?= $block->getLogoHeight() ? 'height="' . $block->escapeHtmlAttr($block->getLogoHeight()) . '"' : '' ?>
+/>
+

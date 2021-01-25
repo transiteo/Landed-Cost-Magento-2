@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ @copyright Open Software License (OSL 3.0)
+  -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Transiteo\DutiesTaxesCalculator\Api\Data\DistrictInterface" type="Transiteo\DutiesTaxesCalculator\Model\District" />
+    <preference for="Transiteo\DutiesTaxesCalculator\Api\DistrictRepositoryInterface" type="Transiteo\DutiesTaxesCalculator\Model\DistrictRepository" />
+    <preference for="Transiteo\DutiesTaxesCalculator\Api\Data\DistrictSearchResultInterface" type="Magento\Framework\Api\SearchResults" />
+
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="transiteo_geoip_updater" xsi:type="object">
+                    Transiteo\DutiesTaxesCalculator\Console\Command\GeoIpUpdater
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Framework\Pricing\Adjustment\Collection">
+        <arguments>
+            <argument name="adjustments" xsi:type="array">
+                <item name="duties" xsi:type="const">Transiteo\DutiesTaxesCalculator\Pricing\Adjustment::ADJUSTMENT_CODE</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Magento\Framework\Pricing\Adjustment\Pool">
+        <arguments>
+            <argument name="adjustments" xsi:type="array">
+                <item name="duties" xsi:type="array">
+                    <item name="className" xsi:type="string">Transiteo\DutiesTaxesCalculator\Pricing\Adjustment</item>
+                    <item name="sortOrder" xsi:type="string">20</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Add the hourly option -->
+    <preference for="Magento\Config\Model\Config\Backend\Currency\Cron" type="Transiteo\DutiesTaxesCalculator\Model\Config\Backend\Currency\Cron" />
+    <type name="Magento\Cron\Model\Config\Source\Frequency">
+        <plugin name="transiteo_add_hourly_cron_curreny" type="Transiteo\DutiesTaxesCalculator\Plugin\AddHourlyCurrencyCronUpdate" sortOrder="1" disabled="false" />
+    </type>
+
+    <type name="Magento\Quote\Model\Quote\Item\ToOrderItem">
+        <plugin name="Transiteo_DutiesTaxesCalculator_to_order_item" type="Transiteo\DutiesTaxesCalculator\Plugin\Quote\TransiteoTaxesToOrderItem"/>
+    </type>
+
+    <!--Sync the sales_order table and sales_order_grid-->
+    <virtualType name="Magento\Sales\Model\ResourceModel\Order\Grid" type="Magento\Sales\Model\ResourceModel\Grid">
+        <arguments>
+            <argument name="columns" xsi:type="array">
+                <item name="base_transiteo_total_taxes" xsi:type="string">sales_order.base_transiteo_total_taxes</item>
+                <item name="base_transiteo_duty" xsi:type="string">sales_order.base_transiteo_duty</item>
+                <item name="base_transiteo_vat" xsi:type="string">sales_order.base_transiteo_vat</item>
+                <item name="base_transiteo_special_taxes" xsi:type="string">sales_order.base_transiteo_special_taxes</item>
+                <item name="transiteo_incoterm" xsi:type="string">sales_order.transiteo_incoterm</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+<!--    Transiteo Exchange Rates-->
+    <type name="Magento\Directory\Model\Currency\Import\Config">
+        <arguments>
+            <argument name="servicesConfig" xsi:type="array">
+                <item name="transiteo" xsi:type="array">
+                    <item name="label" xsi:type="string">Transiteo</item>
+                    <item name="class" xsi:type="string">Transiteo\DutiesTaxesCalculator\Model\Currency\Import\Transiteo</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+    <!-- Logger -->
+    <type name="Transiteo\DutiesTaxesCalculator\Logger\Handler">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+    <type name="Transiteo\DutiesTaxesCalculator\Logger\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">crossborder</argument>
+            <argument name="handlers"  xsi:type="array">
+                <item name="system" xsi:type="object">Transiteo\DutiesTaxesCalculator\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

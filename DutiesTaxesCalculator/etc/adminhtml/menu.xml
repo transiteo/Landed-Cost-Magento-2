@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+  ~ @author Blackbird Agency
+  ~ @copyright Open Software License (OSL 3.0)
+  ~ @link <hello@bird.eu>
+  -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Transiteo_DutiesTaxesCalculator::cross_border_head" title="Duties &amp; Taxes Calculator" module="Transiteo_DutiesTaxesCalculator" sortOrder="100" parent="Magento_Backend::stores" resource="Transiteo_DutiesTaxesCalculator::cross_border_head" />
+        <add id="Transiteo_DutiesTaxesCalculator::activation" title="Activation" module="Transiteo_DutiesTaxesCalculator" sortOrder="10" parent="Transiteo_DutiesTaxesCalculator::cross_border_head" action="admin/system_config/edit/section/transiteo_activation" resource="Transiteo_DutiesTaxesCalculator::activation" />
+        <add id="Transiteo_DutiesTaxesCalculator::settings" title="Settings" module="Transiteo_DutiesTaxesCalculator" sortOrder="20" parent="Transiteo_DutiesTaxesCalculator::cross_border_head" action="admin/system_config/edit/section/transiteo_settings" resource="Transiteo_DutiesTaxesCalculator::settings" />
+    </menu>
+</config>
