@@ -16,6 +16,7 @@ class TransiteoApiProductParameters
     private $unit_price;
     private $currency_unit_price;
     private $unit_ship_price;
+    private $sku;
 
     /**
      * @return array
@@ -25,8 +26,14 @@ class TransiteoApiProductParameters
     {
         $array = [];
 
-        $array['identification']['type'] = "TEXT";
-        $array['identification']['value'] = $this->productName;
+        if(isset($this->sku)){
+            $array['identification']['type'] = "SKU";
+            $array['identification']['value'] = $this->sku;
+        }else{
+            $array['identification']['type'] = "TEXT";
+            $array['identification']['value'] = $this->productName;
+        }
+
         if (isset($this->weight) &&  $this->weight > 0) {
             $array['weight'] = $this->weight;
             $array['weight_unit'] = $this->weight_unit;
@@ -129,5 +136,13 @@ class TransiteoApiProductParameters
         $this->unit_ship_price = $unit_ship_price;
 
         return $this;
+    }
+
+    /**
+     * @param mixed $sku
+     */
+    public function setSku($sku): void
+    {
+        $this->sku = $sku;
     }
 }

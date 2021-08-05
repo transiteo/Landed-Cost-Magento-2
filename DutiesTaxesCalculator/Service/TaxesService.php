@@ -15,6 +15,7 @@ use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Transiteo\DutiesTaxesCalculator\Logger\Logger;
+use Transiteo\DutiesTaxesCalculator\Model\TransiteoApiProductParameters;
 use Transiteo\DutiesTaxesCalculator\Model\TransiteoApiProductParametersFactory;
 use Transiteo\DutiesTaxesCalculator\Model\TransiteoApiShipmentParameters;
 use Transiteo\DutiesTaxesCalculator\Model\TransiteoProducts;
@@ -205,8 +206,12 @@ class TaxesService
         foreach ($products as $quoteItem) {
             $qty = $quoteItem->getQty();
             $product = $quoteItem->getProduct();
+            /**
+             * @var TransiteoApiProductParameters $productParams;
+             */
             $productParams = $this->productParamsFactory->create();
             $id = $product->getId();
+            $productParams->setSku($product->getData($this->getProductIdentifier()));
             $productParams->setProductName($product->getName());
             $productParams->setWeight(round($product->getWeight(), 2));
             $productParams->setWeight(0);
@@ -414,6 +419,18 @@ class TaxesService
         }
 
         return false;
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getProductIdentifier():string
+    {
+        return (string) $this->scopeConfig->getValue(
+        'transiteo_activation/general/product_identifier',
+        \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
     }
 
     /**

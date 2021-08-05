@@ -38,7 +38,7 @@ $table        = explode(",", $currencyList);
         <div class='d-flex justify-content-center flex-column'>
             <div class='currency mt-2'>
                 <select name="currency" id="currency-select">
-                    <option value="" selected disabled hidden>Choose your currency...</option>
+                    <option value="" selected disabled hidden><?=__("Choose your currency...")?></option>
                     <?php foreach ($table as $currencyValue) {
                         ?>
                         <option value="<?php echo $currencyValue ?>;"><?php echo $currencyValue ?></option>
