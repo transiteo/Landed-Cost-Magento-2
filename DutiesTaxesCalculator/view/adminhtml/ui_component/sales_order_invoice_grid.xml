@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ @author Blackbird Agency
+  ~ @copyright Open Software License (OSL 3.0)
+  ~ @link <hello@bird.eu>
+  -->
+
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <columns name="sales_order_invoice_columns">
+        <column name="transiteo_incoterm" class="Transiteo\DutiesTaxesCalculator\Ui\Component\Listing\Column\Incoterm">
+            <settings>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <options class="Transiteo\DutiesTaxesCalculator\Ui\Component\Select\Source\Incoterm"/>
+                <sortable>true</sortable>
+                <label translate="true">Duty &amp; Taxes included</label>
+                <visible>true</visible>
+            </settings>
+        </column>
+        <column name="base_transiteo_total_taxes" class="Magento\Sales\Ui\Component\Listing\Column\Price">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Duty &amp; Taxes Total</label>
+                <visible>true</visible>
+            </settings>
+        </column>
+        <column name="base_transiteo_duty" class="Magento\Sales\Ui\Component\Listing\Column\Price">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Duty SubTotal</label>
+                <visible>false</visible>
+            </settings>
+        </column>
+        <column name="base_transiteo_vat" class="Magento\Sales\Ui\Component\Listing\Column\Price">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">VAT/GST SubTotal</label>
+                <visible>false</visible>
+            </settings>
+        </column>
+        <column name="base_transiteo_special_taxes" class="Magento\Sales\Ui\Component\Listing\Column\Price">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Special Taxes SubTotal</label>
+                <visible>false</visible>
+            </settings>
+        </column>
+    </columns>
+</listing>
