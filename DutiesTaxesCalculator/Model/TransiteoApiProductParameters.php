@@ -41,8 +41,8 @@ class TransiteoApiProductParameters
             if (!isset($this->unit_ship_price)) {
                 throw new \Exception('Transiteo Taxes : Unit ship price must be mentioned if weight is equal to zero.');
             }
-            /** TODO not working with weight = 0; default weight set to 0.01kg*/
-            $array['weight'] = 0.01;
+            /** TODO not working with weight = 0; default weight set to 1kg*/
+            $array['weight'] = 1;
             $array['weight_unit'] = "kg";
         }
         $array['quantity'] = $this->quantity;
@@ -144,5 +144,69 @@ class TransiteoApiProductParameters
     public function setSku($sku): void
     {
         $this->sku = $sku;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getProductName()
+    {
+        return $this->productName;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getWeight()
+    {
+        return $this->weight;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getWeightUnit()
+    {
+        return $this->weight_unit;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getQuantity()
+    {
+        return $this->quantity;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUnitPrice()
+    {
+        return $this->unit_price;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCurrencyUnitPrice()
+    {
+        return $this->currency_unit_price;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUnitShipPrice()
+    {
+        return $this->unit_ship_price;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSku()
+    {
+        return $this->sku;
     }
 }

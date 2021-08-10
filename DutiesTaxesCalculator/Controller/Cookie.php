@@ -46,19 +46,25 @@ class Cookie
     }
 
     /**
-     * Get form key cookie
+     * Get Cookie Value
      *
+     * @param string $cookie
+     * @param null $default
      * @return string
      */
-    public function get($cookie)
+    public function get(string $cookie, $default = null): string
     {
-        return $this->cookieManager->getCookie($cookie);
+        return $this->cookieManager->getCookie($cookie, $default);
     }
 
     /**
+     * @param $cookie
      * @param string $value
      * @param int $duration
      * @return void
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Stdlib\Cookie\CookieSizeLimitReachedException
+     * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
      */
     public function set($cookie, $value, $duration = 86400)
     {
@@ -78,7 +84,10 @@ class Cookie
     }
 
     /**
+     * @param $cookie
      * @return void
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
      */
     public function delete($cookie)
     {

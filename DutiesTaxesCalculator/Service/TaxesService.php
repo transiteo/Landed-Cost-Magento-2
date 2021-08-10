@@ -6,19 +6,30 @@ declare(strict_types=1);
 
 namespace Transiteo\DutiesTaxesCalculator\Service;
 
+use Exception;
+use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\Directory\Model\CountryFactory;
 use Magento\Directory\Model\RegionFactory;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\FlagManager;
 use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
+use Magento\Quote\Model\Quote\Item;
 use Magento\Store\Model\StoreManagerInterface;
+use Transiteo\DutiesTaxesCalculator\Controller\Cookie;
 use Transiteo\DutiesTaxesCalculator\Logger\Logger;
+use Transiteo\DutiesTaxesCalculator\Model\Config;
 use Transiteo\DutiesTaxesCalculator\Model\TransiteoApiProductParameters;
 use Transiteo\DutiesTaxesCalculator\Model\TransiteoApiProductParametersFactory;
 use Transiteo\DutiesTaxesCalculator\Model\TransiteoApiShipmentParameters;
+use Transiteo\DutiesTaxesCalculator\Model\TransiteoApiShipmentParametersFactory;
 use Transiteo\DutiesTaxesCalculator\Model\TransiteoProducts;
+use Transiteo\DutiesTaxesCalculator\Model\TransiteoProductsFactory;
 
 class TaxesService
 {
@@ -33,204 +44,188 @@ class TaxesService
     public const RETURN_KEY_VAT = 'vat';
     public const RETURN_KEY_SPECIAL_TAXES = 'special_taxes';
     public const RETURN_KEY_TOTAL_TAXES = 'total_taxes';
-    public const COOKIE_NAME = 'transiteo-popup-info';
+    public const COOKIE_NAME = Config::COOKIE_NAME;
 
-    protected $transiteoProducts;
-    protected $shipmentParams;
+    /**
+     * @var TransiteoProductsFactory
+     */
+    protected $transiteoProductsFactory;
+
+    /**
+     * @var TransiteoApiProductParametersFactory
+     */
     protected $productParamsFactory;
-    protected $productCollectionFactory;
-    protected $scopeConfig;
+
+    /**
+     * @var StoreManagerInterface
+     */
     protected $storeManager;
+
+    /**
+     * @var CountryFactory
+     */
     protected $_countryFactory;
-    protected $regionFactory;
+
+    /**
+     * @var FlagManager
+     */
     protected $_flagManager;
-    protected $cookieManager;
     /**
      * @var Logger
      */
     protected $logger;
 
     /**
+     * @var Config
+     */
+    protected $config;
+    /**
+     * @var ProductRepositoryInterface
+     */
+    protected $productRepository;
+    /**
+     * @var SearchCriteriaBuilder
+     */
+    protected $searchCriteriaBuilder;
+    /**
+     * @var TransiteoApiShipmentParametersFactory
+     */
+    protected $shipmentParamsFactory;
+    /**
+     * @var Cookie
+     */
+    protected $cookie;
+
+    /**
      * TaxesService constructor.
-     * @param TransiteoProducts $transiteoProducts
-     * @param ScopeConfigInterface $scopeConfig
+     * @param TransiteoProductsFactory $transiteoProductsFactory
      * @param StoreManagerInterface $storeManager
      * @param TransiteoApiProductParametersFactory $productParamsFactory
-     * @param TransiteoApiShipmentParameters $shipmentParams
-     * @param CollectionFactory $productCollectionFactory
+     * @param TransiteoApiShipmentParametersFactory $shipmentParamsFactory
      * @param CountryFactory $countryFactory
      * @param RegionFactory $regionFactory
-     * @param CookieManagerInterface $cookieManager
      * @param FlagManager $flagManager
      * @param Logger $logger
+     * @param Config $config
+     * @param ProductRepositoryInterface $productRepository
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param Cookie $cookie
      */
     public function __construct(
-        TransiteoProducts $transiteoProducts,
-        ScopeConfigInterface $scopeConfig,
+        TransiteoProductsFactory $transiteoProductsFactory,
         StoreManagerInterface $storeManager,
         TransiteoApiProductParametersFactory $productParamsFactory,
-        TransiteoApiShipmentParameters $shipmentParams,
-        CollectionFactory $productCollectionFactory,
+        TransiteoApiShipmentParametersFactory $shipmentParamsFactory,
         CountryFactory $countryFactory,
         RegionFactory $regionFactory,
-        CookieManagerInterface $cookieManager,
         FlagManager $flagManager,
-        Logger $logger
+        Logger $logger,
+        Config $config,
+        ProductRepositoryInterface $productRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        Cookie $cookie
     ) {
         $this->logger = $logger;
-        $this->regionFactory = $regionFactory;
-        $this->cookieManager = $cookieManager;
-        $this->transiteoProducts     = $transiteoProducts;
-        $this->shipmentParams    = $shipmentParams;
+        $this->transiteoProductsFactory     = $transiteoProductsFactory;
+        $this->shipmentParamsFactory    = $shipmentParamsFactory;
         $this->productParamsFactory     = $productParamsFactory;
-        $this->productCollectionFactory = $productCollectionFactory;
-        $this->scopeConfig       = $scopeConfig;
         $this->storeManager      = $storeManager;
         $this->_countryFactory = $countryFactory;
         $this->_flagManager = $flagManager;
+        $this->config = $config;
+        $this->productRepository = $productRepository;
+        $this->searchCriteriaBuilder =$searchCriteriaBuilder;
+        $this->cookie = $cookie;
     }
 
+
     /**
-     * @param array $products array of quote items
+     * @param Item[] $products array of quote items
      * @param array $params
+     * @param bool $save
      * @return array
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
-    public function getDutiesByProducts(array $products, $params = []): array
+    public function getDutiesByQuoteItems(array $products, $params = [], bool $save = true): array
     {
         //SHIPMENT
-        $shipmentParams = $this->shipmentParams;
-        //get shipping amount
-        if (array_key_exists(self::SHIPPING_AMOUNT, $params)) {
-            $shippingAmount = $params[self::SHIPPING_AMOUNT];
-        } else {
-            $shippingAmount = 0;
-        }
-        //define if shipping is global or not
-        if (count($products)>1) {
-            $globalShipPrice = 0;
-            $shipmentParams->setShipmentType(true, round($shippingAmount, 2), $this->getCurrentStoreCurrency());
-        } else {
-            $globalShipPrice = $shippingAmount;
-            $shipmentParams->setShipmentType(false);
-        }
-        $shipmentParams->setLang($this->getTransiteoLang());
+        $shipmentParams = $this->shipmentParamsFactory->create();
 
-        $shipmentParams->setFromCountry($this->getIso3Country($this->getWebsiteCountry())); // country from website ISO3
-
-        /** TODO add from district in config */
-        $shipmentParams->setFromDistrict($this->getWebsiteDistrict()); // district from DistrictRepository
-
-        //GET to country and to district from params or cookie
-        if ((!array_key_exists(self::TO_COUNTRY, $params))) {
-            if ((array_key_exists(self::DISALLOW_GET_COUNTRY_FROM_COOKIE, $params)
-                && $params[self::DISALLOW_GET_COUNTRY_FROM_COOKIE])) {
-                throw new \Exception("Transiteo_DutiesTaxesCalculator getting country from cookie is disallowed.");
-            }
-            $cookie = $this->cookieManager->getCookie('transiteo-popup-info', null);
-            if ($cookie === null) {
-                throw new \Exception("Transiteo_DutiesTaxesCalculator country cookie does not exists.");
-            }
-
-            $cookie = explode('_', $cookie);
-            $toCountry = $cookie[0];
-            if (!array_key_exists(self::TO_DISTRICT, $params) || $params[self::TO_DISTRICT] === "") {
-                $toDistrict = $cookie[1];
-            } else {
-                $toDistrict = $params[self::TO_DISTRICT];
-            }
-        } else {
-            $toCountry = $params[self::TO_COUNTRY];
-            if (array_key_exists(self::TO_DISTRICT, $params)) {
-                $toDistrict = $params[self::TO_DISTRICT];
-            } else {
-                //Set to district = ""
-                $toDistrict = "";
-                //set default district for usa, and Brazil and Canada.
-                if ($toCountry === "USA") {
-                    $toDistrict = "US-CA-90034";
-                }
-                if ($toCountry === "CAN") {
-                    $toDistrict = "CA-AB";
-                }
-                if ($toCountry === "BRA") {
-                    $toDistrict = "BR-AC";
-                }
-            }
-        }
-
-        //IF country is ISO2 get ISO3 code
-        if (strlen($toCountry) === 2) {
-            $toCountry = $this->getIso3Country($toCountry);
-        }
-        $shipmentParams->setToCountry($toCountry); // country from customer attribute or cookie value
-        $shipmentParams->setToDistrict($toDistrict); // district from customer attribute or cookie value
-
-        /**
-         * TODO add Sender pro in config
-         */
-        $shipmentParams->setSenderPro(true, 1, "EUR"); // true always, const
-        //$shipmentParams->setSenderProRevenue(0); // need an input in admin
-        //$shipmentParams->setSenderProRevenueCurrency("EUR"); // need an input in admin
-
-        /**
-         * TODO add Transport Carrier in config
-         */
-        $shipmentParams->setTransportCarrier(null); // in checkout only
-        $shipmentParams->setTransportType(null); // in checkout only
-
-        //GET RECEIVER PRO PARAM
-        if (array_key_exists(self::RECEIVER_PRO, $params)) {
-            $receiverPro = $params[self::RECEIVER_PRO];
-        } else {
-            $receiverPro = false;
-        }
-
-        // DEFINE RECEIVER TYPE
-        if ($receiverPro) {
-            if (array_key_exists(self::RECEIVER_ACTIVITY, $params)) {
-                $receiverActivity = $params[self::RECEIVER_ACTIVITY];
-            } else {
-                throw new \Exception("Receiver for transiteo taxe calculation is set to pro but activity is not set.");
-            }
-            $shipmentParams->setReceiverPro($receiverPro, $receiverActivity); // need an input in customer attribute
-        } else {
-            $shipmentParams->setReceiverPro($receiverPro); // need an input in customer attribute
-        }
+        $this->fillShipmentParams($shipmentParams, count($products), $params);
 
         ///PRODUCTS
         $productsParams = [];
-        $weightUnit = $this->getWeightUnit();
-        $currentStoreCurrency = $this->getCurrentStoreCurrency();
 
         foreach ($products as $quoteItem) {
             $qty = $quoteItem->getQty();
             $product = $quoteItem->getProduct();
             /**
              * @var TransiteoApiProductParameters $productParams;
+             * @var ProductInterface $product;
              */
             $productParams = $this->productParamsFactory->create();
-            $id = $product->getId();
-            $productParams->setSku($product->getData($this->getProductIdentifier()));
-            $productParams->setProductName($product->getName());
-            $productParams->setWeight(round($product->getWeight(), 2));
-            $productParams->setWeight(0);
-            $productParams->setWeight_unit($weightUnit);
-            $productParams->setQuantity($qty);
-            $productParams->setUnit_price(round($product->getPrice() * $this->getCurrentCurrencyRate(), 2));
-            $productParams->setCurrency_unit_price($currentStoreCurrency);
-            if ($globalShipPrice === 0) {
-                $productParams->setUnit_ship_price(0); // 0 default
-            } else {
-                $productParams->setUnit_ship_price(round($globalShipPrice/$qty, 2)); // prix du shipping
-            }
-            $productsParams[$id] = $productParams;
+            $this->fillProductParams($productParams, $product, $qty, $shipmentParams->getGlobalShipPrice() ?? 0);
+            $productsParams[$product->getId()] = $productParams;
         }
 
-        $this->transiteoProducts->setProducts($productsParams);
-        $this->transiteoProducts->setShipmentParams($shipmentParams);
+        $transiteoProducts = $this->transiteoProductsFactory->create();
 
-        foreach ($products as $quoteItem) {
+        $transiteoProducts->setProducts($productsParams);
+        $transiteoProducts->setShipmentParams($shipmentParams);
+
+
+        if($save){
+            $this->saveDutiesOnQuoteItems($products, $transiteoProducts);
+        }
+
+        return $this->formatDutiesResponse($transiteoProducts);
+    }
+
+    /**
+     * @param string $sku
+     * @param float $qty
+     * @param int|null $storeId
+     * @return array
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function getDutiesByProductSku(string $sku, float $qty =1, ?int $storeId = null){
+
+        $this->searchCriteriaBuilder
+            ->addFilter($this->config->getProductIdentifier(), $sku, "eq");
+
+        if(isset($storeId)){
+            $this->searchCriteriaBuilder->addFilter('store_id', $storeId, "eq");
+        }
+
+        $searchCriteria =  $this->searchCriteriaBuilder->create();
+
+
+        $products = $this->productRepository->getList($searchCriteria)->getItems();
+        if(!empty($products)){
+            $product = reset($products);
+            $shipmentParams = $this->shipmentParamsFactory->create();
+            $productParams = $this->productParamsFactory->create();
+            $this->fillShipmentParams($shipmentParams, $qty);
+            $this->fillProductParams( $productParams, $product, $qty);
+            $transiteoProducts = $this->transiteoProductsFactory->create();
+            $transiteoProducts->setProducts([$productParams]);
+            $transiteoProducts->setShipmentParams($shipmentParams);
+
+            return $this->formatDutiesResponse($transiteoProducts);
+        }
+        return [];
+    }
+
+    /**
+     * @param Item[] $quoteItems
+     * @param TransiteoProducts $transiteoProducts
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    protected function saveDutiesOnQuoteItems(array $quoteItems, TransiteoProducts $transiteoProducts){
+        foreach ($quoteItems as $quoteItem) {
             $product = $quoteItem->getProduct();
             /**
              * @var CartItemInterface $product
@@ -238,10 +233,10 @@ class TaxesService
             $id = $product->getId();
 
             $currencyRate = $this->getCurrentCurrencyRate();
-            $duty = $this->transiteoProducts->getDuty($id);
-            $specialTaxes = $this->transiteoProducts->getSpecialTaxes($id);
-            $totalTaxes = $this->transiteoProducts->getTotalTaxes($id);
-            $vatAmount = $this->transiteoProducts->getVat($id);
+            $duty = $transiteoProducts->getDuty($id);
+            $specialTaxes = $transiteoProducts->getSpecialTaxes($id);
+            $totalTaxes = $transiteoProducts->getTotalTaxes($id);
+            $vatAmount = $transiteoProducts->getVat($id);
 
             //Set Transiteo Taxes
             $quoteItem->setData('transiteo_vat', $vatAmount);
@@ -279,90 +274,177 @@ class TaxesService
                 $quoteItem->setTaxPercent(0);
             }
         }
+    }
 
+
+    /**
+     * @param TransiteoProducts $products
+     * @return array
+     */
+    protected function formatDutiesResponse(TransiteoProducts $products): array
+    {
         return [
-            self::RETURN_KEY_DUTY          => $this->transiteoProducts->getTotalDuty(),
-            self::RETURN_KEY_VAT           => $this->transiteoProducts->getTotalVat(),
-            self::RETURN_KEY_SPECIAL_TAXES => $this->transiteoProducts->getTotalSpecialTaxes(),
-            self::RETURN_KEY_TOTAL_TAXES   => $this->transiteoProducts->getTotalTaxes()
+            self::RETURN_KEY_DUTY          => $products->getTotalDuty(),
+            self::RETURN_KEY_VAT           => $products->getTotalVat(),
+            self::RETURN_KEY_SPECIAL_TAXES => $products->getTotalSpecialTaxes(),
+            self::RETURN_KEY_TOTAL_TAXES   => $products->getTotalTaxes()
         ];
     }
 
     /**
-     * @return mixed
+     * @param TransiteoApiShipmentParameters $shipmentParams
+     * @param float $productsQty
+     * @param array $params
+     * @return TransiteoApiShipmentParameters
+     * @throws NoSuchEntityException
      */
-    private function getWeightUnit()
+    protected function fillShipmentParams(TransiteoApiShipmentParameters $shipmentParams,float $productsQty = 1, array $params = []): TransiteoApiShipmentParameters
     {
-        $unit = $this->scopeConfig->getValue(
-            'general/locale/weight_unit',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
-        if ($unit === "kgs") {
-            return "kg";
+        //get shipping amount
+        if (array_key_exists(self::SHIPPING_AMOUNT, $params)) {
+            $shippingAmount = $params[self::SHIPPING_AMOUNT];
+        } else {
+            $shippingAmount = 0;
         }
-        if ($unit === "lbs") {
-            return "lb";
+        //define if shipping is global or not
+        if ($productsQty > 1) {
+            $shipmentParams->setShipmentType(true, round($shippingAmount, 2), $this->getCurrentStoreCurrency());
+        } else {
+            $shipmentParams->setShipmentType(false);
         }
-        return $unit;
+        $shipmentParams->setLang($this->getTransiteoLang());
+
+        $shipmentParams->setFromCountry($this->getIso3Country($this->config->getWebsiteCountry())); // country from website ISO3
+
+        /** TODO add from district in config */
+        $shipmentParams->setFromDistrict($this->config->getWebsiteDistrict()); // district from DistrictRepository
+
+        //GET to country and to district from params or cookie
+        if ((!array_key_exists(self::TO_COUNTRY, $params))) {
+            if ((array_key_exists(self::DISALLOW_GET_COUNTRY_FROM_COOKIE, $params)
+                && $params[self::DISALLOW_GET_COUNTRY_FROM_COOKIE])) {
+                throw new Exception("Transiteo_DutiesTaxesCalculator getting country from cookie is disallowed.");
+            }
+            $cookie = $this->cookie->get(Config::COOKIE_NAME, null);
+            if ($cookie === null) {
+                throw new Exception("Transiteo_DutiesTaxesCalculator country cookie does not exists.");
+            }
+
+            $cookie = explode('_', $cookie);
+            $toCountry = $cookie[0];
+            if (!array_key_exists(self::TO_DISTRICT, $params) || $params[self::TO_DISTRICT] === "") {
+                $toDistrict = $cookie[1];
+            } else {
+                $toDistrict = $params[self::TO_DISTRICT];
+            }
+        } else {
+            $toCountry = $params[self::TO_COUNTRY];
+            if (array_key_exists(self::TO_DISTRICT, $params)) {
+                $toDistrict = $params[self::TO_DISTRICT];
+            } else {
+                //Set to district = ""
+                $toDistrict = $this->getRequiredDefaultDistrict($toCountry);
+            }
+        }
+
+        //IF country is ISO2 get ISO3 code
+        if (strlen($toCountry) === 2) {
+            $toCountry = $this->getIso3Country($toCountry);
+        }
+        $shipmentParams->setToCountry($toCountry); // country from customer attribute or cookie value
+        $shipmentParams->setToDistrict($toDistrict); // district from customer attribute or cookie value
+
+        /**
+         * TODO add Sender pro in config
+         */
+        $shipmentParams->setSenderPro(true, 1, "EUR"); // true always, const
+        //$shipmentParams->setSenderProRevenue(0); // need an input in admin
+        //$shipmentParams->setSenderProRevenueCurrency("EUR"); // need an input in admin
+
+        /**
+         * TODO add Transport Carrier in config
+         */
+        $shipmentParams->setTransportCarrier(null); // in checkout only
+        $shipmentParams->setTransportType(null); // in checkout only
+
+        //GET RECEIVER PRO PARAM
+        if (array_key_exists(self::RECEIVER_PRO, $params)) {
+            $receiverPro = $params[self::RECEIVER_PRO];
+        } else {
+            $receiverPro = false;
+        }
+
+        // DEFINE RECEIVER TYPE
+        if ($receiverPro) {
+            if (array_key_exists(self::RECEIVER_ACTIVITY, $params)) {
+                $receiverActivity = $params[self::RECEIVER_ACTIVITY];
+            } else {
+                throw new Exception("Receiver for transiteo taxe calculation is set to pro but activity is not set.");
+            }
+            $shipmentParams->setReceiverPro($receiverPro, $receiverActivity); // need an input in customer attribute
+        } else {
+            $shipmentParams->setReceiverPro($receiverPro); // need an input in customer attribute
+        }
+
+        return $shipmentParams;
     }
+
+
+    /**
+     * @param string $toCountry
+     * @return string
+     */
+    protected function getRequiredDefaultDistrict(string $toCountry):string
+    {
+        $toDistrict = "";
+        //set default district for usa, and Brazil and Canada.
+        if ($toCountry === "USA") {
+            $toDistrict = "US-CA-90034";
+        }
+        if ($toCountry === "CAN") {
+            $toDistrict = "CA-AB";
+        }
+        if ($toCountry === "BRA") {
+            $toDistrict = "BR-AC";
+        }
+        return $toDistrict;
+    }
+
+
+    /**
+     * @param TransiteoApiProductParameters $productParams
+     * @param ProductInterface $product
+     * @param float $qty
+     * @param float|int $globalShipPrice
+     * @return TransiteoApiProductParameters
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    protected function fillProductParams(TransiteoApiProductParameters $productParams,ProductInterface $product,float $qty = 1,float $globalShipPrice = 0){
+        $productParams->setSku($product->getData($this->config->getProductIdentifier()));
+        $productParams->setProductName($product->getName());
+        $productParams->setWeight(round($product->getWeight(), 2));
+        $productParams->setWeight(0);
+        $productParams->setWeight_unit($this->config->getWeightUnit());
+        $productParams->setQuantity($qty);
+        $productParams->setUnit_price(round($product->getPrice() * $this->getCurrentCurrencyRate(), 2));
+        $productParams->setCurrency_unit_price($this->getCurrentStoreCurrency());
+        if ($globalShipPrice  === 0) {
+            $productParams->setUnit_ship_price(0); // 0 default
+        } else {
+            $productParams->setUnit_ship_price(round($globalShipPrice/$qty, 2)); // prix du shipping
+        }
+        return $productParams;
+    }
+
 
     /**
      * @return mixed
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      */
     private function getCurrentStoreCurrency()
     {
         return $this->storeManager->getStore()->getCurrentCurrencyCode();
-    }
-
-    /**
-     * Get Country code by website scope
-     *
-     * @return string
-     */
-    public function getWebsiteCountry(): string
-    {
-        return $this->scopeConfig->getValue(
-            'shipping/origin/country_id',
-            \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE
-        );
-    }
-
-    /**
-     * Get Website District code by website scope
-     *
-     * @return string
-     */
-    public function getWebsiteDistrict(): string
-    {
-        $country = $this->getWebsiteCountry();
-        $regionId = $this->scopeConfig->getValue(
-            'shipping/origin/region_id',
-            \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE
-        );
-        $region =  $this->regionFactory->create()->load($regionId)->getCode();
-        $zip = $this->scopeConfig->getValue(
-            'shipping/origin/postcode',
-            \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE
-        );
-        $r = $country . '-' . $region;
-        if ($country === "US") {
-            $r .= '-' . $zip;
-        }
-        return $r;
-    }
-
-    /**
-    * Get Locale Code
-    *
-    * @return string
-    */
-    public function getLocale(): string
-    {
-        return $this->scopeConfig->getValue(
-            'general/locale/code',
-            \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE
-        );
     }
 
     /**
@@ -372,7 +454,7 @@ class TaxesService
      */
     public function getTransiteoLang(): string
     {
-        $locale = substr($this->getLocale(), 0, 3);
+        $locale = substr($this->config->getLocale(), 0, 3);
 
         if ($locale === "fr_") {
             return "fr";
@@ -391,6 +473,60 @@ class TaxesService
         return $country->getData('iso3_code');
     }
 
+    // Get Country from ISO2 Country Code
+    public function getCountryByCode($countryIsoCode2):\Magento\Directory\Model\Country
+    {
+        $country = $this->_countryFactory->create();
+        return $country->loadByCode($countryIsoCode2);
+    }
+
+    /**
+     * @return \Magento\Directory\Model\Country|null
+     */
+    public function getToCountryFromCookie(): ?\Magento\Directory\Model\Country
+    {
+        $cookie = $this->cookie->get(Config::COOKIE_NAME, null);
+        if(!isset($cookie)){
+            return null;
+        }
+        $cookie = explode('_', $cookie);
+        $toCountry = $cookie[0];
+        $country = $this->_countryFactory->create();
+        return  $country->loadByCode($toCountry);
+    }
+
+    /**
+     * @param bool|null|string $country
+     * @param bool|null|string $district
+     * @param bool|null|string $currency
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Stdlib\Cookie\CookieSizeLimitReachedException
+     * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
+     */
+    public function updateCookieValue($country = false, $district = false, $currency = false): string
+    {
+        $cookie = $this->cookie->get(self::COOKIE_NAME, null);
+        if(isset($cookie)){
+            $cookie = explode('_', $cookie);
+            if(!$country && isset($country)){
+                $country = $cookie[0];
+            }
+            if($country === $cookie[0] && !$district && isset($district)){
+                $district = $cookie[1];
+            }else{
+                $district = ""; // Remove the district when country changes
+            }
+            if(!$currency && isset($currency)){
+                $currency = $cookie[2];
+            }
+        }
+        $value = implode("_", [$country, $district, $currency]) ;
+        $this->cookie->set(
+            Config::COOKIE_NAME, $value
+        );
+        return $value;
+    }
+
     /**
      *  Return if ddp is activate.
      *
@@ -398,10 +534,7 @@ class TaxesService
      */
     public function getIncoterm()
     {
-        return $this->scopeConfig->getValue(
-            'transiteo_settings/duties/incoterm',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
+        return $this->config->getIncoterm();
     }
 
     /**
@@ -411,26 +544,7 @@ class TaxesService
      */
     public function isDDPActivated()
     {
-        if ($this->scopeConfig->getValue(
-            'transiteo_settings/duties/incoterm',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        ) === 'ddp') {
-            return true;
-        }
-
-        return false;
-    }
-
-
-    /**
-     * @return string
-     */
-    public function getProductIdentifier():string
-    {
-        return (string) $this->scopeConfig->getValue(
-        'transiteo_activation/general/product_identifier',
-        \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
+        return $this->config->isDDPActivated();
     }
 
     /**
@@ -438,18 +552,9 @@ class TaxesService
      *
      * @return bool
      */
-    public function isActivatedOnCheckout()
+    public function isActivatedOnCheckout():bool
     {
-        $values = explode(',', $this->scopeConfig->getValue(
-            'transiteo_settings/duties/enabled_on',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        ));
-        foreach ($values as $value) {
-            if ($value === 'checkout') {
-                return true;
-            }
-        }
-        return false;
+        return $this->config->isActivatedOnCheckout();
     }
 
     /**
@@ -457,32 +562,15 @@ class TaxesService
      *
      * @return bool
      */
-    public function isActivatedOnCartView()
+    public function isActivatedOnCartView():bool
     {
-        $values = explode(',', $this->scopeConfig->getValue(
-            'transiteo_settings/duties/enabled_on',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        ));
-        foreach ($values as $value) {
-            if ($value === 'cart') {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * @return StoreManagerInterface
-     */
-    public function getStoreManager()
-    {
-        return $this->storeManager;
+        return $this->config->isActivatedOnCartView();
     }
 
     /**
      * @return float
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function getCurrentCurrencyRate()
     {
@@ -496,4 +584,14 @@ class TaxesService
     {
         return $this->logger;
     }
+
+    /**
+     * @return Config
+     */
+    public function getConfig(): Config
+    {
+        return $this->config;
+    }
+
+
 }

@@ -12,7 +12,7 @@
     </head>
     <body>
         <referenceContainer name="after.body.start">
-            <block class="Transiteo\DutiesTaxesCalculator\Block\Modal" name="transiteo.modal" template="Transiteo_DutiesTaxesCalculator::modal.phtml" cacheable="false">
+            <block class="Transiteo\DutiesTaxesCalculator\Block\Modal" name="transiteo.modal" template="Transiteo_DutiesTaxesCalculator::modal.phtml" cacheable="true" ifconfig="transiteo_settings/modal/show">
                 <block class="Magento\Theme\Block\Html\Header\Logo"
                        template="Transiteo_DutiesTaxesCalculator::modal/logo.phtml"
                        name="transiteo.modal.logo"
@@ -24,7 +24,10 @@
             <block class="Magento\Framework\View\Element\Template"
                    template="Transiteo_DutiesTaxesCalculator::button.phtml"
                    name="transiteo.modal.button.link"
-                   before="-" />
+                   before="-"
+                   cacheable="true"
+                   ifconfig="transiteo_settings/modal/show"
+            />
         </referenceContainer>
     </body>
 </page>
