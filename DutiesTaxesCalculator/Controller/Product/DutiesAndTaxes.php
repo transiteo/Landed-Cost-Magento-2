@@ -122,9 +122,13 @@ class DutiesAndTaxes implements ActionInterface
         try {
             $sku = $this->getProductSku($this->getRequest()->getParams());
             $country = $this->getRequest()->getParam('country_code');
-            if($country !== "undefined" && $country !== $this->taxesServices->getToCountryFromCookie()->getCountryId()){
+            $countryCookie = $this->taxesServices->getToCountryFromCookie();
+            if(!isset($countryCookie)){
+                $this->taxesServices->updateCookieValue($country);
+            }elseif($country !== "undefined" && $country !== $countryCookie->getCountryId()){
                 $this->taxesServices->updateCookieValue($country);
             }
+
             $duties = $this->taxesServices->getDutiesByProductSku($sku, (float) $this->getRequest()->getParam('qty'));
             $duties['success'] = true;
             $duties['country'] = $this->taxesServices->getToCountryFromCookie()->getName();

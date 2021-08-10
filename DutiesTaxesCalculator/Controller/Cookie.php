@@ -50,9 +50,9 @@ class Cookie
      *
      * @param string $cookie
      * @param null $default
-     * @return string
+     * @return string|null
      */
-    public function get(string $cookie, $default = null): string
+    public function get(string $cookie, $default = null): ?string
     {
         return $this->cookieManager->getCookie($cookie, $default);
     }

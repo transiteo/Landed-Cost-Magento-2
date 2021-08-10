@@ -201,7 +201,7 @@ class Config
      *
      * @return bool
      */
-    public function isActivatedOnProductPAge(): bool
+    public function isActivatedOnProductPage(): bool
     {
         $values = explode(',', $this->scopeConfig->getValue(
             'transiteo_settings/duties/enabled_on',
