@@ -22,7 +22,7 @@
         </currency>
         <transiteo_settings>
             <modal>
-                <show>0</show>
+                <show>1</show>
                 <button_color>#000000</button_color>
                 <title>Welcome !</title>
                 <css><![CDATA[
@@ -32,10 +32,30 @@
                 ]]></css>
             </modal>
             <duties>
-                <enabled_on>cart,checkout</enabled_on>
+                <enabled_on>cart,checkout,pdp</enabled_on>
                 <incoterm>dap</incoterm>
                 <debug_mode>0</debug_mode>
             </duties>
+            <pdp_settings>
+                <enable_loader>1</enable_loader>
+                <product_form_selector>#product_addtocart_form</product_form_selector>
+                <qty_field_selector>#qty</qty_field_selector>
+                <super_attribute_selector>.super-attribute-select</super_attribute_selector>
+                <country_selector>select[name='country_id']</country_selector>
+                <total_taxes_container_selector>.transiteo-product-total-taxes
+ .price-container .price-wrapper .total-taxes</total_taxes_container_selector>
+                <vat_container_selector>.transiteo-product-total-taxes
+ .price-container .price-wrapper .vat</vat_container_selector>
+                <duty_container_selector>.transiteo-product-total-taxes
+ .price-container .price-wrapper .duty</duty_container_selector>
+                <special_taxes_container_selector>.transiteo-product-total-taxes
+ .price-container .price-wrapper .special-taxes</special_taxes_container_selector>
+                <display_under_sku>0</display_under_sku>
+                <display_under_price>1</display_under_price>
+                <display_under_add_to_cart>0</display_under_add_to_cart>
+                <event_action>change input</event_action>
+                <delay>60</delay>
+            </pdp_settings>
         </transiteo_settings>
     </default>
 </config>

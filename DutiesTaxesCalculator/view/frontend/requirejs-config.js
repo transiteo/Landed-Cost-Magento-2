@@ -5,17 +5,19 @@
  */
 
 var config = {
-    paths: {
-        'transiteomodal': "Transiteo_DutiesTaxesCalculator/js/modal"
-    },
-    shim: {
-        'transiteomodal': {
-            deps: ['jquery']
-        }
-    },
+    // paths: {
+    //     'transiteomodal': "Transiteo_DutiesTaxesCalculator/js/modal"
+    // },
+    // shim: {
+    //     'transiteomodal': {
+    //         deps: ['jquery']
+    //     }
+    // },
     map: {
         '*': {
-            'transiteoduties': 'Transiteo_DutiesTaxesCalculator/js/duties'
+            transiteomodal: "Transiteo_DutiesTaxesCalculator/js/modal",
+            transiteoduties: 'Transiteo_DutiesTaxesCalculator/js/duties',
+            transiteoProductDutiesTaxes: 'Transiteo_DutiesTaxesCalculator/js/product/view/product-duties-taxes'
         }
     }
 }
