@@ -42,7 +42,7 @@ require([
                     $("#country_error").hide();
                     $("#region_error").hide();
                     $("#currency_error").hide();
-                    if (!$("#country").val()) {
+                    if (!$("select[name='country_id']").val()) {
                         const span_country = $("#country_error")
                             .html("please select country")
                             .show();
@@ -105,7 +105,7 @@ require([
             if (!value.same_country_as_website && !cookieExists() && !isOpened) {
                 const popup = modal(options, $("#transiteo-modal"));
                 const visitorCountry = value.visitor_country;
-                $("#country").val(visitorCountry);
+                $("select[name='country_id']").val(visitorCountry);
 
                 reloadDistricts(function (data) {
                     $.each(data.items, function (index, value) {
@@ -119,7 +119,7 @@ require([
         if (cookieExists()) {
             var tabCountry = getCookie().split("_");
             console.log("cookie exist, country = " + tabCountry[0]);
-            $("#country").val(tabCountry[0]);
+            $("select[name='country_id']").val(tabCountry[0]);
 
             reloadDistricts(function (data) {
                 $.each(data.items, function (index, value) {
@@ -127,7 +127,7 @@ require([
 
                 });
 
-                $("#country").val(tabCountry[0]);
+                $("select[name='country_id']").val(tabCountry[0]);
                 $("#currency-select").val(tabCountry[2]);
 
                 $("#state").val(tabCountry[1]);
@@ -151,7 +151,7 @@ require([
         }
     });
 
-    $(document).on("click", "#click-me", () => {
+    $(document).on("click", "#transiteo_modal_button_show", () => {
         const popup = modal(options, $("#transiteo-modal"));
         $("#transiteo-modal").modal("openModal");
     });
@@ -202,7 +202,7 @@ require([
             .append('<option value="">Choose your state...</option>');
 
         // fetch states with country id
-        var param = "country=" + $("#country").val();
+        var param = "country=" + $("select[name='country_id']").val();
         $.ajax({
             url: url_states,
             data: param,
@@ -217,7 +217,14 @@ require([
         });
     }
 
-    $(document).on("change", "#country", function () {
+    //load districts first
+    reloadDistricts(function (data) {
+        $.each(data.items, function (index, value) {
+            $("#state").append('<option value="' + value.iso + '">' + value.label + '</option>');
+        });
+    });
+
+    $(document).on("change", "select[name='country_id']", function () {
         reloadDistricts(function (data) {
             $.each(data.items, function (index, value) {
                 $("#state").append('<option value="' + value.iso + '">' + value.label + '</option>');

@@ -31,6 +31,10 @@ class Modal extends \Magento\Framework\View\Element\Template
      * @var
      */
     protected $escaper;
+    /**
+     * @var \Transiteo\DutiesTaxesCalculator\Model\Config
+     */
+    protected $config;
 
     /**
      * Modal constructor.
@@ -42,6 +46,7 @@ class Modal extends \Magento\Framework\View\Element\Template
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param Cookie $cookie
      * @param \Magento\Framework\Escaper $escaper
+     * @param \Transiteo\DutiesTaxesCalculator\Model\Config $config
      * @param array $data
      */
     public function __construct(
@@ -52,9 +57,11 @@ class Modal extends \Magento\Framework\View\Element\Template
         SearchCriteriaBuilder $searchCriteriaBuilder,
         Cookie $cookie,
         Escaper $escaper,
+        \Transiteo\DutiesTaxesCalculator\Model\Config $config,
         array $data = []
     ) {
         parent::__construct($context, $data);
+        $this->config = $config;
         $this->_isScopePrivate       = true;
         $this->directoryBlock        = $directoryBlock;
         $this->cookie                = $cookie;
@@ -138,5 +145,12 @@ class Modal extends \Magento\Framework\View\Element\Template
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 
         return $css === null ? null :  $this->escaper->escapeHtml($css);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isActivatedOnProductPage(){
+        return $this->config->isActivatedOnProductPage();
     }
 }

@@ -142,6 +142,8 @@ class TransiteoApiShipmentParameters
             $this->currencyGlobalShipPrice = $currencyGlobalShipPrice;
         } else {
             $this->shipmentType = "ARTICLE";
+            $this->globalShipPrice = null;
+            $this->currencyGlobalShipPrice = null;
         }
 
         return $this;
@@ -223,4 +225,125 @@ class TransiteoApiShipmentParameters
 
         return $this;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getLang()
+    {
+        return $this->lang;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getFromCountry()
+    {
+        return $this->fromCountry;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getFromDistrict()
+    {
+        return $this->fromDistrict;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getToCountry()
+    {
+        return $this->toCountry;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getToDistrict()
+    {
+        return $this->toDistrict;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getShipmentType()
+    {
+        return $this->shipmentType;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getGlobalShipPrice()
+    {
+        return $this->globalShipPrice;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCurrencyGlobalShipPrice()
+    {
+        return $this->currencyGlobalShipPrice;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSenderPro()
+    {
+        return $this->senderPro;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSenderProRevenue()
+    {
+        return $this->senderProRevenue;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSenderProRevenueCurrency()
+    {
+        return $this->senderProRevenueCurrency;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTransportType()
+    {
+        return $this->transportType;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTransportCarrier()
+    {
+        return $this->transportCarrier;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getReceiverPro()
+    {
+        return $this->receiverPro;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getReceiverActivity()
+    {
+        return $this->receiverActivity;
+    }
+
 }
