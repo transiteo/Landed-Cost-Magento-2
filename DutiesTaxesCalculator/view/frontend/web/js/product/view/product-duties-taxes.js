@@ -138,6 +138,9 @@ define([
                                 _self.cachePrice[cacheKey] = data;
                                 _self._filTaxesContainer(this.qty);
                             }
+                            if (data.error) {
+                                console.log(data.error);
+                            }
                         }).always(function () {
                         _self.isAjaxPending = false;
                     });

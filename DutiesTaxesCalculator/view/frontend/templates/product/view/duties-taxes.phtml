@@ -5,12 +5,12 @@
  * @link <hello@bird.eu>
  */
 
-
 /** @var \Transiteo\DutiesTaxesCalculator\Block\Modal $block */
 
 /** @var \Transiteo\DutiesTaxesCalculator\ViewModel\ConfigDataProvider $viewModel */
 $viewModel = $block->getData('viewModel');
 ?>
+<?php if($block->isActivatedOnProductPage()): ?>
 <div class="transiteo-product-total-taxes">
     <span><?= $block->escapeHtml(__('Duties & Taxes estimation for ')) ?></span>
     <span class="country_container">
@@ -42,3 +42,4 @@ $viewModel = $block->getData('viewModel');
         }
     }
 </script>
+<?php endif; ?>

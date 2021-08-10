@@ -519,8 +519,10 @@ class TaxesService
             if(!$currency && isset($currency)){
                 $currency = $cookie[2];
             }
+
         }
-        $value = implode("_", [$country, $district, $currency]) ;
+        $value = implode("_", [$country ?: $this->config->getWebsiteCountry(), $district?: "", $currency?: $this->getCurrentStoreCurrency()]) ;
+
         $this->cookie->set(
             Config::COOKIE_NAME, $value
         );

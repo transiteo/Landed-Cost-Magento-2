@@ -178,12 +178,12 @@
                     <comment>The delay before sending the request to update the price (in milliseconds).</comment>
                     <validate>required-entry integer validate-greater-than-zero</validate>
                 </field>
-                <field id="display_under_price" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="10">
+                <field id="display_under_sku" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="10">
                     <label>Display under sku</label>
                     <comment>We will display the subtotal block under sku</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="display_under_qty" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="20">
+                <field id="display_under_price" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="20">
                     <label>Display under price</label>
                     <comment>We will display the subtotal block under price</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
