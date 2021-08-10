@@ -342,7 +342,7 @@ class TaxesService
             if (array_key_exists(self::TO_DISTRICT, $params)) {
                 $toDistrict = $params[self::TO_DISTRICT];
             } else {
-                //Set to district = "NOTSET"
+                //Set to district = "NOTSET" if not required
                 $toDistrict = $this->getRequiredDefaultDistrict($toCountry);
             }
         }
@@ -398,13 +398,13 @@ class TaxesService
     {
         $toDistrict = "NOTSET";
         //set default district for usa, and Brazil and Canada.
-        if ($toCountry === "USA") {
+        if ($toCountry === "US") {
             $toDistrict = "US-CA-90034";
         }
-        if ($toCountry === "CAN") {
+        if ($toCountry === "CA") {
             $toDistrict = "CA-AB";
         }
-        if ($toCountry === "BRA") {
+        if ($toCountry === "BR") {
             $toDistrict = "BR-AC";
         }
         return $toDistrict;
