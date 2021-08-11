@@ -116,10 +116,19 @@ define([
             let _self = this;
             let cacheKey = _self._getCacheKey();
             if (this.cachePrice.hasOwnProperty(cacheKey)) {
-                this.totalTaxesContainer.html(_self._formatPrice(this.cachePrice[cacheKey].total_taxes));
-                this.vatPriceContainer.html(_self._formatPrice(this.cachePrice[cacheKey].vat));
-                this.dutyPriceContainer.html(_self._formatPrice(this.cachePrice[cacheKey].duty));
-                this.specialTaxesPriceContainer.html(_self._formatPrice(this.cachePrice[cacheKey].special_taxes));
+                if(_self.options.enableLoader){
+                    $('body').trigger('processStart');
+                }
+                window.setTimeout(function () {
+                    _self.totalTaxesContainer.html(_self._formatPrice(_self.cachePrice[cacheKey].total_taxes));
+                    _self.vatPriceContainer.html(_self._formatPrice(_self.cachePrice[cacheKey].vat));
+                    _self.dutyPriceContainer.html(_self._formatPrice(_self.cachePrice[cacheKey].duty));
+                    _self.specialTaxesPriceContainer.html(_self._formatPrice(_self.cachePrice[cacheKey].special_taxes));
+                    if(_self.options.enableLoader){
+                        $('body').trigger('processStop');
+                    }
+                }, 500);
+
 
             } else {
                 window.setTimeout(function () {
@@ -128,6 +137,7 @@ define([
                             if (data.backUrl) {
                                 window.location = data.backUrl;
                             }
+                            console.log(data);
                             if (data.success) {
                                 if(data.country_code){
                                     let countries = $("select[name='country_id']");
@@ -138,13 +148,19 @@ define([
                                     cacheKey = _self._getCacheKey();
                                 }
                                 _self.cachePrice[cacheKey] = Object.create(data);
-                                _self._filTaxesContainer(this.qty);
+                                _self.totalTaxesContainer.html(_self._formatPrice(_self.cachePrice[cacheKey].total_taxes));
+                                _self.vatPriceContainer.html(_self._formatPrice(_self.cachePrice[cacheKey].vat));
+                                _self.dutyPriceContainer.html(_self._formatPrice(_self.cachePrice[cacheKey].duty));
+                                _self.specialTaxesPriceContainer.html(_self._formatPrice(_self.cachePrice[cacheKey].special_taxes));
                             }
                             if (data.error) {
                                 console.log(data.error);
                             }
                         }).always(function () {
                         _self.isAjaxPending = false;
+                        if(_self.options.enableLoader){
+                            $('body').trigger('processStop');
+                        }
                     });
                 }, _self.options.delay);
             }
@@ -208,8 +224,10 @@ define([
                 context: {
                     qty: productQty
                 },
-                showLoader: this.options.enableLoader,
                 beforeSend: function () {
+                    if(_self.options.enableLoader){
+                        $('body').trigger('processStart');
+                    }
                     _self.isAjaxPending = (!_self.isAjaxPending && cacheKey === _self._getCacheKey());
                     return _self.isAjaxPending;
                 }

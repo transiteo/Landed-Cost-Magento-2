@@ -12,26 +12,14 @@ $viewModel = $block->getData('viewModel');
 ?>
 <?php if($block->isActivatedOnProductPage()): ?>
 <div class="transiteo-product-total-taxes">
-    <span><?= $block->escapeHtml(__('Duties & Taxes estimation for ')) ?></span>
-    <span class="country_container">
+    <div class="country_container">
+        <label for="country"><?= $block->escapeHtml(__('Duties & Taxes estimation for ')) ?></label>
         <?= $block->getCountries() ?>
-    </span>
+    </div>
     <div class="price-container">
         <div class="price-wrapper">
-            <table>
-                <tr>
-                    <th><?=__("VAT")?></th>
-                    <th><?=__("Special Taxes")?></th>
-                    <th><?=__("Duty")?></th>
-                    <th><?=__("Total Taxes")?></th>
-                </tr>
-                <tr>
-                    <td class="vat"></td>
-                    <td class="duty"></td>
-                    <td class="special-taxes"></td>
-                    <td class="total-taxes"></td>
-                </tr>
-            </table>
+            <span><?=__("Total Taxes")?> :</span>
+            <span class="total-taxes"></span>
         </div>
     </div>
 </div>
