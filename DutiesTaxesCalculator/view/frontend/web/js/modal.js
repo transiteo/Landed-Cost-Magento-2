@@ -8,7 +8,8 @@ require([
     "jquery",
     "Magento_Ui/js/modal/modal",
     "Magento_Customer/js/customer-data",
-], ($, modal, customerData) => {
+    'mage/translate'
+], ($, modal, customerData, $t) => {
     let isOpened = false;
     // reload of geoip_country section
     const sections = ["geoip_country"];
@@ -20,16 +21,15 @@ require([
     customerData.invalidate(sections);
     customerData.reload(sections, true);
 
-    document.getElementById("country").options[0].text = "Choose your country...";
-    document.getElementById("state").options[0].text = "Choose your state...";
+    document.getElementById("country").removeAttribute('id');
 
-    const url_states = $("#getUrlStates").val();
-
+    const url_states = $(".getUrlStates").val();
 
     const options = {
         id: 'Transiteo_DutiesTaxesCalculator_modal',
         type: "popup",
         title: "",
+        class: "transiteo-modal",
         responsive: true,
         innerScroll: true,
         clickableOverlay: false,
@@ -39,31 +39,31 @@ require([
                 text: $.mage.__("Submit"),
                 class: "transiteo_modal_button button_submit",
                 click(data) {
-                    $("#country_error").hide();
-                    $("#region_error").hide();
-                    $("#currency_error").hide();
+                    $(".modal-content .country_error").hide();
+                    $(".modal-content .region_error").hide();
+                    $(".modal-content .currency_error").hide();
                     if (!$("select[name='country_id']").val()) {
-                        const span_country = $("#country_error")
-                            .html("please select country")
+                        const span_country = $(".country_error")
+                            .html($t("please select country"))
                             .show();
 
                         return false;
                     }
-                    if (!$("#state").val()) {
-                        const span_region = $("#region_error")
-                            .html("please select region")
+                    if (!$(".state").val()) {
+                        const span_region = $(".region_error")
+                            .html($t("please select region"))
                             .show();
                         return false;
                     }
-                    if (!$("#currency-select").val()) {
-                        const span_currency = $("#currency_error")
-                            .html("please select currency")
+                    if (!$(".currency-select").val()) {
+                        const span_currency = $(".currency_error")
+                            .html($t("please select currency"))
                             .show();
                         return false;
                     }
                      //var $form = $("transiteo-form-validate");
-                    const form_data = jQuery("#transiteo-form-validate").serialize();
-                    const url = $("#getUrl").val();
+                    const form_data = jQuery(".modal-content .transiteo-form-validate").serialize();
+                    const url = $(".getUrl").val();
 
                     const thisPopup = this;
 
@@ -74,8 +74,8 @@ require([
                         type: "POST",
                         data: form_data,
                         success(data) {
-                            changeCurrency();
                             thisPopup.closeModal();
+                            changeCurrency();
                         },
                         error(result) {
                             console.log("no response !");
@@ -89,6 +89,35 @@ require([
         opened($Event) {
             $(".modal-header button.action-close", $Event.target).hide();
             isOpened = true;
+            //load districts first
+            reloadDistricts(function (data) {
+                const state = $(".modal-content .state")
+                const documentFragment = document.createDocumentFragment();
+                state[0].disabled = true;
+                for (let item of data.items) {
+                    const option = document.createElement('option');
+                    option.value = item.iso;
+                    option.text = item.iso + ' ' + item.label;
+                    documentFragment.appendChild(option);
+                }
+                state[0].appendChild(documentFragment);
+                state[0].disabled = false;
+            });
+            $(".modal-content select[name='country_id']").on("change",function () {
+                reloadDistricts(function (data) {
+                    const state = $(".modal-content .state")
+                    state[0].disabled = true;
+                    const documentFragment = document.createDocumentFragment();
+                    for (let item of data.items) {
+                        const option = document.createElement('option');
+                        option.value = item.iso;
+                        option.text = item.iso + ' ' + item.label;
+                        documentFragment.appendChild(option);
+                    }
+                    state[0].appendChild(documentFragment);
+                    state[0].disabled = false;
+                });
+            });
         },
         closed($Event) {
             isOpened = false;
@@ -98,111 +127,83 @@ require([
             },
         },
     };
+    const popup = $("#transiteo-modal");
+    modal(options, popup);
+
 
     $(document).ready(() => {
         // get visitor country based on geoip
         customerData.get("geoip_country").subscribe((value) => {
             if (!value.same_country_as_website && !cookieExists() && !isOpened) {
-                const popup = modal(options, $("#transiteo-modal"));
                 const visitorCountry = value.visitor_country;
                 $("select[name='country_id']").val(visitorCountry);
-
-                reloadDistricts(function (data) {
-                    $.each(data.items, function (index, value) {
-                        $("#state").append('<option value="' + value.iso + '">' + value.label + '</option>');
-                    });
-                });
             }
         });
 
         //check if cookie exists and get value
         if (cookieExists()) {
-            var tabCountry = getCookie().split("_");
+            let tabCountry = getCookie().split("_");
             console.log("cookie exist, country = " + tabCountry[0]);
+
             $("select[name='country_id']").val(tabCountry[0]);
-
-            reloadDistricts(function (data) {
-                $.each(data.items, function (index, value) {
-                    $("#state").append('<option value="' + value.iso + '">' + value.label + '</option>');
-
-                });
-
-                $("select[name='country_id']").val(tabCountry[0]);
-                $("#currency-select").val(tabCountry[2]);
-
-                $("#state").val(tabCountry[1]);
-            });
+            $(".modal-content .currency-select").val(tabCountry[2]);
+            $(".modal-content .state").val(tabCountry[1]);
         }else{
-            setTimeout(
-                function()
-                    {
-                        let myModal = $("#transiteo-modal");
-                        let popup = modal(options, myModal);
-                        myModal.modal('openModal');
-                        console.log("No Cookie : Opening Modal")
-                        reloadDistricts(function (data) {
-                            $.each(data.items, function (index, value) {
-                                $("#state").append('<option value="' + value.iso + '">' + value.label + '</option>');
-                            });
-                        });
-                    },
-                1000
-            );
+            popup.modal('openModal');
+            console.log("No Cookie : Opening Modal")
         }
     });
 
-    $(document).on("click", "#transiteo_modal_button_show", () => {
-        const popup = modal(options, $("#transiteo-modal"));
-        $("#transiteo-modal").modal("openModal");
+    $(".transiteo_modal_button_show").on("click", function () {
+        popup.modal('openModal');
     });
 
-
-    /* jQuery.ajax({
-                    url: 'transiteo/test/view',
-                    type: 'GET',
-                    success: function (data) {
-                        if (!data['same_country'] && !cookieExists()) {
-                            var popup = modal(options, $('#transiteo-modal'))
-                            $('#transiteo-modal').modal('openModal')
-                        }
-                    },
-                    error: function (result) {
-                        console.log('Error catching visitor ip adress in ajax')
-                    }
-                }) */
-
+    /**
+     * Get Cookie
+     * @returns {string|null}
+     */
     function getCookie() {
-        cookie = $("#getCookie").val();
-        return cookie;
+        return readCookie('transiteo-popup-info');
+    }
+
+    /**
+     * Read Cookie
+     * @param name
+     * @returns {string|null}
+     */
+    function readCookie(name) {
+        let nameEQ = name + "=";
+        let ca = document.cookie.split(';');
+        for(var i=0;i < ca.length;i++) {
+            var c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
+    }
+
+    function cookieExists() {
+        return !!(getCookie() != "" && getCookie() != null);
     }
 
     function changeCurrency() {
         //change currency
-        var currency = $("#currency-select").val();
+        var currency = $(".modal-content .currency-select").val();
         currency = currency.replace(';', '');
-        const currencyUrl = $("#getCurrencyUrl").val();
+        const currencyUrl = $(".modal-content .getCurrencyUrl").val();
         var param = "currency=" + currency;
         const url = currencyUrl + '?' + param;
         console.log(url);
         window.location.href = url;
     }
 
-
-    function cookieExists() {
-        return !!(getCookie() != "" && getCookie() != null);
-    }
-
     function reloadDistricts(callback) {
-
         // clear of states dropdown
-        $("#state")
-            .find('option')
-            .remove()
-            .end()
-            .append('<option value="">Choose your state...</option>');
+        $(".modal-content .state").text("");
+        $(".modal-content .state").html('<option value="">Choose your state...</option>');
 
         // fetch states with country id
-        var param = "country=" + $("select[name='country_id']").val();
+        var param = "country=" + $(".modal-content select[name='country_id']").val();
         $.ajax({
             url: url_states,
             data: param,
@@ -217,18 +218,5 @@ require([
         });
     }
 
-    //load districts first
-    reloadDistricts(function (data) {
-        $.each(data.items, function (index, value) {
-            $("#state").append('<option value="' + value.iso + '">' + value.label + '</option>');
-        });
-    });
 
-    $(document).on("change", "select[name='country_id']", function () {
-        reloadDistricts(function (data) {
-            $.each(data.items, function (index, value) {
-                $("#state").append('<option value="' + value.iso + '">' + value.label + '</option>');
-            });
-        });
-    });
 });

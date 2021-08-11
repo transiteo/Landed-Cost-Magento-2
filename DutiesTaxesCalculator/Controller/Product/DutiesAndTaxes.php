@@ -120,35 +120,38 @@ class DutiesAndTaxes implements ActionInterface
         /** @var Json $resultJson */
         $resultJson = $this->resultFactory->create(ResultFactory::TYPE_JSON);
         try {
-            $sku = $this->getProductSku($this->getRequest()->getParams());
             $country = $this->getRequest()->getParam('country_code');
             $countryCookie = $this->taxesServices->getToCountryFromCookie();
             if(!isset($countryCookie)){
                 $this->taxesServices->updateCookieValue($country);
-            }elseif($country !== "undefined" && $country !== $countryCookie->getCountryId()){
+            }elseif($country !== "undefined"&& $country!== "" && $country !== $countryCookie->getCountryId()){
                 $this->taxesServices->updateCookieValue($country);
             }
-
-            $duties = $this->taxesServices->getDutiesByProductSku($sku, (float) $this->getRequest()->getParam('qty'));
+            $qty = $this->getRequest()->getParam('qty');
+            if(isset($qty)){
+                $sku = $this->getProductSku($this->getRequest()->getParams());
+                $country = $this->taxesServices->getToCountryFromCookie();
+                $duties = $this->taxesServices->getDutiesByProductSku($sku, (float) $qty);
+                $duties['sku'] = $sku;
+                $resultJson->setHeader('pragma', 'cache', true);
+                $resultJson->setHeader(
+                    'cache-control',
+                    'public, max-age=' . self::CACHE_CONTROL_TTL . ', -maxage=' . self::CACHE_CONTROL_TTL,
+                    true
+                );
+                $resultJson->setHeader(
+                    'expires',
+                    $this->dateTime->gmtDate(
+                        self::CACHE_CONTROL_DATE_FORMAT,
+                        $this->dateTime->gmtTimestamp() + self::CACHE_CONTROL_TTL
+                    ),
+                    true
+                );
+            }
+            $duties['country'] = $country->getName();
+            $duties['country_code'] = $country->getCountryId();
             $duties['success'] = true;
-            $duties['country'] = $this->taxesServices->getToCountryFromCookie()->getName();
-            $duties['country_code'] = $country;
-            $duties['sku'] = $sku;
             $resultJson->setData($duties);
-            $resultJson->setHeader('pragma', 'cache', true);
-            $resultJson->setHeader(
-                'cache-control',
-                'public, max-age=' . self::CACHE_CONTROL_TTL . ', -maxage=' . self::CACHE_CONTROL_TTL,
-                true
-            );
-            $resultJson->setHeader(
-                'expires',
-                $this->dateTime->gmtDate(
-                    self::CACHE_CONTROL_DATE_FORMAT,
-                    $this->dateTime->gmtTimestamp() + self::CACHE_CONTROL_TTL
-                ),
-                true
-            );
         }catch (Exception $e){
             $resultJson->setData(['error' => $e->getMessage()]);
         }

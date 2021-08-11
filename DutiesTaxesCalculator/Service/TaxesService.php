@@ -511,11 +511,14 @@ class TaxesService
             if(!$country && isset($country)){
                 $country = $cookie[0];
             }
-            if($country === $cookie[0] && !$district && isset($district)){
+            if($country !== $cookie[0]){
+                if(!$district && isset($district)) {
+                    $district = "";
+                }
+            }elseif(!$district && isset($district)) {
                 $district = $cookie[1];
-            }else{
-                $district = ""; // Remove the district when country changes
             }
+
             if(!$currency && isset($currency)){
                 $currency = $cookie[2];
             }
