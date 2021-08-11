@@ -14,7 +14,7 @@ $table        = explode(",", $currencyList);
 ?>
 
 <div id="transiteo-modal" class="d-flex flex-column" style="display:none">
-    <form id='transiteo-form-validate'>
+    <form class='transiteo-form-validate'>
         <div class='modal-header'>
             <?= $block->getChildBlock('logo')->toHtml() ?>
         </div>
@@ -24,20 +24,20 @@ $table        = explode(",", $currencyList);
                 <div class="field country">
                     <?= $countryList ?>
                 </div>
-                <span id='country_error'></span>
+                <span class='country_error'></span>
             </div>
             <div>
                 <div class="field country ml-2">
-                    <select name="state" id="state">
+                    <select name="state" class="state">
                         <option></option>
                     </select>
                 </div>
-                <span id='region_error' class='ml-2'></span>
+                <span class='ml-2 region_error'></span>
             </div>
         </div>
         <div class='d-flex justify-content-center flex-column'>
             <div class='currency mt-2'>
-                <select name="currency" id="currency-select">
+                <select name="currency" class="currency-select">
                     <option value="" selected disabled hidden><?=__("Choose your currency...")?></option>
                     <?php foreach ($table as $currencyValue) {
                         ?>
@@ -45,14 +45,13 @@ $table        = explode(",", $currencyList);
                     <?php } ?>
                 </select>
             </div>
-            <span id='currency_error'></span>
+            <span class='currency_error'></span>
         </div>
-        <input type="hidden" id="getUrl" value="<?php echo $block->getBaseUrl() . 'transiteo/page/index'; ?>"/>
-        <input type="hidden" id="getCurrencyUrl"
+        <input type="hidden" class="getUrl" value="<?php echo $block->getBaseUrl() . 'transiteo/page/index'; ?>"/>
+        <input type="hidden" class="getCurrencyUrl"
                value="<?php echo $block->getBaseUrl() . 'directory/currency/switch'; ?>"/>
-        <input type="hidden" id="getUrlStates"
+        <input type="hidden" class="getUrlStates"
                value="<?php echo $block->getBaseUrl() . 'transiteo/district/index'; ?>"/>
-        <input type="hidden" id="getCookie" value="<?php echo $block->getCookie('transiteo-popup-info'); ?>"/>
     </form>
 </div>
 

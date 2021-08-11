@@ -11,7 +11,7 @@ use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\File\Csv;
-use Transiteo\DutiesTaxesCalculator\Controller\Cookie;
+use Transiteo\DutiesTaxesCalculator\Service\TaxesService;
 
 class Index extends \Magento\Framework\App\Action\Action
 {
@@ -19,14 +19,18 @@ class Index extends \Magento\Framework\App\Action\Action
     protected $cookie;
     protected $csv;
     protected $jsonResultFactory;
+    /**
+     * @var TaxesService
+     */
+    protected $taxesService;
 
     public function __construct(
         Context $context,
-        Cookie $cookie,
         Csv $csv,
-        JsonFactory $jsonResultFactory
+        JsonFactory $jsonResultFactory,
+        TaxesService $taxesService
     ) {
-        $this->cookie = $cookie;
+        $this->taxesService = $taxesService;
         $this->csv = $csv;
         $this->jsonResultFactory = $jsonResultFactory;
         parent::__construct($context);
@@ -42,9 +46,7 @@ class Index extends \Magento\Framework\App\Action\Action
         $country_id = $this->getRequest()->getParam('country_id');
         $region = $this->getRequest()->getParam('state');
         $currency = $this->getRequest()->getParam('currency');
-        $table = [$country_id, $region, $currency];
-        $value = implode("_", $table);
-        $this->cookie->set(self::COOKIE_NAME, $value);
+        $value = $this->taxesService->updateCookieValue($country_id ?? false, $region ?? false, $currency ??false);
         $result = $this->jsonResultFactory->create();
         $result->setData($value);
         return $result;

@@ -74,6 +74,7 @@ define([
                 countries.attr('propagateSelfChanges', null);
                 $(this.options.countrySelector).val();
                 if(!_current.attr('propagate') && !_current.attr('propagateSelfChanges')){
+                    _self._updateSelectedCountry();
                     _self._filTaxesContainer(_self._getProductQty());
                 }
             })
@@ -119,6 +120,7 @@ define([
                 this.vatPriceContainer.html(_self._formatPrice(this.cachePrice[cacheKey].vat));
                 this.dutyPriceContainer.html(_self._formatPrice(this.cachePrice[cacheKey].duty));
                 this.specialTaxesPriceContainer.html(_self._formatPrice(this.cachePrice[cacheKey].special_taxes));
+
             } else {
                 window.setTimeout(function () {
                     _self._updateSubTotalPriceContainer(productQty, cacheKey)
@@ -135,7 +137,7 @@ define([
                                     //update the cache key to save the value for the good country
                                     cacheKey = _self._getCacheKey();
                                 }
-                                _self.cachePrice[cacheKey] = data;
+                                _self.cachePrice[cacheKey] = Object.create(data);
                                 _self._filTaxesContainer(this.qty);
                             }
                             if (data.error) {
@@ -192,8 +194,13 @@ define([
          * @private
          */
         _updateSubTotalPriceContainer: function (productQty, cacheKey) {
-            var _self = this;
-            var data = $('#product_addtocart_form').serialize();
+            let _self = this;
+            let data = $('#product_addtocart_form').serialize();
+            //hide prices during load
+            this.totalTaxesContainer.html("");
+            this.vatPriceContainer.html("");
+            this.dutyPriceContainer.html("");
+            this.specialTaxesPriceContainer.html("");
             return $.ajax({
                 url: this.options.requestUrl + '?' + data + "&country_code=" + $(_self.options.countrySelector).val(),
                 type: 'GET',
@@ -206,6 +213,19 @@ define([
                     _self.isAjaxPending = (!_self.isAjaxPending && cacheKey === _self._getCacheKey());
                     return _self.isAjaxPending;
                 }
+            });
+        },
+
+        /**
+         * Update the selected country
+         * @private
+         */
+        _updateSelectedCountry: function () {
+            let _self = this;
+            return $.ajax({
+                url: this.options.requestUrl + '?' + "country_code=" + $(_self.options.countrySelector).val() + "&form_key=" + $('input[name="form_key"]').val(),
+                type: 'GET',
+                dataType: 'json',
             });
         }
     });

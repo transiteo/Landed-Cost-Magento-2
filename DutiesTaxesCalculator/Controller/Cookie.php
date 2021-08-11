@@ -30,6 +30,12 @@ class Cookie
      */
     private $sessionManager;
 
+
+    /**
+     * @var array
+     */
+    protected $cookies = [];
+
     /**
      * @param CookieManagerInterface $cookieManager
      * @param CookieMetadataFactory $cookieMetadataFactory
@@ -54,7 +60,10 @@ class Cookie
      */
     public function get(string $cookie, $default = null): ?string
     {
-        return $this->cookieManager->getCookie($cookie, $default);
+        if(!array_key_exists($cookie, $this->cookies)){
+            $this->cookies[$cookie] = $this->cookieManager->getCookie($cookie, $default);
+        }
+        return $this->cookies[$cookie];
     }
 
     /**
@@ -70,7 +79,7 @@ class Cookie
     {
         $metadata = $this->cookieMetadataFactory
             ->createPublicCookieMetadata()
-            ->setHttpOnly(true)
+            ->setHttpOnly(false)
             ->setDuration($duration)
             ->setPath($this->sessionManager->getCookiePath())
             ->setDomain($this->sessionManager->getCookieDomain()
@@ -81,6 +90,8 @@ class Cookie
             $value,
             $metadata
         );
+        //save cookie value to cookies
+        $this->cookies[$cookie] = $value;
     }
 
     /**
@@ -100,5 +111,6 @@ class Cookie
             $cookie,
             $metadata
         );
+        unset($this->cookies[$cookie]);
     }
 }
