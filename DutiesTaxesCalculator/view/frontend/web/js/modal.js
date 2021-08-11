@@ -49,13 +49,13 @@ require([
 
                         return false;
                     }
-                    if (!$(".state").val()) {
+                    if (!$(".modal-content .state").val()) {
                         const span_region = $(".region_error")
                             .html($t("please select region"))
                             .show();
                         return false;
                     }
-                    if (!$(".currency-select").val()) {
+                    if (!$(".modal-content .currency-select").val()) {
                         const span_currency = $(".currency_error")
                             .html($t("please select currency"))
                             .show();
@@ -89,20 +89,6 @@ require([
         opened($Event) {
             $(".modal-header button.action-close", $Event.target).hide();
             isOpened = true;
-            //load districts first
-            reloadDistricts(function (data) {
-                const state = $(".modal-content .state")
-                const documentFragment = document.createDocumentFragment();
-                state[0].disabled = true;
-                for (let item of data.items) {
-                    const option = document.createElement('option');
-                    option.value = item.iso;
-                    option.text = item.iso + ' ' + item.label;
-                    documentFragment.appendChild(option);
-                }
-                state[0].appendChild(documentFragment);
-                state[0].disabled = false;
-            });
             $(".modal-content select[name='country_id']").on("change",function () {
                 reloadDistricts(function (data) {
                     const state = $(".modal-content .state")
@@ -144,17 +130,43 @@ require([
         if (cookieExists()) {
             let tabCountry = getCookie().split("_");
             console.log("cookie exist, country = " + tabCountry[0]);
-
             $("select[name='country_id']").val(tabCountry[0]);
+            reloadDistricts(function (data) {
+                const state = $(".modal-content .state")
+                state[0].disabled = true;
+                const documentFragment = document.createDocumentFragment();
+                for (let item of data.items) {
+                    const option = document.createElement('option');
+                    option.value = item.iso;
+                    option.text = item.iso + ' ' + item.label;
+                    documentFragment.appendChild(option);
+                }
+                state[0].appendChild(documentFragment);
+                state[0].disabled = false;
+                $(".modal-content .state").val(tabCountry[1]);
+            });
             $(".modal-content .currency-select").val(tabCountry[2]);
-            $(".modal-content .state").val(tabCountry[1]);
+
         }else{
             popup.modal('openModal');
             console.log("No Cookie : Opening Modal")
+            reloadDistricts(function (data) {
+                const state = $(".modal-content .state")
+                state[0].disabled = true;
+                const documentFragment = document.createDocumentFragment();
+                for (let item of data.items) {
+                    const option = document.createElement('option');
+                    option.value = item.iso;
+                    option.text = item.iso + ' ' + item.label;
+                    documentFragment.appendChild(option);
+                }
+                state[0].appendChild(documentFragment);
+                state[0].disabled = false;
+            });
         }
     });
 
-    $(".transiteo_modal_button_show").on("click", function () {
+    $("#transiteo_modal_button_show").on("click", function () {
         popup.modal('openModal');
     });
 
