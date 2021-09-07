@@ -7,7 +7,7 @@
 
 namespace Transiteo\DutiesTaxesCalculator\Model\Currency\Import;
 
-use Transiteo\DutiesTaxesCalculator\Model\TransiteoApiService;
+use Transiteo\DutiesTaxesCalculator\Service\CurrencyRate;
 
 /**
  * Currency rate import model (From https://frankfurter.app/)
@@ -50,7 +50,7 @@ class Transiteo extends \Magento\Directory\Model\Currency\Import\AbstractImport
         \Magento\Directory\Model\CurrencyFactory $currencyFactory,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\HTTP\ZendClientFactory $httpClientFactory,
-        TransiteoApiService $apiService,
+        CurrencyRate $apiService,
         \Magento\Framework\Json\Helper\Data $jsonHelper
     ) {
         parent::__construct($currencyFactory);

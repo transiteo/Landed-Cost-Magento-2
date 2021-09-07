@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Transiteo\DutiesTaxesCalculator\Model;
 
 use Magento\Directory\Model\RegionFactory;
+use Magento\Directory\Model\CountryFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
 
@@ -38,17 +39,24 @@ class Config
      * @var RegionFactory
      */
     protected $regionFactory;
+    /**
+     * @var CountryFactory
+     */
+    protected $countryFactory;
 
     /**
      * @param ScopeConfigInterface $scopeConfig
      * @param RegionFactory $regionFactory
+     * @param CountryFactory $countryFactory
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        RegionFactory $regionFactory
+        RegionFactory $regionFactory,
+        CountryFactory $countryFactory
     ) {
         $this->regionFactory = $regionFactory;
         $this->scopeConfig = $scopeConfig;
+        $this->countryFactory = $countryFactory;
     }
 
     /**
@@ -349,5 +357,27 @@ class Config
         return (int) $this->scopeConfig->getValue(self::CONFIG_PATH_PDP_DELAY, ScopeInterface::SCOPE_WEBSITE);
     }
 
+    // Get ISO3 Country Code from ISO2 Country Code
+    public function getIso3Country($countryIsoCode2)
+    {
+        $country = $this->countryFactory->create();
+        $country->loadByCode($countryIsoCode2);
+        return $country->getData('iso3_code');
+    }
+
+    // Get Country from ISO2 Country Code
+    public function getCountryByCode($countryIsoCode2):\Magento\Directory\Model\Country
+    {
+        $country = $this->countryFactory->create();
+        return $country->loadByCode($countryIsoCode2);
+    }
+
+    /**
+     * @return CountryFactory
+     */
+    public function getCountryFactory(): CountryFactory
+    {
+        return $this->countryFactory;
+    }
 
 }

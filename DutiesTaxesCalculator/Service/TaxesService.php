@@ -10,14 +10,10 @@ use Exception;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
-use Magento\Directory\Model\CountryFactory;
-use Magento\Directory\Model\RegionFactory;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\FlagManager;
-use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Model\Quote\Item;
 use Magento\Store\Model\StoreManagerInterface;
@@ -62,11 +58,6 @@ class TaxesService
     protected $storeManager;
 
     /**
-     * @var CountryFactory
-     */
-    protected $_countryFactory;
-
-    /**
      * @var FlagManager
      */
     protected $_flagManager;
@@ -102,8 +93,6 @@ class TaxesService
      * @param StoreManagerInterface $storeManager
      * @param TransiteoApiProductParametersFactory $productParamsFactory
      * @param TransiteoApiShipmentParametersFactory $shipmentParamsFactory
-     * @param CountryFactory $countryFactory
-     * @param RegionFactory $regionFactory
      * @param FlagManager $flagManager
      * @param Logger $logger
      * @param Config $config
@@ -116,8 +105,6 @@ class TaxesService
         StoreManagerInterface $storeManager,
         TransiteoApiProductParametersFactory $productParamsFactory,
         TransiteoApiShipmentParametersFactory $shipmentParamsFactory,
-        CountryFactory $countryFactory,
-        RegionFactory $regionFactory,
         FlagManager $flagManager,
         Logger $logger,
         Config $config,
@@ -130,7 +117,6 @@ class TaxesService
         $this->shipmentParamsFactory    = $shipmentParamsFactory;
         $this->productParamsFactory     = $productParamsFactory;
         $this->storeManager      = $storeManager;
-        $this->_countryFactory = $countryFactory;
         $this->_flagManager = $flagManager;
         $this->config = $config;
         $this->productRepository = $productRepository;
@@ -320,7 +306,7 @@ class TaxesService
         }
         $shipmentParams->setLang($this->getTransiteoLang());
 
-        $shipmentParams->setFromCountry($this->getIso3Country($this->config->getWebsiteCountry())); // country from website ISO3
+        $shipmentParams->setFromCountry($this->config->getIso3Country($this->config->getWebsiteCountry())); // country from website ISO3
 
         /** TODO add from district in config */
         $shipmentParams->setFromDistrict($this->config->getWebsiteDistrict()); // district from DistrictRepository
@@ -355,7 +341,7 @@ class TaxesService
 
         //IF country is ISO2 get ISO3 code
         if (strlen($toCountry) === 2) {
-            $toCountry = $this->getIso3Country($toCountry);
+            $toCountry = $this->config->getIso3Country($toCountry);
         }
         $shipmentParams->setToCountry($toCountry); // country from customer attribute or cookie value
         $shipmentParams->setToDistrict($toDistrict); // district from customer attribute or cookie value
@@ -471,21 +457,6 @@ class TaxesService
         }
     }
 
-    // Get ISO3 Country Code from ISO2 Country Code
-    public function getIso3Country($countryIsoCode2)
-    {
-        $country = $this->_countryFactory->create();
-        $country->loadByCode($countryIsoCode2);
-        return $country->getData('iso3_code');
-    }
-
-    // Get Country from ISO2 Country Code
-    public function getCountryByCode($countryIsoCode2):\Magento\Directory\Model\Country
-    {
-        $country = $this->_countryFactory->create();
-        return $country->loadByCode($countryIsoCode2);
-    }
-
     /**
      * @return \Magento\Directory\Model\Country|null
      */
@@ -497,7 +468,7 @@ class TaxesService
         }
         $cookie = explode('_', $cookie);
         $toCountry = $cookie[0];
-        $country = $this->_countryFactory->create();
+        $country = $this->config->getCountryFactory()->create();
         return  $country->loadByCode($toCountry);
     }
 

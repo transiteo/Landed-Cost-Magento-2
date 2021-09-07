@@ -8,6 +8,7 @@
 namespace Transiteo\DutiesTaxesCalculator\Model;
 
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\Webapi\Rest\Request;
 use Transiteo\DutiesTaxesCalculator\Model\TransiteoApiService;
 use Transiteo\DutiesTaxesCalculator\Model\TransiteoApiShipmentParameters;
 
@@ -90,7 +91,7 @@ class TransiteoProducts
         }
 
         $finalParams = array_merge($finalParams, $this->shipmentParams->buildArray());
-        $this->apiResponseContent = json_decode(($this->apiService->getDuties($finalParams)), true);
+        $this->apiResponseContent = \json_decode(($this->getDutiesFromApi($finalParams)), true);
 
         //set products ids as keys for results products
         if (isset($this->apiResponseContent["products"])&& isset($this->productsParams)) {
@@ -101,6 +102,67 @@ class TransiteoProducts
             return false;
         }
         return true;
+    }
+
+    /**
+     * Get Duties for a designated product
+     */
+    public function getDutiesFromApi($productsParams)
+    {
+        $request = [
+            'headers' => [
+                'Content-type'     => 'application/json',
+                'Authorization' => $this->apiService->getIdToken(),
+            ],
+            'json' => $productsParams
+        ];
+
+        //////////////////LOGGER//////////////
+        ob_start();
+        var_dump($request);
+        $result = ob_get_clean();
+        $this->apiService->getLogger()->debug("Request : " . $result);
+        ///////////////////////////////////////
+
+        $response = $this->apiService->doRequest(
+            TransiteoApiService::API_REQUEST_URI . "v1/taxsrv/dutyCalculation",
+            $request,
+            Request::HTTP_METHOD_POST
+        );
+
+        $status = $response->getStatusCode();
+
+        $responseBody = $response->getBody();
+        $responseContent = $responseBody->getContents();
+
+        $responseArray = \json_decode($responseContent);
+
+        ///LOGGER///
+        $this->apiService->getLogger()->debug('Response : status => ' . ($status ?? 'null') . ' message : ' . $response->getReasonPhrase());
+
+        if ($status == "200") {
+            if (isset($responseArray)) {
+                ////LOGGER////
+                ob_start();
+                var_dump($responseArray);
+                $result = ob_get_clean();
+                $this->apiService->getLogger()->debug('Response Content : ' . $result);
+            }
+        } else {
+            if (array_key_exists('message', $responseArray)) {
+                ////LOGGER////
+                $this->apiService->getLogger()->debug('Response : status => ' . $status . ' message : ' . $responseArray['message']);
+            }
+        }
+
+        if ($status == "401") {
+            if (isset($responseArray->message) && $responseArray->message == "The incoming token has expired") {
+                $this->apiService->refreshIdToken();
+                $this->getDutiesFromApi($productsParams);
+            }
+        }
+
+        return $responseContent;
     }
 
     /**
