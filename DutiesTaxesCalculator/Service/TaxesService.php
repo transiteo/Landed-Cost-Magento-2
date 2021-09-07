@@ -427,7 +427,7 @@ class TaxesService
      * @throws NoSuchEntityException
      */
     protected function fillProductParams(TransiteoApiProductParameters $productParams,ProductInterface $product,float $qty = 1,float $globalShipPrice = 0){
-//        $productParams->setSku($product->getData($this->config->getProductIdentifier()));
+        $productParams->setSku($product->getData($this->config->getProductIdentifier()));
         $productParams->setProductName($product->getName());
         $productParams->setWeight(round($product->getWeight(), 2));
         $productParams->setWeight(0);
