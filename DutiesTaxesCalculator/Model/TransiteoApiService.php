@@ -54,21 +54,19 @@ class TransiteoApiService
     /**
      * @var ResponseFactory
      */
-    private $responseFactory;
+    protected $responseFactory;
 
     /**
      * @var ClientFactory
      */
-    private $clientFactory;
+    protected $clientFactory;
 
     /**
      * @var SerializerInterface
      */
-    private $serializer;
+    protected $serializer;
 
-    private $cookie;
-
-    private $idToken;
+    protected $idToken;
 
     protected $scopeConfig;
 
@@ -84,12 +82,14 @@ class TransiteoApiService
      * @param ClientFactory $clientFactory
      * @param ResponseFactory $responseFactory
      * @param SerializerInterface $serializer
+     * @param ScopeConfigInterface $scopeConfig
+     * @param FlagManager $flagManager
+     * @param Logger $logger
      */
     public function __construct(
         ClientFactory $clientFactory,
         ResponseFactory $responseFactory,
         SerializerInterface $serializer,
-        Cookie $cookie,
         ScopeConfigInterface $scopeConfig,
         FlagManager $flagManager,
         Logger $logger
@@ -98,7 +98,6 @@ class TransiteoApiService
         $this->clientFactory = $clientFactory;
         $this->responseFactory = $responseFactory;
         $this->serializer = $serializer;
-        $this->cookie = $cookie;
         $this->scopeConfig = $scopeConfig;
         $this->flagManager = $flagManager;
     }
@@ -106,7 +105,7 @@ class TransiteoApiService
     /**
      * Get Id Token to use for auth in next requests
      */
-    public function getIdToken()
+    protected function getIdTokenFromApi()
     {
         $clientId = $this->scopeConfig->getValue('transiteo_activation/general/client_id', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         $refreshToken = $this->scopeConfig->getValue('transiteo_activation/general/refresh_token', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
@@ -147,7 +146,7 @@ class TransiteoApiService
             $this->flagManager->saveFlag(self::TOKEN_RECEIVED_TIMESTAMP, $date->getTimestamp());
         }
 
-        return $responseContent;
+        return $this->idToken;
     }
 
     /**
@@ -155,7 +154,7 @@ class TransiteoApiService
      *
      * @return bool
      */
-    public function hasTokenExpired()
+    protected function hasTokenExpired()
     {
         $tokenTimestamp = $this->flagManager->getFlagData(self::TOKEN_RECEIVED_TIMESTAMP);
         if ($tokenTimestamp !== null) {
@@ -167,113 +166,11 @@ class TransiteoApiService
     }
 
     /**
-     * Get Duties for a designated product
+     * Refresh the Id Token
      */
-    public function getDuties($productsParams)
+    public function refreshIdToken()
     {
-        $this->refreshIdToken();
-
-        $request = [
-            'headers' => [
-                'Content-type'     => 'application/json',
-                'Authorization' => $this->idToken,
-            ],
-            'json' => $productsParams
-        ];
-
-        //////////////////LOGGER//////////////
-        ob_start();
-        var_dump($request);
-        $result = ob_get_clean();
-        $this->logger->debug("Request : " . $result);
-        ///////////////////////////////////////
-
-        $response = $this->doRequest(
-            self::API_REQUEST_URI . "v1/taxsrv/dutyCalculation",
-            $request,
-            Request::HTTP_METHOD_POST
-        );
-
-        $status = $response->getStatusCode();
-
-        $responseBody = $response->getBody();
-        $responseContent = $responseBody->getContents();
-
-        $responseArray = json_decode($responseContent);
-
-        ///LOGGER///
-        $this->logger->debug('Response : status => ' . ($status ?? 'null') . ' message : ' . $response->getReasonPhrase());
-
-        if ($status = "200") {
-            if (isset($responseArray)) {
-                ////LOGGER////
-                ob_start();
-                var_dump($responseArray);
-                $result = ob_get_clean();
-                $this->logger->debug('Response Content : ' . $result);
-            }
-        } else {
-            if (array_key_exists('message', $responseArray)) {
-                ////LOGGER////
-                $this->logger->debug('Response : status => ' . $status . ' message : ' . $responseArray['message']);
-            }
-        }
-
-        if ($status == "401") {
-            if (isset($responseArray->message) && $responseArray->message == "The incoming token has expired") {
-                $this->refreshIdToken(true);
-                $this->getDuties($productsParams);
-            }
-        }
-
-        return $responseContent;
-    }
-
-    /**
-     * Get Duties for a designated product
-     */
-    public function getCurrencyRate($currencyFrom, $currencyTo, $timeout, $amount = 1)
-    {
-        $this->refreshIdToken(true);
-
-        $response = $this->doRequest(
-            self::API_REQUEST_URI . "v1/data/currency?amount=1&toCurrency=" . $currencyTo . "&fromCurrency=" . $currencyFrom,
-            [
-                'headers' => [
-                    'Content-type'     => 'application/json',
-                    'Authorization' => $this->idToken,
-                ],
-                'timeout' => $timeout,
-                'http_errors' => false
-            ],
-            Request::HTTP_METHOD_GET
-        );
-
-        $status = $response->getStatusCode();
-
-        $responseBody = $response->getBody();
-        $responseContent = $responseBody->getContents();
-
-        if ($status == "401") {
-            $responseArray = json_decode($responseContent);
-            if (isset($responseArray->message) && $responseArray->message == "The incoming token has expired") {
-                $this->refreshIdToken(true);
-                $this->getCurrencyRate($currencyFrom, $currencyTo, $timeout, $amount);
-            }
-        }
-
-        return $responseContent;
-    }
-
-    private function refreshIdToken($forceRefresh = false)
-    {
-        $idTokenStored = $this->flagManager->getFlagData(self::ID_TOKEN_FLAG_NAME);
-
-        if (($this->idToken == null &&  $idTokenStored == null) || $forceRefresh || $this->hasTokenExpired()) {
-            $this->getIdToken();
-        } elseif ($this->idToken == null && $idTokenStored != null) {
-            $this->idToken = $idTokenStored;
-        }
+        $this->idToken =  $this->getIdTokenFromApi();
     }
 
     /**
@@ -285,7 +182,7 @@ class TransiteoApiService
      *
      * @return Response
      */
-    private function doRequest(
+    public function doRequest(
         string $uriEndpoint,
         array $params = [],
         string $requestMethod = Request::HTTP_METHOD_GET
@@ -310,9 +207,23 @@ class TransiteoApiService
     }
 
     /**
+     * @return mixed
+     */
+    public function getIdToken()
+    {
+        $idTokenStored = $this->flagManager->getFlagData(self::ID_TOKEN_FLAG_NAME);
+        if (($this->idToken === null &&  $idTokenStored === null) || $this->hasTokenExpired()) {
+            $this->refreshIdToken();
+        } elseif ($this->idToken === null && $idTokenStored !== null) {
+            $this->idToken = $idTokenStored;
+        }
+        return $this->idToken;
+    }
+
+    /**
      * @return Logger
      */
-    public function getLogger()
+    public function getLogger(): Logger
     {
         return $this->logger;
     }
