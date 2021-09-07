@@ -37,14 +37,15 @@ class TransiteoApiProductParameters
         if (isset($this->weight) &&  $this->weight > 0) {
             $array['weight'] = $this->weight;
             $array['weight_unit'] = $this->weight_unit;
-        } else {
-            if (!isset($this->unit_ship_price)) {
-                throw new \Exception('Transiteo Taxes : Unit ship price must be mentioned if weight is equal to zero.');
-            }
-            /** TODO not working with weight = 0; default weight set to 1kg*/
-            $array['weight'] = 1;
-            $array['weight_unit'] = "kg";
         }
+//        } else {
+//            if (!isset($this->unit_ship_price)) {
+//                throw new \Exception('Transiteo Taxes : Unit ship price must be mentioned if weight is equal to zero.');
+//            }
+//            /** TODO not working with weight = 0; default weight set to 1kg*/
+//            $array['weight'] = 1;
+//            $array['weight_unit'] = "kg";
+//        }
         $array['quantity'] = $this->quantity;
         $array['unit_price'] = $this->unit_price;
         $array['currency_unit_price'] = $this->currency_unit_price;
