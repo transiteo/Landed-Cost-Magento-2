@@ -6,9 +6,8 @@
 define([
     'jquery',
     'Magento_Catalog/js/price-utils',
-    'mage/translate',
     'domReady!'
-], function ($, utils, $t) {
+], function ($, utils) {
     'use strict';
 
     $.widget('mage.productCustomizablePrice', {
@@ -72,7 +71,7 @@ define([
                 countries.attr('propagateSelfChanges', true);
                 countries.val(_current.val());
                 countries.attr('propagateSelfChanges', null);
-                $(this.options.countrySelector).val();
+                $(_self.options.countrySelector).val();
                 if(!_current.attr('propagate') && !_current.attr('propagateSelfChanges')){
                     _self._updateSelectedCountry();
                     _self._filTaxesContainer(_self._getProductQty());
@@ -137,7 +136,7 @@ define([
                             if (data.backUrl) {
                                 window.location = data.backUrl;
                             }
-                            console.log(data);
+                            // console.log(data);
                             if (data.success) {
                                 if(data.country_code){
                                     let countries = $("select[name='country_id']");
@@ -176,7 +175,8 @@ define([
             if(price !== null){
                 return String(utils.formatPrice(price));
             }else{
-                return String($t('Unable to estimate'));
+                //return 0 if the price wasn't estimated
+                return String(utils.formatPrice(0.0));
             }
         },
 
