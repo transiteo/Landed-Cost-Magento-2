@@ -210,7 +210,7 @@ class TaxesService
             $this->fillShipmentParams($shipmentParams, $qty);
             $this->fillProductParams( $productParams, $product, $qty);
             $transiteoProducts = $this->transiteoProductsFactory->create();
-            $transiteoProducts->setProducts([$productParams]);
+            $transiteoProducts->setProducts([$product->getId() => $productParams]);
             $transiteoProducts->setShipmentParams($shipmentParams);
 
             return $this->formatDutiesResponse($transiteoProducts);
@@ -230,7 +230,7 @@ class TaxesService
             /**
              * @var CartItemInterface $product
              */
-            $id = $product->getId();
+            $id = (int) $product->getId();
 
             $currencyRate = $this->getCurrentCurrencyRate();
             $duty = $transiteoProducts->getDuty($id);
@@ -269,10 +269,16 @@ class TaxesService
 
             //Set Tax Amount if incoterm is ddp
             if ($this->isDDPActivated()) {
-                $quoteItem->setTaxAmount($totalTaxes);
-                $quoteItem->setBaseTaxAmount($totalTaxes / $currencyRate);
-                $quoteItem->setTaxPercent(0);
+                $quoteItem->setTaxAmount($totalTaxes ?? 0);
+                if (isset($totalTaxes)) {
+                    $quoteItem->setBaseTaxAmount($totalTaxes / $currencyRate);
+                } else {
+                    $quoteItem->setBaseTaxAmount(0);
+                }
+
             }
+            //tax percent is included in every cases.
+            $quoteItem->setTaxPercent($transiteoProducts->getProductTaxPercent($id));
         }
     }
 
@@ -357,7 +363,7 @@ class TaxesService
         /**
          * TODO add Sender pro in config
          */
-        $shipmentParams->setSenderPro(true, 1, "EUR"); // true always, const
+//        $shipmentParams->setSenderPro(true, 1, "EUR"); // true always, const
         //$shipmentParams->setSenderProRevenue(0); // need an input in admin
         //$shipmentParams->setSenderProRevenueCurrency("EUR"); // need an input in admin
 
@@ -421,13 +427,13 @@ class TaxesService
      * @throws NoSuchEntityException
      */
     protected function fillProductParams(TransiteoApiProductParameters $productParams,ProductInterface $product,float $qty = 1,float $globalShipPrice = 0){
-        $productParams->setSku($product->getData($this->config->getProductIdentifier()));
+//        $productParams->setSku($product->getData($this->config->getProductIdentifier()));
         $productParams->setProductName($product->getName());
         $productParams->setWeight(round($product->getWeight(), 2));
         $productParams->setWeight(0);
         $productParams->setWeight_unit($this->config->getWeightUnit());
         $productParams->setQuantity($qty);
-        $productParams->setUnit_price(round($product->getPrice() * $this->getCurrentCurrencyRate(), 2));
+        $productParams->setUnit_price(round($product->getFinalPrice() * $this->getCurrentCurrencyRate(), 2));
         $productParams->setCurrency_unit_price($this->getCurrentStoreCurrency());
         if ($globalShipPrice  === 0) {
             $productParams->setUnit_ship_price(0); // 0 default
