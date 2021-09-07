@@ -39,7 +39,7 @@ class TransiteoApiShipmentParameters
         $array = [
             "lang" => $this->lang,
             "from_country" => $this->fromCountry,
-            "from_district" => $this->fromDistrict,
+//            "from_district" => $this->fromDistrict,
             "to_country" => $this->toCountry,
             "to_district" => $this->toDistrict,
             "shipment_type" => $this->shipmentType,
@@ -53,6 +53,14 @@ class TransiteoApiShipmentParameters
             ]
 
         ];
+
+        if(isset($this->fromCountry)){
+            $array["from_country"] = $this->fromCountry;
+
+            if(isset($this->fromDistrict)){
+                $array["from_district"] = $this->fromDistrict;
+            }
+        }
 
         if ($this->shipmentType==='GLOBAL') {
             $array["global_ship_price"] = $this->globalShipPrice;

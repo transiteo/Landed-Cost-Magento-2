@@ -165,6 +165,47 @@ class TransiteoProducts
     }
 
     /**
+     * @param int $productId
+     * @return float|null
+     */
+    public function getProductPriceWithoutTaxes(int $productId):?float
+    {
+        if(array_key_exists($productId, $this->productsParams)){
+            return $this->productsParams[$productId]->getUnitPrice();
+        }
+        return null;
+    }
+
+    /**
+     * @param int $productId
+     * @return float|null
+     */
+    public function getProductPriceInclTaxes(int $productId):?float
+    {
+        if(array_key_exists($productId, $this->productsParams)){
+            return $this->productsParams[$productId]->getUnitPrice() + $this->getTotalTaxes($productId);
+        }
+        return null;
+    }
+
+    /**
+     * @param int $productId
+     * @return float|null
+     */
+    public function getProductTaxPercent(int $productId):?float
+    {
+        if(array_key_exists($productId, $this->productsParams)){
+            $taxes = $this->getTotalTaxes($productId) ?? 0;
+            $price = $this->getProductPriceWithoutTaxes($productId);
+            if($price === 0 || $price === null){
+                $price = 1;
+            }
+            return ($taxes / $price) * 100;
+        }
+        return null;
+    }
+
+    /**
      * Get Vat By Product ID
      *
      * @param $productId

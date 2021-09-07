@@ -292,7 +292,6 @@ class TransiteoApiService
     ): Response {
         /** @var Client $client */
         $client = $this->clientFactory->create();
-
         try {
             $response = $client->request(
                 $requestMethod,
@@ -303,7 +302,7 @@ class TransiteoApiService
             /** @var Response $response */
             $response = $this->responseFactory->create([
                 'status' => $exception->getCode(),
-                'reason' => $exception->getMessage()
+                'reason' => $exception->getResponse()->getBody()->getContents()
             ]);
         }
 
