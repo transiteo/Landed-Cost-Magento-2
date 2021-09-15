@@ -8,20 +8,26 @@
 namespace Transiteo\DutiesTaxesCalculator\Service;
 
 
+use Magento\Framework\MessageQueue\PublisherInterface;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Model\Order\Shipment;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Tests\NamingConvention\true\string;
+use Transiteo\DutiesTaxesCalculator\Model\Config;
 use Transiteo\DutiesTaxesCalculator\Model\TransiteoApiService;
 
 class OrderSync
 {
+
+    public const SYNC_ORDER_TOPIC = "transiteo.sync.order";
 
     /**
      * @var TransiteoApiService
      */
     protected $apiService;
     /**
-     * @var \Transiteo\DutiesTaxesCalculator\Model\Config
+     * @var Config
      */
     protected $config;
     /**
@@ -32,24 +38,31 @@ class OrderSync
      * @var \Magento\Framework\Stdlib\DateTime\DateTime
      */
     protected $dateTime;
+    /**
+     * @var PublisherInterface
+     */
+    protected $publisher;
 
     /**
      * @param TransiteoApiService $apiService
-     * @param \Transiteo\DutiesTaxesCalculator\Model\Config $config
+     * @param Config $config
      * @param StoreManagerInterface $storeManager
      * @param \Magento\Framework\Stdlib\DateTime\DateTime $dateTime
+     * @param PublisherInterface $publisher
      */
     public function __construct(
         TransiteoApiService $apiService,
-        \Transiteo\DutiesTaxesCalculator\Model\Config $config,
+        Config $config,
         StoreManagerInterface $storeManager,
-        \Magento\Framework\Stdlib\DateTime\DateTime $dateTime
+        \Magento\Framework\Stdlib\DateTime\DateTime $dateTime,
+        PublisherInterface $publisher
     )
     {
         $this->config = $config;
         $this->apiService = $apiService;
         $this->storeManager = $storeManager;
         $this->dateTime = $dateTime;
+        $this->publisher = $publisher;
     }
 
 
@@ -60,7 +73,8 @@ class OrderSync
      */
     public function createOrder(OrderInterface $order):bool
     {
-        return $this->actionOnOrder($order, Request::HTTP_METHOD_POST);
+        $orderParams = $this->transformOrderIntoParam($order, Request::HTTP_METHOD_POST);
+        return $this->actionOnOrder($orderParams, Request::HTTP_METHOD_POST);
     }
 
     /**
@@ -70,7 +84,8 @@ class OrderSync
      */
     public function updateOrder(OrderInterface $order):bool
     {
-        return $this->actionOnOrder($order, Request::HTTP_METHOD_PUT);
+        $orderParams = $this->transformOrderIntoParam($order, Request::HTTP_METHOD_PUT);
+        return $this->actionOnOrder($orderParams, Request::HTTP_METHOD_PUT);
     }
 
     /**
@@ -80,7 +95,8 @@ class OrderSync
      */
     public function deleteOrder(OrderInterface $order):bool
     {
-        return $this->actionOnOrder($order, Request::HTTP_METHOD_DELETE);
+        $orderParams = $this->transformOrderIntoParam($order, Request::HTTP_METHOD_DELETE);
+        return $this->actionOnOrder($orderParams, Request::HTTP_METHOD_DELETE);
     }
 
     /**
@@ -89,19 +105,19 @@ class OrderSync
      * @return bool
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    protected function actionOnOrder(OrderInterface $order, string $method):bool
+    public function actionOnOrder(array $orderParams, string $method):bool
     {
         $request = [
             'headers' => [
                 'Content-type'     => 'application/json',
                 'Authorization' => $this->apiService->getIdToken()
             ],
-            'json' => $this->transformOrderIntoParam($order, $method)
+            'json' => $orderParams
         ];
 
         $url = TransiteoApiService::API_REQUEST_URI . "v1/customer/orders";
         if($method !== Request::HTTP_METHOD_POST){
-            $url .= '/' . $order->getIncrementId();
+            $url .= '/' . $orderParams['order_id'];
         }
 
         $response = $this->apiService->doRequest(
@@ -118,11 +134,9 @@ class OrderSync
         $responseArray = \json_decode($responseContent);
 
 
-        if ($status == "401") {
-            if (isset($responseArray->message) && $responseArray->message == "The incoming token has expired") {
-                $this->apiService->refreshIdToken();
-                return $this->createOrder($order);
-            }
+        if (($status == "401") && isset($responseArray->message) && $responseArray->message === "The incoming token has expired") {
+            $this->apiService->refreshIdToken();
+            return $this->actionOnOrder($orderParams, $method);
         }
 
         if(($status != "200") && isset($responseArray->message)) {
@@ -164,12 +178,17 @@ class OrderSync
                 'sku' => $item->getData($this->config->getProductIdentifier()),
                 "quantity" => $qty,
                 "unit_price" => $price,
-                "unit_currrency_price" => $currencyCode,
+                "unit_price_currency" => $currencyCode,
             ];
         }
         $statusHistories = $order->getStatusHistories();
+        if(empty($statusHistories)){
+            $orderUpdateDate = $this->dateTime->gmtTimestamp($order->getCreatedAt());
+        }else{
+            $orderUpdateDate = $this->dateTime->gmtTimestamp(end($statusHistories));
+        }
         $result = [
-            'order_id' => $order->getIncrementId(),
+            'order_id' => $order->getData($this->config->getOrderIdentifier()),
             'url' => $this->storeManager->getStore($order->getStoreId())->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB),
             'order_date_hour' => $this->dateTime->gmtTimestamp($order->getCreatedAt()),
             'customer_firstname' => $order->getCustomerFirstname(),
@@ -177,18 +196,108 @@ class OrderSync
             'departure_country' => $this->config->getIso3Country($this->config->getWebsiteCountry()),
             'arrival_country' => $this->config->getIso3Country($order->getShippingAddress()->getCountryId()),
             'products' => $products,
-            "shipping_carrier" => $order->getShippingDescription(),
+            "shipping_carrier" => $this->getShippingCarrier($order),
             "amount_products" => (float) $productTotal,
             "amount_shipping" => (float) $order->getShippingAmount(),
             "amount_duty" => (float) $order->getTransiteoDuty(),
             "amount_vat" => (float) $order->getTransiteoVat(),
             "amount_specialtaxes" => (float) $order->getTransiteoSpecialTaxes(),
             "currency" => $currencyCode,
-            "order_statut" => $order->getStatus(),
-            "order_update_statut" => end($statusHistories)->getCreatedAt()
+            "order_statut" => $this->transformStatusIntoTransiteoOne($order->getStatus()),
+            "order_update_statut" => $orderUpdateDate
         ];
 
+
+
         return $result;
+    }
+
+
+    /**
+     * @param $order
+     * @return string
+     */
+    protected function getShippingCarrier($order): string
+    {
+        /**
+         * @todo Warning, only the last carrier track of latests shipments
+         */
+        /**
+         * @var Shipment $shipment
+         */
+        $shipments = $order->getShipmentsCollection()->getItems();
+        if(is_array($shipments)){
+            $shipments = array_reverse($shipments);
+        }
+        foreach($shipments as $shipment){
+            $tracks = $shipment->getTracks();
+            if(is_array($tracks) && !empty($tracks)){
+                $track = end($tracks);
+                break;
+            }
+        }
+        if(isset($track)){
+            return $track->getCarrierCode();
+        }
+
+        return  $order->getShippingDescription();
+    }
+
+    /**
+     * @param string $orderStatus
+     * @return string
+     */
+    protected function transformStatusIntoTransiteoOne(string $orderStatus):string
+    {
+        $correspondence = $this->config->getStatusCorrespondences();
+        if(array_key_exists($orderStatus, $correspondence)){
+            return $correspondence[$orderStatus];
+        }
+
+        return Config::TRANSITEO_DEFAULT_STATUS;
+    }
+
+
+    /**
+     * @param OrderInterface $order
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function AsyncCreateOrder(OrderInterface $order): void
+    {
+        $this->AsyncActionOnOrder($order, Request::HTTP_METHOD_POST);
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function AsyncUpdateOrder(OrderInterface $order): void
+    {
+        $this->AsyncActionOnOrder($order, Request::HTTP_METHOD_PUT);
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function AsyncDeleteOrder(OrderInterface $order): void
+    {
+        $this->AsyncActionOnOrder($order, Request::HTTP_METHOD_DELETE);
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @param string $method
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    protected function AsyncActionOnOrder(OrderInterface $order, string $method): void
+    {
+        $data = [
+            'order' => $this->transformOrderIntoParam($order, $method),
+            'method' => $method
+        ];
+        $message = serialize($data);
+        $this->publisher->publish(self::SYNC_ORDER_TOPIC, $message);
     }
 
 }

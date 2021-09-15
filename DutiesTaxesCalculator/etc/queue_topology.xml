@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+  ~ @author Blackbird Agency
+  ~ @copyright Open Software License (OSL 3.0)
+  ~ @link <hello@bird.eu>
+  -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/topology.xsd">
+    <exchange name="transiteo-sync-order-exchange" type="topic" connection="db">
+        <binding id="process"
+                 topic="transiteo.sync.order"
+                 destinationType="queue"
+                 destination="transiteo_sync_order_queue"/>
+    </exchange>
+</config>

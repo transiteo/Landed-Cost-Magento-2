@@ -149,10 +149,13 @@ class TransiteoProducts
                 $this->apiService->getLogger()->debug('Response Content : ' . $result);
             }
         } else {
-            if (array_key_exists('message', $responseArray)) {
+            if (is_array($responseArray) && array_key_exists('message', $responseArray)) {
+                $message = $responseArray['message'];
                 ////LOGGER////
-                $this->apiService->getLogger()->debug('Response : status => ' . $status . ' message : ' . $responseArray['message']);
+            }else{
+                $message = $response->getReasonPhrase();
             }
+            $this->apiService->getLogger()->debug('Response : status => ' . $status . ' message : ' . $message);
         }
 
         if ($status == "401") {
