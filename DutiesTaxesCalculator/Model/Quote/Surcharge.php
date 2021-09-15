@@ -251,6 +251,8 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
      * @param Quote $quote
      * @param Total $total
      * @param ShippingAssignmentInterface|null $shippingAssignment
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     protected function getTransiteoTaxes($quote, $total, $shippingAssignment = null)
     {

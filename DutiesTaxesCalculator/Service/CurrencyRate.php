@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace Transiteo\DutiesTaxesCalculator\Service;
 
 use Magento\Framework\Webapi\Rest\Request;
-use Magento\Tests\NamingConvention\true\string;
 use Transiteo\DutiesTaxesCalculator\Model\TransiteoApiService;
 class CurrencyRate
 {

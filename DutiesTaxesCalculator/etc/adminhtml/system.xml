@@ -55,6 +55,19 @@
             <label>Settings</label>
             <tab>transiteo</tab>
             <resource>Transiteo_DutiesTaxesCalculator::settings</resource>
+            <group id="order_sync" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Order Sync</label>
+                <comment>All the order going to an other country than original store country will be sent to Transiteo</comment>
+                <field id="order_id" type="text" translate="label comment" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Order Unique Identifier</label>
+                    <comment>Enter the name of the column useed to identify the order. Default is "increment_id" but could be "entity_id".</comment>
+                </field>
+                <field id="status" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Status correspondance</label>
+                    <frontend_model>Transiteo\DutiesTaxesCalculator\Block\Adminhtml\Form\Field\OrderStatusCorrespondence</frontend_model>
+                    <backend_model>Transiteo\DutiesTaxesCalculator\Model\Config\Backend\Serialized\OrderStatusSerialized</backend_model>
+                </field>
+            </group>
             <group id="modal" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>Opening Pop-up</label>
                 <field id="show" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">

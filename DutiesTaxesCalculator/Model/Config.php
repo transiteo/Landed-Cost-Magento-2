@@ -30,6 +30,22 @@ class Config
     public const CONFIG_PATH_PDP_SUPER_ATTRIBUTE_SELECTOR = 'transiteo_settings/pdp_settings/super_attribute_selector';
     public const CONFIG_PATH_PDP_EVENT_ACTION = 'transiteo_settings/pdp_settings/event_action';
     public const CONFIG_PATH_PDP_DELAY = 'transiteo_settings/pdp_settings/delay';
+    public const CONFIG_PATH_ORDER_IDENTIFIER = 'transiteo_settings/order_sync/order_id';
+    public const CONFIG_PATH_ORDER_STATUS_CORRESPONDENCE = 'transiteo_settings/order_sync/status';
+
+    public const TRANSITEO_ORDER_STATUS = [
+        'Payed',
+        'Pending Payment',
+        'Held',
+        'Modified',
+        'Sent',
+        'Received',
+        'Returned',
+        'Canceled',
+        'Refunded',
+    ];
+
+    public const TRANSITEO_DEFAULT_STATUS = 'Pending Payment';
 
     /**
      * @var ScopeConfigInterface
@@ -69,12 +85,12 @@ class Config
         $country = $this->getWebsiteCountry();
         $regionId = $this->scopeConfig->getValue(
             'shipping/origin/region_id',
-            ScopeInterface::SCOPE_WEBSITE
+            ScopeInterface::SCOPE_STORE
         );
         $region = $this->regionFactory->create()->load($regionId)->getCode();
         $zip = $this->scopeConfig->getValue(
             'shipping/origin/postcode',
-            ScopeInterface::SCOPE_WEBSITE
+            ScopeInterface::SCOPE_STORE
         );
         $r = $country . '-' . $region;
         if ($country === "US") {
@@ -92,7 +108,7 @@ class Config
     {
         return $this->scopeConfig->getValue(
             'shipping/origin/country_id',
-            ScopeInterface::SCOPE_WEBSITE
+            ScopeInterface::SCOPE_STORE
         );
     }
 
@@ -173,7 +189,7 @@ class Config
     {
         return $this->scopeConfig->getValue(
             'general/locale/code',
-            ScopeInterface::SCOPE_WEBSITE
+            ScopeInterface::SCOPE_STORE
         );
     }
 
@@ -229,7 +245,7 @@ class Config
      */
     public function isPDPPageLoaderEnabled(): bool
     {
-        return $this->scopeConfig->isSetFlag(self::CONFIG_PATH_PDP_LOADER_ENABLED, ScopeInterface::SCOPE_WEBSITE);
+        return $this->scopeConfig->isSetFlag(self::CONFIG_PATH_PDP_LOADER_ENABLED, ScopeInterface::SCOPE_STORE);
     }
 
 
@@ -240,7 +256,7 @@ class Config
     {
         return (string)$this->scopeConfig->getValue(
             self::CONFIG_PATH_PDP_PRODUCT_FORM_SELECTOR,
-            ScopeInterface::SCOPE_WEBSITE
+            ScopeInterface::SCOPE_STORE
         );
     }
 
@@ -253,7 +269,7 @@ class Config
     {
         return (string) $this->scopeConfig->getValue(
             self::CONFIG_PATH_PDP_QTY_FIELD_SELECTOR,
-            ScopeInterface::SCOPE_WEBSITE
+            ScopeInterface::SCOPE_STORE
         );
     }
 
@@ -266,7 +282,7 @@ class Config
     {
         return (string) $this->scopeConfig->getValue(
             self::CONFIG_PATH_PDP_TOTAL_TAXES_CONTAINER_SELECTOR,
-            ScopeInterface::SCOPE_WEBSITE
+            ScopeInterface::SCOPE_STORE
         );
     }
 
@@ -279,7 +295,7 @@ class Config
     {
         return (string) $this->scopeConfig->getValue(
             self::CONFIG_PATH_PDP_VAT_CONTAINER_SELECTOR,
-            ScopeInterface::SCOPE_WEBSITE
+            ScopeInterface::SCOPE_STORE
         );
     }
 
@@ -293,7 +309,7 @@ class Config
     {
         return (string) $this->scopeConfig->getValue(
             self::CONFIG_PATH_PDP_DUTY_CONTAINER_SELECTOR,
-            ScopeInterface::SCOPE_WEBSITE
+            ScopeInterface::SCOPE_STORE
         );
     }
 
@@ -306,7 +322,7 @@ class Config
     {
         return (string) $this->scopeConfig->getValue(
             self::CONFIG_PATH_PDP_SPECIAL_TAXES_CONTAINER_SELECTOR,
-            ScopeInterface::SCOPE_WEBSITE
+            ScopeInterface::SCOPE_STORE
         );
     }
 
@@ -319,7 +335,7 @@ class Config
     {
         return (string) $this->scopeConfig->getValue(
             self::CONFIG_PATH_PDP_SUPER_ATTRIBUTE_SELECTOR,
-            ScopeInterface::SCOPE_WEBSITE
+            ScopeInterface::SCOPE_STORE
         );
     }
 
@@ -332,7 +348,7 @@ class Config
     {
         return (string) $this->scopeConfig->getValue(
             self::CONFIG_PATH_PDP_COUNTRY_SELECTOR,
-            ScopeInterface::SCOPE_WEBSITE
+            ScopeInterface::SCOPE_STORE
         );
     }
 
@@ -344,7 +360,7 @@ class Config
      */
     public function getPDPEventAction(): string
     {
-        return (string) $this->scopeConfig->getValue(self::CONFIG_PATH_PDP_EVENT_ACTION, ScopeInterface::SCOPE_WEBSITE);
+        return (string) $this->scopeConfig->getValue(self::CONFIG_PATH_PDP_EVENT_ACTION, ScopeInterface::SCOPE_STORE);
     }
 
     /**
@@ -354,7 +370,7 @@ class Config
      */
     public function getPDPDelay(): int
     {
-        return (int) $this->scopeConfig->getValue(self::CONFIG_PATH_PDP_DELAY, ScopeInterface::SCOPE_WEBSITE);
+        return (int) $this->scopeConfig->getValue(self::CONFIG_PATH_PDP_DELAY, ScopeInterface::SCOPE_STORE);
     }
 
     // Get ISO3 Country Code from ISO2 Country Code
@@ -378,6 +394,31 @@ class Config
     public function getCountryFactory(): CountryFactory
     {
         return $this->countryFactory;
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getOrderIdentifier(): string
+    {
+        return (string) $this->scopeConfig->getValue(self::CONFIG_PATH_ORDER_IDENTIFIER, ScopeInterface::SCOPE_STORE);
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getStatusCorrespondences(): array
+    {
+        $value = $this->scopeConfig->getValue(self::CONFIG_PATH_ORDER_STATUS_CORRESPONDENCE, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        if(!is_array($value)){
+            $value = (array)json_decode($value ?? "", true);
+            $value = array_map(function($v){
+                return (array)$v;
+            },$value);
+        }
+        return array_combine(array_column($value, 'magento_status'), array_column($value, 'transiteo_status'));
     }
 
 }
