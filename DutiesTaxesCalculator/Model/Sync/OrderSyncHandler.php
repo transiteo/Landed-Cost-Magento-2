@@ -9,6 +9,9 @@ declare(strict_types=1);
 
 namespace Transiteo\DutiesTaxesCalculator\Model\Sync;
 
+use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Framework\Webapi\Rest\Request;
+
 /**
  *
  */
@@ -23,16 +26,23 @@ class OrderSyncHandler
      * @var \Transiteo\DutiesTaxesCalculator\Service\OrderSync
      */
     protected $orderSync;
+    /**
+     * @var OrderRepositoryInterface
+     */
+    protected $orderRepository;
 
     /**
      * @param \Psr\Log\LoggerInterface $logger
      * @param \Transiteo\DutiesTaxesCalculator\Service\OrderSync $orderSync
+     * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         \Psr\Log\LoggerInterface $logger,
-        \Transiteo\DutiesTaxesCalculator\Service\OrderSync $orderSync
+        \Transiteo\DutiesTaxesCalculator\Service\OrderSync $orderSync,
+        OrderRepositoryInterface $orderRepository
     )
     {
+        $this->orderRepository = $orderRepository;
         $this->logger = $logger;
         $this->orderSync = $orderSync;
     }
@@ -46,8 +56,23 @@ class OrderSyncHandler
         try {
             $params = unserialize($message);
             $method = $params["method"];
-            $order = $params["order"];
-            if(!$this->orderSync->actionOnOrder($order, $method)) {
+            $valid = false;
+            if(array_key_exists("order", $params)){
+                $order = $params["order"];
+                $valid = $this->orderSync->actionOnOrder($order, $method);
+            }else{
+                $orderModel = $this->orderRepository->get($params['order_id']);
+                if($method === Request::HTTP_METHOD_DELETE){
+                    $valid = $this->orderSync->deleteOrder($orderModel);
+                }
+                if($method === Request::HTTP_METHOD_POST){
+                    $valid = $this->orderSync->createOrder($orderModel);
+                }
+                if($method === Request::HTTP_METHOD_PUT){
+                    $valid = $this->orderSync->deleteOrder($orderModel);
+                }
+            }
+            if(!$valid) {
                 throw new \Exception("Error in response from Api");
             }
         }catch (\Exception $exception){

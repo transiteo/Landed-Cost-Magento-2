@@ -13,7 +13,6 @@ use Magento\Framework\Webapi\Rest\Request;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Tests\NamingConvention\true\string;
 use Transiteo\DutiesTaxesCalculator\Model\Config;
 use Transiteo\DutiesTaxesCalculator\Model\TransiteoApiService;
 
@@ -35,10 +34,6 @@ class OrderSync
      */
     protected $storeManager;
     /**
-     * @var \Magento\Framework\Stdlib\DateTime\DateTime
-     */
-    protected $dateTime;
-    /**
      * @var PublisherInterface
      */
     protected $publisher;
@@ -54,14 +49,12 @@ class OrderSync
         TransiteoApiService $apiService,
         Config $config,
         StoreManagerInterface $storeManager,
-        \Magento\Framework\Stdlib\DateTime\DateTime $dateTime,
         PublisherInterface $publisher
     )
     {
         $this->config = $config;
         $this->apiService = $apiService;
         $this->storeManager = $storeManager;
-        $this->dateTime = $dateTime;
         $this->publisher = $publisher;
     }
 
@@ -183,14 +176,14 @@ class OrderSync
         }
         $statusHistories = $order->getStatusHistories();
         if(empty($statusHistories)){
-            $orderUpdateDate = $this->dateTime->gmtTimestamp($order->getCreatedAt());
+            $orderUpdateDate = strtotime($order->getCreatedAt());
         }else{
-            $orderUpdateDate = $this->dateTime->gmtTimestamp(end($statusHistories));
+            $orderUpdateDate = strtotime(end($statusHistories)->getCreatedAt());
         }
         $result = [
             'order_id' => $order->getData($this->config->getOrderIdentifier()),
             'url' => $this->storeManager->getStore($order->getStoreId())->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB),
-            'order_date_hour' => $this->dateTime->gmtTimestamp($order->getCreatedAt()),
+            'order_date_hour' => (int) (strtotime($order->getCreatedAt()) . '000'),
             'customer_firstname' => $order->getCustomerFirstname(),
             'customer_lastname' => $order->getCustomerLastname(),
             'departure_country' => $this->config->getIso3Country($this->config->getWebsiteCountry()),
@@ -204,7 +197,7 @@ class OrderSync
             "amount_specialtaxes" => (float) $order->getTransiteoSpecialTaxes(),
             "currency" => $currencyCode,
             "order_statut" => $this->transformStatusIntoTransiteoOne($order->getStatus()),
-            "order_update_statut" => $orderUpdateDate
+            "order_update_statut" => (int) ($orderUpdateDate . '000')
         ];
 
 
@@ -293,9 +286,15 @@ class OrderSync
     protected function AsyncActionOnOrder(OrderInterface $order, string $method): void
     {
         $data = [
-            'order' => $this->transformOrderIntoParam($order, $method),
             'method' => $method
         ];
+        try{
+            $data['order'] = $this->transformOrderIntoParam($order, $method);
+        }catch(\Exception $e){
+            $this->apiService->getLogger()->error($e);
+            $data['order_id'] = $order->getEntityId();
+        }
+
         $message = serialize($data);
         $this->publisher->publish(self::SYNC_ORDER_TOPIC, $message);
     }

@@ -13,7 +13,6 @@ namespace Transiteo\DutiesTaxesCalculator\Observer\Sync\Order;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
 use Transiteo\DutiesTaxesCalculator\Service\OrderSync;
