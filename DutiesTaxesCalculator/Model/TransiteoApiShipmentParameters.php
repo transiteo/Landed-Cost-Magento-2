@@ -62,7 +62,7 @@ class TransiteoApiShipmentParameters
             }
         }
 
-        if ($this->shipmentType==='GLOBAL') {
+        if ($this->shipmentType ==='GLOBAL') {
             $array["global_ship_price"] = $this->globalShipPrice;
             $array["currency_global_ship_price"] = $this->currencyGlobalShipPrice;
         }
@@ -78,6 +78,20 @@ class TransiteoApiShipmentParameters
             $array["receiver"]["activity_id"] = $this->receiverActivity;
         }
 
+        return $array;
+    }
+
+    public function buildArrayForCache(){
+        $result = $this->buildArray();
+        $array = [
+            $result["to_country"],
+            $result["to_district"],
+            $result["shipment_type"]
+        ];
+        if ($this->shipmentType ==='GLOBAL') {
+            $array[] = $result["global_ship_price"];
+            $array[] = $result["currency_global_ship_price"];
+        }
         return $array;
     }
 
