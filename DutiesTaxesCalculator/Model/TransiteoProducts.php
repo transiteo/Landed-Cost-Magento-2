@@ -5,33 +5,67 @@
  * @link <hello@bird.eu>
  */
 
+
 namespace Transiteo\DutiesTaxesCalculator\Model;
 
-use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Webapi\Rest\Request;
-use Transiteo\DutiesTaxesCalculator\Model\TransiteoApiService;
-use Transiteo\DutiesTaxesCalculator\Model\TransiteoApiShipmentParameters;
+use Transiteo\DutiesTaxesCalculator\Model\Cache\Handler\Taxes;
 
 class TransiteoProducts
 {
-    private $apiService;
-    private $apiResponseContent;
-    private $serializer;
-    private $productsParams;
-    private $shipmentParams;
-    private $responseIsOk;
-    private $isProductsInitialized = false;
-    private $isShipmentInitialized = false;
-    private $getDutiesCalled = false;
+    /**
+     * @var TransiteoApiService
+     */
+    protected $apiService;
 
+    /**
+     * @var array
+     */
+    protected $apiResponseContent;
+    /**
+     * @var TransiteoApiProductParameters[]
+     */
+    protected $productsParams;
+    /**
+     * @var TransiteoApiShipmentParameters
+     */
+    protected $shipmentParams;
+
+    /**
+     * @var
+     */
+    protected $responseIsOk;
+    /**
+     * @var bool
+     */
+    protected $isProductsInitialized = false;
+    /**
+     * @var bool
+     */
+    protected $isShipmentInitialized = false;
+
+    /**
+     * @var bool
+     */
+    protected $getDutiesCalled = false;
+    /**
+     * @var Taxes
+     */
+    protected $taxesCacheHandler;
+
+    /**
+     * @param TransiteoApiService $apiService
+     * @param TransiteoApiShipmentParameters $shipmentParams
+     * @param Taxes $taxesCacheHandler
+     */
     public function __construct(
         TransiteoApiService $apiService,
         TransiteoApiShipmentParameters $shipmentParams,
-        SerializerInterface $serializer
+        Taxes $taxesCacheHandler
     ) {
         $this->apiService = $apiService;
         $this->shipmentParams = $shipmentParams;
-        $this->serializer = $serializer;
+        $this->taxesCacheHandler = $taxesCacheHandler;
     }
 
     /**
@@ -86,21 +120,33 @@ class TransiteoProducts
         }
         $this->getDutiesCalled = true;
         $finalParams = [];
-        foreach ($this->productsParams as $param) {
+        $cacheParams = $this->shipmentParams->buildArrayForCache();
+        foreach ($this->productsParams as $id => $param) {
             $finalParams['products'][] = $param->buildArray();
+            $cacheParams[$id] = $param->builArrayForCache();
         }
 
         $finalParams = array_merge($finalParams, $this->shipmentParams->buildArray());
-        $this->apiResponseContent = \json_decode(($this->getDutiesFromApi($finalParams)), true);
 
-        //set products ids as keys for results products
-        if (isset($this->apiResponseContent["products"])&& isset($this->productsParams)) {
-            $this->apiResponseContent["products"] = \array_combine(\array_keys($this->productsParams), $this->apiResponseContent["products"]);
+        $cacheKey = $this->taxesCacheHandler->getKeyFromRequest($cacheParams);
+        $cachedTaxes = $this->taxesCacheHandler->loadFromCache($cacheKey);
+        if(!isset($cachedTaxes)){
+            $this->apiResponseContent = \json_decode(($this->getDutiesFromApi($finalParams)), true);
+            //set products ids as keys for results products
+            if (isset($this->apiResponseContent["products"])&& isset($this->productsParams)) {
+                $this->apiResponseContent["products"] = \array_combine(\array_keys($this->productsParams), $this->apiResponseContent["products"]);
+                $this->responseIsOk = true;
+                $this->taxesCacheHandler->storeToCache($cacheKey,$this->apiResponseContent, array_keys($cacheParams));
+            } else {
+                $this->taxesCacheHandler->removeFromCache($cacheKey);
+                $this->responseIsOk = false;
+                return false;
+            }
+        }else{
+            $this->apiResponseContent = $cachedTaxes;
             $this->responseIsOk = true;
-        } else {
-            $this->responseIsOk = false;
-            return false;
         }
+
         return true;
     }
 

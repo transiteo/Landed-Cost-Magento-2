@@ -55,6 +55,15 @@ class TransiteoApiProductParameters
     }
 
     /**
+     * @return array
+     * @throws \Exception
+     */
+    public function builArrayForCache(){
+        $result = $this->buildArray();
+        return [$result['quantity'], $result['unit_price'], $result['currency_unit_price'], $result['unit_ship_price']];
+    }
+
+    /**
      * Set the value of productName
      *
      * @return  self

@@ -83,4 +83,9 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="Magento\Catalog\Model\Indexer\Category\Product">
+        <plugin name="Transiteo_DutiesTaxesCalculator_Cache_Clean" type="Transiteo\DutiesTaxesCalculator\Plugin\Cache\ProductIndexer"/>
+    </type>
+
 </config>
