@@ -168,7 +168,7 @@ class OrderSync
             $price = $rowTotal / $qty;
             $productTotal += $rowTotal;
             $products[] = [
-                'sku' => $item->getData($this->config->getProductIdentifier()),
+                'sku' => $this->config->getTransiteoProductSku($item),
                 "quantity" => $qty,
                 "unit_price" => $price,
                 "unit_price_currency" => $currencyCode,
@@ -255,27 +255,27 @@ class OrderSync
      * @param OrderInterface $order
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function AsyncCreateOrder(OrderInterface $order): void
+    public function asyncCreateOrder(OrderInterface $order): void
     {
-        $this->AsyncActionOnOrder($order, Request::HTTP_METHOD_POST);
+        $this->asyncActionOnOrder($order, Request::HTTP_METHOD_POST);
     }
 
     /**
      * @param OrderInterface $order
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function AsyncUpdateOrder(OrderInterface $order): void
+    public function asyncUpdateOrder(OrderInterface $order): void
     {
-        $this->AsyncActionOnOrder($order, Request::HTTP_METHOD_PUT);
+        $this->asyncActionOnOrder($order, Request::HTTP_METHOD_PUT);
     }
 
     /**
      * @param OrderInterface $order
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function AsyncDeleteOrder(OrderInterface $order): void
+    public function asyncDeleteOrder(OrderInterface $order): void
     {
-        $this->AsyncActionOnOrder($order, Request::HTTP_METHOD_DELETE);
+        $this->asyncActionOnOrder($order, Request::HTTP_METHOD_DELETE);
     }
 
     /**
@@ -283,7 +283,7 @@ class OrderSync
      * @param string $method
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    protected function AsyncActionOnOrder(OrderInterface $order, string $method): void
+    protected function asyncActionOnOrder(OrderInterface $order, string $method): void
     {
         $data = [
             'method' => $method

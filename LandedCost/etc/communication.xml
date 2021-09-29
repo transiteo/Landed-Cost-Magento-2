@@ -11,4 +11,9 @@
                  type="Transiteo\LandedCost\Model\Sync\OrderSyncHandler"
                  method="process"/>
     </topic>
+    <topic name="transiteo.sync.product" request="string">
+        <handler name="processProductSync"
+                 type="Transiteo\LandedCost\Model\Sync\ProductSyncHandler"
+                 method="process"/>
+    </topic>
 </config>

@@ -12,4 +12,10 @@
                  destinationType="queue"
                  destination="transiteo_sync_order_queue"/>
     </exchange>
+    <exchange name="transiteo-sync-product-exchange" type="topic" connection="db">
+        <binding id="process"
+                 topic="transiteo.sync.product"
+                 destinationType="queue"
+                 destination="transiteo_sync_product_queue"/>
+    </exchange>
 </config>

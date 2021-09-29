@@ -169,13 +169,9 @@ class DutiesAndTaxes implements ActionInterface
     protected function getProductSku(array $params): string
     {
         $product = $this->productRepository->getById($params['product']);
-        $productIdentifier = $this->taxesServices->getConfig()->getProductIdentifier();
 
         if ($product->getTypeId() === 'simple') {
-            if($productIdentifier === 'sku'){
-                return $product->getSku();
-            }
-            return $product->getData($productIdentifier);
+            return $this->taxesServices->getConfig()->getTransiteoProductSku($product);
         }
 
         //Transform request array param to an object
@@ -188,10 +184,7 @@ class DutiesAndTaxes implements ActionInterface
             $product = end($configurableProducts);
         }
 
-        if($productIdentifier === 'sku'){
-            return $product->getSku();
-        }
-        return $product->getData($productIdentifier);
+        return $this->taxesServices->getConfig()->getTransiteoProductSku($product);
     }
 
     /**
