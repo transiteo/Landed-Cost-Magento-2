@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--
+  ~ @author Blackbird Agency
+  ~ @copyright Open Software License (OSL 3.0)
+  ~ @link <hello@bird.eu>
+  -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Magento_Backend::stores">
+                    <resource id="Magento_Backend::stores_settings">
+                        <resource id="Magento_Config::config">
+                            <resource id="Transiteo_LandedCost::cross_border_head" title="Transiteo CrossBorder" sortOrder="100" >
+                                <resource id="Transiteo_LandedCost::settings" title="Settings" sortOrder="20">
+                                    <resource id="Transiteo_LandedCost::popup_customize" title="Customize Popup" sortOrder="10" />
+                                    <resource id="Transiteo_LandedCost::duties_display_update" title="Update Duties Display" sortOrder="20" />
+                                </resource>
+                                <resource id="Transiteo_LandedCost::activation" title="Activation" sortOrder="10">
+                                    <resource id="Transiteo_LandedCost::token_update" title="Update Token" sortOrder="10" />
+                                </resource>
+                            </resource>
+                        </resource>
+                    </resource>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

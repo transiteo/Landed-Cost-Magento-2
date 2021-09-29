@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<!--
+  ~ @author Blackbird Agency
+  ~ @copyright Open Software License (OSL 3.0)
+  ~ @link <hello@bird.eu>
+  -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="sales_model_service_quote_submit_before">
+        <observer name="save_Transiteo_LandedCost_order" instance="Transiteo\LandedCost\Observer\SaveTaxesToOrder"/>
+    </event>
+    <event name="layout_generate_blocks_after">
+        <observer name="remove_block" instance="Transiteo\LandedCost\Observer\RemoveBlock" />
+    </event>
+    <event name="sales_order_delete_after">
+        <observer name="transiteo_order_sync_delete_after" instance="Transiteo\LandedCost\Observer\Sync\Order\DeleteAfter" />
+    </event>
+    <event name="sales_order_save_after">
+        <observer name="transiteo_order_sync_save_after" instance="Transiteo\LandedCost\Observer\Sync\Order\SaveAfter" />
+    </event>
+</config>
