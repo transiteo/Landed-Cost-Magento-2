@@ -1,0 +1,9 @@
+<?php /** @var \Transiteo\LandedCost\Pricing\Render\Adjustment $block */ ?>
+
+<?php if ($block->isEnabled()) : ?>
+    <div data-mage-init='{"transiteoduties": {"priceConfig": {"priceFormat": <?= $block->getPriceFormatJson() ?>}}}' style="display: none">
+        <span class="vat" style="display: none"><?= __('VAT/GST :') ?><span class="vat-price"></span></span><br />
+        <span class="duty" style="display: none"><?= __('Duty :') ?><span class="duty-price"></span></span><br />
+        <span class="special" style="display: none"><?= __('Special taxes :') ?><span class="special-price"></span></span>
+    </div>
+<?php endif; ?>
