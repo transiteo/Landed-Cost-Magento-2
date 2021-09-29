@@ -9,13 +9,13 @@ declare(strict_types=1);
 
 namespace Transiteo\LandedCost\Model\Sync;
 
-use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Webapi\Rest\Request;
 
 /**
  *
  */
-class OrderSyncHandler
+class ProductSyncHandler
 {
 
     /**
@@ -23,28 +23,28 @@ class OrderSyncHandler
      */
     protected $logger;
     /**
-     * @var \Transiteo\LandedCost\Service\OrderSync
+     * @var \Transiteo\LandedCost\Service\ProductSync
      */
-    protected $orderSync;
+    protected $productSync;
     /**
-     * @var OrderRepositoryInterface
+     * @var ProductRepositoryInterface
      */
-    protected $orderRepository;
+    protected $productRepository;
 
     /**
      * @param \Psr\Log\LoggerInterface $logger
-     * @param \Transiteo\LandedCost\Service\OrderSync $orderSync
-     * @param OrderRepositoryInterface $orderRepository
+     * @param \Transiteo\LandedCost\Service\ProductSync $productSync
+     * @param ProductRepositoryInterface $productRepository
      */
     public function __construct(
         \Psr\Log\LoggerInterface $logger,
-        \Transiteo\LandedCost\Service\OrderSync $orderSync,
-        OrderRepositoryInterface $orderRepository
+        \Transiteo\LandedCost\Service\ProductSync $productSync,
+        ProductRepositoryInterface $productRepository
     )
     {
-        $this->orderRepository = $orderRepository;
+        $this->productRepository = $productRepository;
         $this->logger = $logger;
-        $this->orderSync = $orderSync;
+        $this->productSync = $productSync;
     }
 
     /**
@@ -57,26 +57,26 @@ class OrderSyncHandler
             $params = unserialize($message);
             $method = $params["method"];
             $valid = false;
-            if(array_key_exists("order", $params)){
-                $order = $params["order"];
-                $valid = $this->orderSync->actionOnOrder($order, $method);
-                //if the order does not exist, create it.
+            if(array_key_exists("product", $params)){
+                $product = $params["product"];
+                $valid = $this->productSync->actionOnProduct($product, $method);
+                //if the product does not exist, create it.
                 if(!$valid && $method === Request::HTTP_METHOD_PUT){
-                    $valid = $this->orderSync->actionOnOrder($order, Request::HTTP_METHOD_POST);
+                    $valid = $this->productSync->actionOnProduct($product, Request::HTTP_METHOD_POST);
                 }
             }else{
-                $orderModel = $this->orderRepository->get($params['order_id']);
+                $productModel = $this->productRepository->getById($params['product_id'],false, $params['store_id']);
                 if($method === Request::HTTP_METHOD_DELETE){
-                    $valid = $this->orderSync->deleteOrder($orderModel);
+                    $valid = $this->productSync->deleteProduct($productModel);
                 }
                 if($method === Request::HTTP_METHOD_POST){
-                    $valid = $this->orderSync->createOrder($orderModel);
+                    $valid = $this->productSync->createProduct($productModel);
                 }
                 if($method === Request::HTTP_METHOD_PUT){
-                    $valid = $this->orderSync->updateOrder($orderModel);
-                    //if the order does not exist, create it.
+                    $valid = $this->productSync->updateProduct($productModel);
+                    //if the product does not exist, create it.
                     if(!$valid){
-                        $valid = $this->orderSync->createOrder($orderModel);
+                        $this->productSync->createProduct($productModel);
                     }
                 }
             }

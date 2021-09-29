@@ -9,4 +9,7 @@
     <publisher topic="transiteo.sync.order">
         <connection name="db" exchange="transiteo-sync-order-exchange" disabled="false"/>
     </publisher>
+    <publisher topic="transiteo.sync.product">
+        <connection name="db" exchange="transiteo-sync-product-exchange" disabled="false"/>
+    </publisher>
 </config>

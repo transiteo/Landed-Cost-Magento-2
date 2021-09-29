@@ -8,50 +8,50 @@
 
 declare(strict_types=1);
 
-namespace Transiteo\LandedCost\Observer\Sync\Order;
+namespace Transiteo\LandedCost\Observer\Sync\Product;
 
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Sales\Model\Order;
+use Magento\Catalog\Api\Data\ProductInterface;
 use Psr\Log\LoggerInterface;
-use Transiteo\LandedCost\Service\OrderSync;
+use Transiteo\LandedCost\Service\ProductSync;
 
 class DeleteAfter implements ObserverInterface
 {
 
     /**
-     * @var OrderSync
+     * @var ProductSync
      */
-    protected $orderSync;
+    protected $productSync;
     /**
      * @var LoggerInterface
      */
     protected $logger;
 
     /**
-     * @param OrderSync $orderSync
+     * @param ProductSync $productSync
      * @param LoggerInterface $logger
      */
     public function __construct(
-        OrderSync $orderSync,
+        ProductSync $productSync,
         LoggerInterface $logger
     )
     {
         $this->logger = $logger;
-        $this->orderSync = $orderSync;
+        $this->productSync = $productSync;
     }
 
     public function execute(Observer $observer)
     {
         /**
-         * @var Order $order
+         * @var ProductInterface $product
          */
 
         try{
-            $order = $observer->getOrder();
-            if($order->isDeleted()){
-                $this->orderSync->asyncDeleteOrder($order);
+            $product = $observer->getProduct();
+            if($product->isDeleted()){
+                $this->productSync->asyncDeleteMultipleStoreValuesOfProduct((int) $product->getId());
             }
         }catch(\Exception $e){
             $this->logger->error($e);

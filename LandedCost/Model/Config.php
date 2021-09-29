@@ -11,8 +11,11 @@ declare(strict_types=1);
 
 namespace Transiteo\LandedCost\Model;
 
+use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Catalog\Model\Product;
 use Magento\Directory\Model\RegionFactory;
 use Magento\Directory\Model\CountryFactory;
+use Magento\Framework\Api\ExtensibleDataInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
 
@@ -113,13 +116,15 @@ class Config
     }
 
     /**
-     * @return mixed
+     * @param int|null $storeId
+     * @return string
      */
-    public function getWeightUnit(): string
+    public function getWeightUnit(int $storeId = null): string
     {
         $unit = $this->scopeConfig->getValue(
             'general/locale/weight_unit',
-            ScopeInterface::SCOPE_STORE
+            ScopeInterface::SCOPE_STORE,
+            $storeId
         );
         if ($unit === "kgs") {
             return "kg";
@@ -419,6 +424,22 @@ class Config
             },$value);
         }
         return array_combine(array_column($value, 'magento_status'), array_column($value, 'transiteo_status'));
+    }
+
+    /**
+     * @param ExtensibleDataInterface $product
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getTransiteoProductSku(ExtensibleDataInterface $product, int $storeId = null):string
+    {
+        $productIdentifier = $this->getProductIdentifier();
+        if($productIdentifier === 'sku'){
+            $sku = $product->getSku();
+        }else{
+            $sku = $product->getData($productIdentifier);
+        }
+        return ($storeId ?? $product->getStoreId()) . '_' . $sku;
     }
 
 }

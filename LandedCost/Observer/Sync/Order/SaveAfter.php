@@ -51,9 +51,9 @@ class SaveAfter implements ObserverInterface
         try{
             $order = $observer->getOrder();
             if($order->isObjectNew()){
-                $this->orderSync->createOrder($order);
+                $this->orderSync->asyncCreateOrder($order);
             }else if($order->hasDataChanges()){
-                $this->orderSync->updateOrder($order);
+                $this->orderSync->asyncUpdateOrder($order);
             }
         }catch(\Exception $e){
             $this->logger->error($e);

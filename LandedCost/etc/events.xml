@@ -18,4 +18,10 @@
     <event name="sales_order_save_after">
         <observer name="transiteo_order_sync_save_after" instance="Transiteo\LandedCost\Observer\Sync\Order\SaveAfter" />
     </event>
+    <event name="catalog_product_delete_after">
+        <observer name="transiteo_product_sync_delete_after" instance="Transiteo\LandedCost\Observer\Sync\Product\DeleteAfter" />
+    </event>
+    <event name="catalog_product_save_after">
+        <observer name="transiteo_product_sync_save_after" instance="Transiteo\LandedCost\Observer\Sync\Product\SaveAfter" />
+    </event>
 </config>

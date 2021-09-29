@@ -47,7 +47,7 @@ class OrderSync implements ActionInterface
     {
         $id = $this->request->getParam('id');
         $order = $this->orderRepository->get($id);
-        $this->orderSync->AsyncCreateOrder($order);
+        $this->orderSync->asyncCreateOrder($order);
         $order->setStatus('hello');
 //        $this->orderSync->AsyncUpdateOrder($order);
 //        $this->orderSync->AsyncDeleteOrder($order);
