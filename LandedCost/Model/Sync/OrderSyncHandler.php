@@ -19,7 +19,7 @@ class OrderSyncHandler
 {
 
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @var \Transiteo\LandedCost\Logger\Logger
      */
     protected $logger;
     /**
@@ -32,12 +32,12 @@ class OrderSyncHandler
     protected $orderRepository;
 
     /**
-     * @param \Psr\Log\LoggerInterface $logger
+     * @param \Transiteo\LandedCost\Logger\Logger $logger
      * @param \Transiteo\LandedCost\Service\OrderSync $orderSync
      * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
-        \Psr\Log\LoggerInterface $logger,
+        \Transiteo\LandedCost\Logger\Logger $logger,
         \Transiteo\LandedCost\Service\OrderSync $orderSync,
         OrderRepositoryInterface $orderRepository
     )
@@ -55,33 +55,42 @@ class OrderSyncHandler
     {
         try {
             $params = unserialize($message);
+            //////////////////LOGGER//////////////
+            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+            $logger = new \Zend\Log\Logger();
+            $logger->addWriter($writer);
+            ob_start();
+            var_dump($params);
+            $result = ob_get_clean();
+            $logger->info($result);
+            ///////////////////////////////////////
             $method = $params["method"];
-            $valid = false;
+            $errorMessage = null;
             if(array_key_exists("order", $params)){
                 $order = $params["order"];
-                $valid = $this->orderSync->actionOnOrder($order, $method);
+                $errorMessage = $this->orderSync->actionOnOrder($order, $method);
                 //if the order does not exist, create it.
-                if(!$valid && $method === Request::HTTP_METHOD_PUT){
-                    $valid = $this->orderSync->actionOnOrder($order, Request::HTTP_METHOD_POST);
+                if($errorMessage && $method === Request::HTTP_METHOD_PUT){
+                    $errorMessage = $this->orderSync->actionOnOrder($order, Request::HTTP_METHOD_POST);
                 }
             }else{
-                $orderModel = $this->orderRepository->get($params['order_id']);
+                $orderModel = $this->orderRepository->get((int) $params['order_id']);
                 if($method === Request::HTTP_METHOD_DELETE){
-                    $valid = $this->orderSync->deleteOrder($orderModel);
+                    $errorMessage = $this->orderSync->deleteOrder($orderModel);
                 }
                 if($method === Request::HTTP_METHOD_POST){
-                    $valid = $this->orderSync->createOrder($orderModel);
+                    $errorMessage = $this->orderSync->createOrder($orderModel);
                 }
                 if($method === Request::HTTP_METHOD_PUT){
-                    $valid = $this->orderSync->updateOrder($orderModel);
+                    $errorMessage = $this->orderSync->updateOrder($orderModel);
                     //if the order does not exist, create it.
-                    if(!$valid){
-                        $valid = $this->orderSync->createOrder($orderModel);
+                    if($errorMessage){
+                        $errorMessage = $this->orderSync->createOrder($orderModel);
                     }
                 }
             }
-            if(!$valid) {
-                throw new \Exception("Error in response from Api");
+            if($errorMessage) {
+                throw new \Exception("Error in response from Api, error : " . $errorMessage . "  in message " . $message);
             }
         }catch (\Exception $exception){
             $this->logger->error($exception);

@@ -61,10 +61,10 @@ class OrderSync
 
     /**
      * @param OrderInterface $order
-     * @return bool
+     * @return string|null Return error message or null if success.
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function createOrder(OrderInterface $order):bool
+    public function createOrder(OrderInterface $order):?string
     {
         $orderParams = $this->transformOrderIntoParam($order, Request::HTTP_METHOD_POST);
         return $this->actionOnOrder($orderParams, Request::HTTP_METHOD_POST);
@@ -72,10 +72,10 @@ class OrderSync
 
     /**
      * @param OrderInterface $order
-     * @return bool
+     * @return string|null Return error message or null if success.
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function updateOrder(OrderInterface $order):bool
+    public function updateOrder(OrderInterface $order):?string
     {
         $orderParams = $this->transformOrderIntoParam($order, Request::HTTP_METHOD_PUT);
         return $this->actionOnOrder($orderParams, Request::HTTP_METHOD_PUT);
@@ -83,22 +83,22 @@ class OrderSync
 
     /**
      * @param OrderInterface $order
-     * @return bool
+     * @return string|null Return error message or null if success.
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function deleteOrder(OrderInterface $order):bool
+    public function deleteOrder(OrderInterface $order):?string
     {
         $orderParams = $this->transformOrderIntoParam($order, Request::HTTP_METHOD_DELETE);
         return $this->actionOnOrder($orderParams, Request::HTTP_METHOD_DELETE);
     }
 
     /**
-     * @param OrderInterface $order
+     * @param array $orderParams
      * @param string $method
-     * @return bool
+     * @return string|null Return error message or null if success.
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function actionOnOrder(array $orderParams, string $method):bool
+    public function actionOnOrder(array $orderParams, string $method):?string
     {
         $request = [
             'headers' => [
@@ -135,9 +135,10 @@ class OrderSync
         if(($status != "200") && isset($responseArray->message)) {
             ////LOGGER////
             $this->apiService->getLogger()->debug('Response : status => ' . $status . ' message : ' . $responseArray['message']);
+            return $responseArray['message'];
         }
 
-        return $status == "200";
+        return null;
     }
 
     /**

@@ -171,7 +171,7 @@ class DutiesAndTaxes implements ActionInterface
         $product = $this->productRepository->getById($params['product']);
 
         if ($product->getTypeId() === 'simple') {
-            return $this->taxesServices->getConfig()->getTransiteoProductSku($product);
+            return $product->getData($this->taxesServices->getConfig()->getProductIdentifier());
         }
 
         //Transform request array param to an object
@@ -184,7 +184,7 @@ class DutiesAndTaxes implements ActionInterface
             $product = end($configurableProducts);
         }
 
-        return $this->taxesServices->getConfig()->getTransiteoProductSku($product);
+        return $product->getData($this->taxesServices->getConfig()->getProductIdentifier());
     }
 
     /**

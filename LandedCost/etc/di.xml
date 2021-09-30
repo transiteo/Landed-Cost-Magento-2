@@ -86,6 +86,6 @@
 
     <type name="Magento\Catalog\Model\Indexer\Category\Product">
         <plugin name="Transiteo_LandedCost_Cache_Clean" type="Transiteo\LandedCost\Plugin\Cache\ProductIndexer"/>
+        <plugin name="Transiteo_LandedCost_Product_Sync" type="Transiteo\LandedCost\Plugin\Sync\Product\ProductIndexer"/>
     </type>
-
 </config>

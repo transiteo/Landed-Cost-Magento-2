@@ -56,32 +56,32 @@ class ProductSyncHandler
         try {
             $params = unserialize($message);
             $method = $params["method"];
-            $valid = false;
+            $errorMessage = null;
             if(array_key_exists("product", $params)){
                 $product = $params["product"];
-                $valid = $this->productSync->actionOnProduct($product, $method);
+                $errorMessage = $this->productSync->actionOnProduct($product, $method);
                 //if the product does not exist, create it.
-                if(!$valid && $method === Request::HTTP_METHOD_PUT){
-                    $valid = $this->productSync->actionOnProduct($product, Request::HTTP_METHOD_POST);
+                if($errorMessage && $method === Request::HTTP_METHOD_PUT){
+                    $errorMessage = $this->productSync->actionOnProduct($product, Request::HTTP_METHOD_POST);
                 }
             }else{
-                $productModel = $this->productRepository->getById($params['product_id'],false, $params['store_id']);
+                $productModel = $this->productRepository->getById((int) $params['product_id'],false,(int) $params['store_id']);
                 if($method === Request::HTTP_METHOD_DELETE){
-                    $valid = $this->productSync->deleteProduct($productModel);
+                    $errorMessage = $this->productSync->deleteProduct($productModel);
                 }
                 if($method === Request::HTTP_METHOD_POST){
-                    $valid = $this->productSync->createProduct($productModel);
+                    $errorMessage = $this->productSync->createProduct($productModel);
                 }
                 if($method === Request::HTTP_METHOD_PUT){
-                    $valid = $this->productSync->updateProduct($productModel);
+                    $errorMessage = $this->productSync->updateProduct($productModel);
                     //if the product does not exist, create it.
-                    if(!$valid){
-                        $this->productSync->createProduct($productModel);
+                    if($errorMessage){
+                        $errorMessage = $this->productSync->createProduct($productModel);
                     }
                 }
             }
-            if(!$valid) {
-                throw new \Exception("Error in response from Api");
+            if($errorMessage) {
+                throw new \Exception("Error in response from Api, error : " . $errorMessage . "  in message " . $message);
             }
         }catch (\Exception $exception){
             $this->logger->error($exception);
