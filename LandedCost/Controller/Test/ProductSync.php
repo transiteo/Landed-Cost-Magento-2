@@ -47,13 +47,14 @@ class ProductSync implements ActionInterface
     public function execute()
     {
         $id = $this->request->getParam('id');
-        $product = $this->productRepository->getById($id);
-        $this->productSync->asyncCreateMultipleStoreValuesOfProduct((int) $product->getId());
+        $product = $this->productRepository->getById($id, false, 1);
+        $string = "Test";
+        $this->productSync->asyncUpdateAllProducts();
 //        $product->setStatus('hello');
-        $product->setName("HELLO");
-//        $this->productSync->asyncUpdateProduct($product);
-//        $this->productSync->asyncDeleteProduct($product);
-        exit("Test");
+//        $product->setName("HELLO");
+//        $string = $this->productSync->updateProduct($product);
+//        $this->productSync->deleteProduct($product->setSku('Jeans%20TEST'));
+        exit($string);
     }
 
 }

@@ -42,22 +42,29 @@ class ProductSync
      * @var ProductRepositoryInterface
      */
     protected $productRepository;
+    /**
+     * @var \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory
+     */
+    protected $productCollectionFactory;
 
     /**
      * @param TransiteoApiService $apiService
      * @param Config $config
      * @param StoreManagerInterface $storeManager
-     * @param \Magento\Framework\Stdlib\DateTime\DateTime $dateTime
      * @param PublisherInterface $publisher
+     * @param ProductRepositoryInterface $productRepository
+     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
      */
     public function __construct(
         TransiteoApiService $apiService,
         Config $config,
         StoreManagerInterface $storeManager,
         PublisherInterface $publisher,
-        ProductRepositoryInterface $productRepository
+        ProductRepositoryInterface $productRepository,
+        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
     )
     {
+        $this->productCollectionFactory = $productCollectionFactory;
         $this->config = $config;
         $this->apiService = $apiService;
         $this->storeManager = $storeManager;
@@ -68,10 +75,10 @@ class ProductSync
 
     /**
      * @param ProductInterface $product
-     * @return bool
+     * @return string|null
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function createProduct(ProductInterface $product):bool
+    public function createProduct(ProductInterface $product):?string
     {
         $productParams = $this->transformProductIntoParam($product, Request::HTTP_METHOD_POST);
         return $this->actionOnProduct($productParams, Request::HTTP_METHOD_POST);
@@ -79,10 +86,10 @@ class ProductSync
 
     /**
      * @param ProductInterface $product
-     * @return bool
+     * @return string|null Return error message or null if success.
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function updateProduct(ProductInterface $product):bool
+    public function updateProduct(ProductInterface $product):?string
     {
         $productParams = $this->transformProductIntoParam($product, Request::HTTP_METHOD_PUT);
         return $this->actionOnProduct($productParams, Request::HTTP_METHOD_PUT);
@@ -90,22 +97,22 @@ class ProductSync
 
     /**
      * @param ProductInterface $product
-     * @return bool
+     * @return string|null Return error message or null if success.
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function deleteProduct(ProductInterface $product):bool
+    public function deleteProduct(ProductInterface $product):?string
     {
         $productParams = $this->transformProductIntoParam($product, Request::HTTP_METHOD_DELETE);
         return $this->actionOnProduct($productParams, Request::HTTP_METHOD_DELETE);
     }
 
     /**
-     * @param ProductInterface $product
+     * @param array $productParams
      * @param string $method
-     * @return bool
+     * @return string|null Return error message or null if success.
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function actionOnProduct(array $productParams, string $method):bool
+    public function actionOnProduct(array $productParams, string $method):?string
     {
         $request = [
             'headers' => [
@@ -139,12 +146,18 @@ class ProductSync
             return $this->actionOnProduct($productParams, $method);
         }
 
-        if(($status != "200") && isset($responseArray->message)) {
-            ////LOGGER////
-            $this->apiService->getLogger()->debug('Response : status => ' . $status . ' message : ' . $responseArray['message']);
+        if($status != "200"){
+            if(isset($responseArray->message)) {
+                ////LOGGER////
+                $this->apiService->getLogger()->debug('Response : status => ' . $status . ' message : ' . $responseArray['message']);
+                return $responseArray['message'];
+            }
+            if($response->getReasonPhrase()){
+                return $response->getReasonPhrase();
+            }
         }
 
-        return $status == "200";
+        return null;
     }
 
     /**
@@ -163,12 +176,13 @@ class ProductSync
         }
 
         $result = [
-            'sku' =>  $this->config->getTransiteoProductSku($product),
+            'sku' =>  (string) $this->config->getTransiteoProductSku($product),
             'type' => 'SKU',
-            'value' => $product->getName() ?? '',
-            'weight' => $product->getWeight() ?? 0.5,
-            'weight_unit' => $this->config->getWeightUnit($product->getStoreId()),
-            'store_id' => $product->getStoreId()
+            'value' => (string) ($product->getName() ?? ''),
+            'weight' => (float) ($product->getWeight() ?? 0.5),
+            'weight_unit' => (string) $this->config->getWeightUnit($product->getStoreId()),
+            'store_id' => (int) $product->getStoreId(),
+            'product_id' => (int) $product->getId()
 //            "unit_price" => $product->getPrice() ?? 0.0
         ];
 
@@ -226,16 +240,38 @@ class ProductSync
         $this->publisher->publish(self::SYNC_PRODUCT_TOPIC, $message);
     }
 
+    /**
+     * @param int $productId
+     * @param int $storeId
+     * @param string $method
+     */
+    protected function asyncActionOnProductById(int $productId, int $storeId, string $method){
+        $data = [
+            'method' => $method,
+            'product_id' => $productId,
+            'store_id' => $storeId
+        ];
+        $message = serialize($data);
+        $this->publisher->publish(self::SYNC_PRODUCT_TOPIC, $message);
+    }
+
 
     /**
      * @param int $productId
      * @param array|null $storeIds If = null, all stores values will be affected
+     * @param bool $load
      */
-    public function asyncCreateMultipleStoreValuesOfProduct(int $productId, ?array $storeIds = null):void
+    public function asyncCreateMultipleStoreValuesOfProduct(int $productId, ?array $storeIds = null, $load = false):void
     {
         try{
-            foreach ($this->getStoreValuesOfProduct($productId, $storeIds) as $product){
-                $this->asyncCreateProduct($product);
+            if($load){
+                foreach ($this->getStoreValuesOfProduct($productId, $storeIds) as $product){
+                    $this->asyncCreateProduct($product);
+                }
+            }else{
+                foreach(array_keys($this->storeManager->getStores(false)) as $id){
+                    $this->asyncActionOnProductById($productId, $id, Request::HTTP_METHOD_POST);
+                }
             }
         }catch(\Magento\Framework\Exception\NoSuchEntityException $e){
             $this->apiService->getLogger()->error($e);
@@ -245,12 +281,19 @@ class ProductSync
     /**
      * @param int $productId
      * @param array|null $storeIds If = null, all stores values will be affected
+     * @param bool $load load the product in async
      */
-    public function asyncDeleteMultipleStoreValuesOfProduct(int $productId,?array $storeIds = null):void
+    public function asyncDeleteMultipleStoreValuesOfProduct(int $productId,?array $storeIds = null, bool $load = false):void
     {
         try{
-            foreach ($this->getStoreValuesOfProduct($productId, $storeIds) as $product){
-                $this->asyncDeleteProduct($product);
+            if($load){
+                foreach ($this->getStoreValuesOfProduct($productId, $storeIds) as $product){
+                    $this->asyncDeleteProduct($product);
+                }
+            }else{
+                foreach(array_keys($this->storeManager->getStores(false)) as $id){
+                    $this->asyncActionOnProductById($productId, $id, Request::HTTP_METHOD_DELETE);
+                }
             }
         }catch(\Magento\Framework\Exception\NoSuchEntityException $e){
             $this->apiService->getLogger()->error($e);
@@ -260,12 +303,19 @@ class ProductSync
     /**
      * @param int $productId
      * @param array|null $storeIds If = null, all stores values will be affected
+     * @param bool $load load the product in async
      */
-    public function asyncUpdateMultipleStoreValuesOfProduct(int $productId,?array $storeIds = null):void
+    public function asyncUpdateMultipleStoreValuesOfProduct(int $productId,?array $storeIds = null, $load = false):void
     {
         try{
-            foreach ($this->getStoreValuesOfProduct($productId, $storeIds) as $product){
-                $this->asyncUpdateProduct($product);
+            if($load){
+                foreach ($this->getStoreValuesOfProduct($productId, $storeIds) as $product){
+                    $this->asyncUpdateProduct($product);
+                }
+            }else{
+                foreach(array_keys($this->storeManager->getStores(false)) as $id){
+                    $this->asyncActionOnProductById($productId, (int) $id, Request::HTTP_METHOD_PUT);
+                }
             }
         }catch(\Magento\Framework\Exception\NoSuchEntityException $e){
             $this->apiService->getLogger()->error($e);
@@ -281,7 +331,7 @@ class ProductSync
     protected function getStoreValuesOfProduct(int $productId, ?array $storeIds = null):array
     {
         if(!isset($storeIds)){
-            $storeIds = array_keys($this->storeManager->getStores(true));
+            $storeIds = array_keys($this->storeManager->getStores(false));
         }
         $products = [];
         foreach ($storeIds as $storeId){
@@ -291,5 +341,111 @@ class ProductSync
     }
 
 
+    /**
+     * @param array|null $storeIds
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function asyncUpdateAllProducts(?array $storeIds = null){
+        if(!isset($storeIds)){
+            $storeIds = array_keys($this->storeManager->getStores(false));
+        }
+        /**
+         * @var \Magento\Catalog\Model\ResourceModel\Product\Collection $collection
+         */
+        $collection = $this->productCollectionFactory->create();
+
+        $listOfRemoteProducts = $this->getListOfProducts();
+        if(isset($listOfRemoteProducts) && is_array($listOfRemoteProducts)){
+            $remoteIds = array_column($listOfRemoteProducts,'product_id');
+
+            $productIds = $collection->getAllIds();
+
+            //create new products
+            $newProducts = \array_diff($productIds, $remoteIds);
+            foreach ($newProducts as $productId){
+                $this->asyncCreateMultipleStoreValuesOfProduct((int) $productId, $storeIds);
+            }
+
+            //update products
+            $updatedProducts = \array_diff($productIds, $newProducts);
+            foreach ($updatedProducts as $productId){
+                $this->asyncUpdateMultipleStoreValuesOfProduct((int) $productId, $storeIds);
+            }
+
+            //delete products
+            $deletedProducts = \array_diff($remoteIds, $productIds);
+            $listOfRemoteSkus = [];
+            if(!empty($deletedProducts)){
+                foreach ($listOfRemoteProducts as $product){
+                    if(\in_array($product->product_id ?? null, $deletedProducts, true)){
+                        $listOfRemoteSkus[] = $product->sku ?? '';
+                    }
+                }
+                foreach ($listOfRemoteSkus as $sku){
+                    $this->asyncDeleteBySku($sku);
+                }
+            }
+        }
+    }
+
+    /**
+     * @return array|null
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function getListOfProducts():?array{
+        $request = [
+            'headers' => [
+                'Content-type'     => 'application/json',
+                'Authorization' => $this->apiService->getIdToken()
+            ]
+        ];
+
+        $url = TransiteoApiService::API_REQUEST_URI . "v1/customer/products";
+
+        $response = $this->apiService->doRequest(
+            $url,
+            $request,
+            Request::HTTP_METHOD_GET
+        );
+
+        $status = $response->getStatusCode();
+
+        $responseBody = $response->getBody();
+        $responseContent = $responseBody->getContents();
+
+        $responseArray = \json_decode($responseContent);
+
+
+        if (($status == "401") && isset($responseArray->message) && $responseArray->message === "The incoming token has expired") {
+            $this->apiService->refreshIdToken();
+            return $this->getListOfProducts();
+        }
+
+        if($status != "200"){
+            if(isset($responseArray->message)) {
+                ////LOGGER////
+                $this->apiService->getLogger()->debug('Response : status => ' . $status . ' message : ' . $responseArray['message']);
+                return null;
+            }
+            if($response->getReasonPhrase()){
+                return null;
+            }
+        }
+
+        return (array) $responseArray;
+    }
+
+    /**
+     * @param $sku
+     */
+    protected function asyncDeleteBySku($sku)
+    {
+        $data = [
+            'method' => Request::HTTP_METHOD_DELETE,
+            'product' => ['sku' => $sku]
+        ];
+        $message = serialize($data);
+        $this->publisher->publish(self::SYNC_PRODUCT_TOPIC, $message);
+    }
 
 }
