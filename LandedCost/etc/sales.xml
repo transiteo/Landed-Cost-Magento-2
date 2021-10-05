@@ -11,4 +11,14 @@
             <item name="transiteo-duty-taxes" instance="Transiteo\LandedCost\Model\Quote\Surcharge" sort_order="1000"/>
         </group>
     </section>
+    <section name="order_invoice">
+        <group name="totals">
+            <item name="transiteo-duty-taxes" instance="Transiteo\LandedCost\Model\Order\Invoice\Surcharge" sort_order="1000"/>
+        </group>
+    </section>
+    <section name="order_creditmemo">
+        <group name="totals">
+            <item name="transiteo-duty-taxes" instance="Transiteo\LandedCost\Model\Order\Creditmemo\Surcharge" sort_order="1000"/>
+        </group>
+    </section>
 </config>
