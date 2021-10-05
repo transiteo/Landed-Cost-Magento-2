@@ -7,7 +7,7 @@
 
 namespace Transiteo\LandedCost\Plugin\Quote;
 
-class TransiteoTaxesToOrderItem
+class TaxesToOrderItem
 {
     public function aroundConvert(
         \Magento\Quote\Model\Quote\Item\ToOrderItem $subject,

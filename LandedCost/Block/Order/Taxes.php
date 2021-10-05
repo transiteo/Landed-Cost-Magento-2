@@ -97,26 +97,36 @@ class Taxes extends \Magento\Framework\View\Element\Template
     public function initTotals()
     {
         $parent = $this->getParentBlock();
-        $this->_order = $parent->getOrder();
         $this->_source = $parent->getSource();
-        $order = $this->_order;
 
-        $store = $this->getStore();
+        $salesEntity = $parent->getOrder();
+        $creditMemo = $parent->getCreditmemo();
+        $invoice = $parent->getInvoice();
+        $isCreditMemo = false;
+        if(isset($creditMemo)){
+            $isCreditMemo = true;
+            $salesEntity = $creditMemo;
+        }elseif (isset($invoice)){
+            $salesEntity = $invoice;
+        }
 
-        $transiteoTotalTaxes = $order->getTransiteoTotalTaxes();
-        $baseTransiteoTotalTaxes = $order->getBaseTransiteoTotalTaxes();
+        $transiteoTotalTaxes = $salesEntity->getTransiteoTotalTaxes();
+        $baseTransiteoTotalTaxes = $salesEntity->getBaseTransiteoTotalTaxes();
 
-        if ($transiteoTotalTaxes) {
+        $incoterm = $salesEntity->getTransiteoIncoterm();
+        if ($transiteoTotalTaxes && (!$isCreditMemo || $incoterm==="ddp")) {
             $totals = [];
-            $transiteoDuty = $order->getTransiteoDuty();
-            $baseTransiteoDuty = $order->getBaseTransiteoDuty();
-            $transiteoVat = $order->getTransiteoVat();
-            $baseTransiteoVat = $order->getBaseTransiteoVat();
-            $transiteoSpecialTaxes = $order->getTransiteoSpecialTaxes();
-            $baseTransiteoSpecialTaxes = $order->getBaseTransiteoSpecialTaxes();
-            $included = $order->getTransiteoIncoterm();
-            if ($included === "ddp") {
+            $transiteoDuty = $salesEntity->getTransiteoDuty();
+            $baseTransiteoDuty = $salesEntity->getBaseTransiteoDuty();
+            $transiteoVat = $salesEntity->getTransiteoVat();
+            $baseTransiteoVat = $salesEntity->getBaseTransiteoVat();
+            $transiteoSpecialTaxes = $salesEntity->getTransiteoSpecialTaxes();
+            $baseTransiteoSpecialTaxes = $salesEntity->getBaseTransiteoSpecialTaxes();
+            if ($incoterm === "ddp") {
                 $included = ' ' . __('(included)');
+                if($isCreditMemo){
+                    $included = '';
+                }
             } else {
                 $included = ' ' . __('(not included)');
             }
@@ -180,9 +190,13 @@ class Taxes extends \Magento\Framework\View\Element\Template
                     ]
                 );
             }
+            $subtotalBefore = "shipping";
+            if(isset($creditMemo)){
+                $subtotalBefore = "subtotal";
+            }
 
             foreach ($totals as $value) {
-                $parent->addTotal($value, "shipping");
+                $parent->addTotal($value, $subtotalBefore);
             }
         }
         return $this;

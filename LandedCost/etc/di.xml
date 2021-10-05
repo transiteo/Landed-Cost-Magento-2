@@ -42,11 +42,59 @@
     </type>
 
     <type name="Magento\Quote\Model\Quote\Item\ToOrderItem">
-        <plugin name="Transiteo_LandedCost_to_order_item" type="Transiteo\LandedCost\Plugin\Quote\TransiteoTaxesToOrderItem"/>
+        <plugin name="Transiteo_LandedCost_to_order_item" type="Transiteo\LandedCost\Plugin\Quote\TaxesToOrderItem"/>
     </type>
+
+    <type name="Magento\Sales\Model\Convert\Order">
+        <plugin name="transiteo_order_converter" type="Transiteo\LandedCost\Plugin\Order\Converter"/>
+    </type>
+
+    <!--Add transiteo Taxes To Collected Totals -->
+<!--    <type name="Magento\Quote\Model\Quote\TotalsCollector">-->
+<!--        <plugin name="transiteo-taxes-to-total" type="Transiteo\LandedCost\Plugin\Quote\Totals" />-->
+<!--    </type>-->
 
     <!--Sync the sales_order table and sales_order_grid-->
     <virtualType name="Magento\Sales\Model\ResourceModel\Order\Grid" type="Magento\Sales\Model\ResourceModel\Grid">
+        <arguments>
+            <argument name="columns" xsi:type="array">
+                <item name="base_transiteo_total_taxes" xsi:type="string">sales_order.base_transiteo_total_taxes</item>
+                <item name="base_transiteo_duty" xsi:type="string">sales_order.base_transiteo_duty</item>
+                <item name="base_transiteo_vat" xsi:type="string">sales_order.base_transiteo_vat</item>
+                <item name="base_transiteo_special_taxes" xsi:type="string">sales_order.base_transiteo_special_taxes</item>
+                <item name="transiteo_incoterm" xsi:type="string">sales_order.transiteo_incoterm</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!--Sync the sales_invoice table and sales_invoice_grid-->
+    <virtualType name="Magento\Sales\Model\ResourceModel\Order\Invoice\Grid" type="Magento\Sales\Model\ResourceModel\Grid">
+        <arguments>
+            <argument name="columns" xsi:type="array">
+                <item name="base_transiteo_total_taxes" xsi:type="string">sales_order.base_transiteo_total_taxes</item>
+                <item name="base_transiteo_duty" xsi:type="string">sales_order.base_transiteo_duty</item>
+                <item name="base_transiteo_vat" xsi:type="string">sales_order.base_transiteo_vat</item>
+                <item name="base_transiteo_special_taxes" xsi:type="string">sales_order.base_transiteo_special_taxes</item>
+                <item name="transiteo_incoterm" xsi:type="string">sales_order.transiteo_incoterm</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!--Sync the sales_creditmemo table and sales_creditmemo_grid-->
+    <virtualType name="CreditmemoGridAggregator" type="Magento\Sales\Model\ResourceModel\Grid">
+        <arguments>
+            <argument name="columns" xsi:type="array">
+                <item name="base_transiteo_total_taxes" xsi:type="string">sales_order.base_transiteo_total_taxes</item>
+                <item name="base_transiteo_duty" xsi:type="string">sales_order.base_transiteo_duty</item>
+                <item name="base_transiteo_vat" xsi:type="string">sales_order.base_transiteo_vat</item>
+                <item name="base_transiteo_special_taxes" xsi:type="string">sales_order.base_transiteo_special_taxes</item>
+                <item name="transiteo_incoterm" xsi:type="string">sales_order.transiteo_incoterm</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!--Sync the sales_shipment table and sales_shipment_grid-->
+    <virtualType name="ShipmentGridAggregator" type="Magento\Sales\Model\ResourceModel\Grid">
         <arguments>
             <argument name="columns" xsi:type="array">
                 <item name="base_transiteo_total_taxes" xsi:type="string">sales_order.base_transiteo_total_taxes</item>
@@ -87,5 +135,38 @@
     <type name="Magento\Catalog\Model\Indexer\Category\Product">
         <plugin name="Transiteo_LandedCost_Cache_Clean" type="Transiteo\LandedCost\Plugin\Cache\ProductIndexer"/>
         <plugin name="Transiteo_LandedCost_Product_Sync" type="Transiteo\LandedCost\Plugin\Sync\Product\ProductIndexer"/>
+    </type>
+    <type name="Magento\Sales\Api\OrderRepositoryInterface">
+        <plugin name="transiteo_extension_attributes" type="Transiteo\LandedCost\Plugin\ExtensionAttributes\OrderRepository"/>
+    </type>
+    <type name="Magento\Sales\Api\OrderItemRepositoryInterface">
+        <plugin name="transiteo_extension_attributes" type="Transiteo\LandedCost\Plugin\ExtensionAttributes\OrderItemRepository"/>
+    </type>
+    <type name="Magento\Quote\Api\CartRepositoryInterface">
+        <plugin name="transiteo_extension_attributes" type="Transiteo\LandedCost\Plugin\ExtensionAttributes\CartRepository"/>
+    </type>
+    <type name="Magento\Quote\Api\CartItemRepositoryInterface">
+        <plugin name="transiteo_extension_attributes" type="Transiteo\LandedCost\Plugin\ExtensionAttributes\CartItemRepository"/>
+    </type>
+
+    <type name="Magento\Sales\Api\InvoiceRepositoryInterface">
+        <plugin name="transiteo_extension_attributes" type="Transiteo\LandedCost\Plugin\ExtensionAttributes\InvoiceRepository"/>
+    </type>
+    <type name="Magento\Sales\Api\InvoiceItemRepositoryInterface">
+        <plugin name="transiteo_extension_attributes" type="Transiteo\LandedCost\Plugin\ExtensionAttributes\InvoiceItemRepository"/>
+    </type>
+
+    <type name="Magento\Sales\Api\CreditmemoRepositoryInterface">
+        <plugin name="transiteo_extension_attributes" type="Transiteo\LandedCost\Plugin\ExtensionAttributes\CreditmemoRepository"/>
+    </type>
+    <type name="Magento\Sales\Api\CreditmemoItemRepositoryInterface">
+        <plugin name="transiteo_extension_attributes" type="Transiteo\LandedCost\Plugin\ExtensionAttributes\CreditmemoItemRepository"/>
+    </type>
+
+    <type name="Magento\Sales\Api\ShipmentRepositoryInterface">
+        <plugin name="transiteo_extension_attributes" type="Transiteo\LandedCost\Plugin\ExtensionAttributes\ShipmentRepository"/>
+    </type>
+    <type name="Magento\Sales\Api\ShipmentItemRepositoryInterface">
+        <plugin name="transiteo_extension_attributes" type="Transiteo\LandedCost\Plugin\ExtensionAttributes\ShipmentItemRepository"/>
     </type>
 </config>

@@ -33,21 +33,14 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
     protected $request;
 
     /**
-     * @var \Magento\Checkout\Model\Session
-     */
-    protected $checkoutSession;
-
-    /**
      * Custom constructor.
      */
     public function __construct(
         TaxesService $taxesService,
-        \Magento\Framework\App\RequestInterface $request,
-        \Magento\Checkout\Model\Session $checkoutSession
+        \Magento\Framework\App\RequestInterface $request
     ) {
         $this->request = $request;
         $this->taxexService = $taxesService;
-        $this->checkoutSession = $checkoutSession;
         $this->setCode(self::COLLECTOR_TYPE_CODE);
     }
 
@@ -58,6 +51,8 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
      * @param ShippingAssignmentInterface $shippingAssignment
      * @param Total $total
      * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function collect(
         Quote $quote,
@@ -67,10 +62,10 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $quote->setTransiteoDisplay(false);
         parent::collect($quote, $shippingAssignment, $total);
 
-        $items = $shippingAssignment->getItems();
-        if (!count($items)) {
-            return $this;
-        }
+//        $items = $shippingAssignment->getItems();
+//        if (!count($items)) {
+//            return $this;
+//        }
         $amount = 0;
         $isCheckoutCart = $this->manageCheckoutState();
         if (($isCheckoutCart && $this->taxexService->isActivatedOnCheckout()) ||
@@ -124,8 +119,8 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                 $total->setBaseTransiteoTotalTaxesAmount(null);
             }
 
-            $total->setTotalAmount(self::COLLECTOR_TYPE_CODE, $amount);
-            $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, $amount);
+            $total->setTotalAmount(self::COLLECTOR_TYPE_CODE, $this->totalTaxes);
+            $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, ($this->totalTaxes / $currencyRate));
             $total->setGrandTotal($total->getGrandTotal() + $amount);
             $total->setBaseGrandTotal($total->getBaseGrandTotal() + ($amount / $currencyRate));
         }
@@ -142,12 +137,9 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
     {
         $controllerName = $this->request->getControllerName();
         if ($controllerName === "cart") {
-            $this->checkoutSession->setIsInCheckout(false);
+            return false;
         }
-        if ($controllerName === "index") {
-            $this->checkoutSession->setIsInCheckout(true);
-        }
-        return $this->checkoutSession->getIsInCheckout();
+        return true;
     }
 
     /**
@@ -180,23 +172,16 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         Quote $quote,
         Total $total
     ) {
-        $amount = 0;
-        $quote->setTransiteoDisplay(false);
-        $isCheckoutCart = $this->manageCheckoutState();
-        if (($isCheckoutCart && $this->taxexService->isActivatedOnCheckout()) ||
-            (!$isCheckoutCart && $this->taxexService->isActivatedOnCartView())
-        ) {
-            $quote->setTransiteoDisplay(true);
-            //Getting total Taxes Amount previously recorded in quote and add it to grand total if ddp is activated
-            if ($this->taxexService->isDDPActivated()) {
-                $amount += $quote->getTransiteoTotalTaxesAmount() ?? 0;
-            }
+        if($this->taxexService->isDDPActivated()){
+            $included = ' ' . __('(included)');
+        }else{
+            $included = ' ' . __('(not included)');
         }
-
         return [
             'code' => $this->getCode(),
-            'title' => __('Duty & Taxes Calculator'),
-            'value' => $amount
+            'title' => __('Duty & Taxes Calculator') . $included,
+            'value' => $total->getData('transiteo-duty-taxes_amount'),
+            'base_value' => $total->getData('base_transiteo-duty-taxes_amount'),
         ];
     }
 
