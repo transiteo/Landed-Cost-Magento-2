@@ -96,49 +96,41 @@
             <field name="base_transiteo_total_taxes">
                 <aspect name="to_quote_item" />
                 <aspect name="to_invoice_item" />
-                <aspect name="to_shipment_item" />
                 <aspect name="to_cm_item" />
             </field>
             <field name="transiteo_total_taxes">
                 <aspect name="to_quote_item" />
                 <aspect name="to_invoice_item" />
-                <aspect name="to_shipment_item" />
                 <aspect name="to_cm_item" />
             </field>
             <field name="base_transiteo_vat">
                 <aspect name="to_quote_item" />
                 <aspect name="to_invoice_item" />
-                <aspect name="to_shipment_item" />
                 <aspect name="to_cm_item" />
             </field>
             <field name="transiteo_vat">
                 <aspect name="to_quote_item" />
                 <aspect name="to_invoice_item" />
-                <aspect name="to_shipment_item" />
                 <aspect name="to_cm_item" />
             </field>
             <field name="base_transiteo_special_taxes">
                 <aspect name="to_quote_item" />
                 <aspect name="to_invoice_item" />
-                <aspect name="to_shipment_item" />
                 <aspect name="to_cm_item" />
             </field>
             <field name="transiteo_special_taxes">
                 <aspect name="to_quote_item" />
                 <aspect name="to_invoice_item" />
-                <aspect name="to_shipment_item" />
                 <aspect name="to_cm_item" />
             </field>
             <field name="base_transiteo_duty">
                 <aspect name="to_quote_item" />
                 <aspect name="to_invoice_item" />
-                <aspect name="to_shipment_item" />
                 <aspect name="to_cm_item" />
             </field>
             <field name="transiteo_duty">
                 <aspect name="to_quote_item" />
                 <aspect name="to_invoice_item" />
-                <aspect name="to_shipment_item" />
                 <aspect name="to_cm_item" />
             </field>
         </fieldset>
