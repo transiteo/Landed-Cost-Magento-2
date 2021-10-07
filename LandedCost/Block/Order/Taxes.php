@@ -125,12 +125,12 @@ class Taxes extends \Magento\Framework\View\Element\Template
             $transiteoSpecialTaxes = $salesEntity->getTransiteoSpecialTaxes();
             $baseTransiteoSpecialTaxes = $salesEntity->getBaseTransiteoSpecialTaxes();
             if ($incoterm === "ddp") {
-                $included = ' ' . __('(included)');
+                $included = ' (' . __('included').')';
                 if($isCreditMemo || $isInvoice){
                     $included = '';
                 }
             } else {
-                $included = ' ' . __('(not included)');
+                $included = ' (' . __('not included').')';
             }
 
             $totalSetted = 0;
@@ -152,7 +152,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
                         'strong' => true,
                         'value' => $transiteoTotalTaxes,
                         'base_value' => $baseTransiteoTotalTaxes,
-                        'label' => __('Duty & Taxes Total' . $included),
+                        'label' => __('Duty & Taxes Total')  . ' ' . $included,
                     ]
                 );
             }
@@ -164,7 +164,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
                         'field' => 'transiteo_special_taxes_amount',
                         'value' => $transiteoSpecialTaxes,
                         'base_value' => $baseTransiteoSpecialTaxes,
-                        'label' => __('Special Taxes SubTotal' . $included),
+                        'label' => __('Special Taxes SubTotal') . ' ' . $included,
                     ]
                 );
             }
@@ -176,7 +176,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
                         'field' => 'transiteo_duty_amount',
                         'value' => $transiteoDuty,
                         'base_value' => $baseTransiteoDuty,
-                        'label' => __('Duty SubTotal' . $included),
+                        'label' => __('Duty SubTotal'). ' ' . $included,
                     ]
                 );
             }
@@ -188,7 +188,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
                         'field' => 'transiteo_vat_amount',
                         'value' => $transiteoVat,
                         'base_value' => $baseTransiteoVat,
-                        'label' => __('VAT/GST SubTotal' . $included),
+                        'label' => __('VAT/GST SubTotal') . ' ' . $included,
                     ]
                 );
             }

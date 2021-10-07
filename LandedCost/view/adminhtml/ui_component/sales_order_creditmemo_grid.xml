@@ -6,7 +6,7 @@
   -->
 
 <listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
-    <columns name="sales_order_invoice_columns">
+    <columns name="sales_order_creditmemo_columns">
         <column name="transiteo_incoterm" class="Transiteo\LandedCost\Ui\Component\Listing\Column\Incoterm">
             <settings>
                 <filter>select</filter>
