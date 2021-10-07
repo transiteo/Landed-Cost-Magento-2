@@ -172,6 +172,20 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         Quote $quote,
         Total $total
     ) {
+        $isCheckoutCart = $this->manageCheckoutState();
+        if (($isCheckoutCart && $this->taxexService->isActivatedOnCheckout()) ||
+            (!$isCheckoutCart && $this->taxexService->isActivatedOnCartView())
+        ) {
+            try {
+                $quote->setTransiteoDisplay(true);
+                $quote->save();
+            }catch (\Exception $e){
+                //////////////////LOGGER//////////////
+                $this->taxexService->getLogger()->addError($e->getMessage());
+                ///////////////////////////////////////
+            }
+        }
+
         if($this->taxexService->isDDPActivated()){
             $included = ' ' . __('(included)');
         }else{
