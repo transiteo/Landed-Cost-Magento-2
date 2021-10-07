@@ -8,6 +8,7 @@
 
 namespace Transiteo\LandedCost\Model\Quote;
 
+use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Api\Data\ShippingAssignmentInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\Total;
@@ -118,7 +119,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             } else {
                 $total->setBaseTransiteoTotalTaxesAmount(null);
             }
-
             $total->setTotalAmount(self::COLLECTOR_TYPE_CODE, $this->totalTaxes);
             $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, ($this->totalTaxes / $currencyRate));
             $total->setGrandTotal($total->getGrandTotal() + $amount);
@@ -196,9 +196,9 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
     /**
      * Save Transiteo data in quote
      *
-     * @param $duty
-     * @param $vat
-     * @param $specialTaxes
+     * @param $quote
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     protected function saveInQuote($quote)
     {
@@ -266,7 +266,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                 continue;
             }
 
-            $product = $quoteItem;
             $id = $quoteItem->getProduct()->getId();
             $products[$id] = $quoteItem;
         }
@@ -311,8 +310,34 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             }
         }
 
-        $taxes=[];
+
+
         if ($products !== []) {
+            // Apply discount to quoteItems
+            $globalDiscountAmount = $quote->getSubtotal() - $quote->getSubtotalWithDiscount();
+            if($globalDiscountAmount > 0.0){
+
+                //calculate if there is a global discount
+                foreach ($products as $product){
+                    $globalDiscountAmount -= $product->getDiscountAmount();
+                }
+
+
+                $qty = $quote->getItemsQty();
+                if($qty > 0){
+                    //calculate the global discount delta to apply on each products
+                    $globalDelta = $globalDiscountAmount / $qty;
+                    foreach ($products as $product){
+                        //calculate the order row discount delta to apply
+                        $discountAmount = $product->getDiscountAmount();
+                        $qty = $product->getQty();
+                        $delta = ($discountAmount / $qty) + $globalDelta;
+                        //used to calculate the price to send request to transiteo
+                        $product->setDeltaDiscount($delta);
+                    }
+                }
+            }
+
             //get duties and taxes from taxes service
             $taxes= $this->taxexService->getDutiesByQuoteItems($products, $params);
 

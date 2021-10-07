@@ -126,7 +126,7 @@ class TaxesService
 
 
     /**
-     * @param Item[] $products array of quote items
+     * @param CartItemInterface[] $products array of quote items
      * @param array $params
      * @param bool $save
      * @return array
@@ -146,12 +146,13 @@ class TaxesService
         foreach ($products as $quoteItem) {
             $qty = $quoteItem->getQty();
             $product = $quoteItem->getProduct();
+            $price = (float) $quoteItem->getPrice() - ($quoteItem->getDeltaDiscount() ?? 0.0);
             /**
              * @var TransiteoApiProductParameters $productParams;
              * @var ProductInterface $product;
              */
             $productParams = $this->productParamsFactory->create();
-            $this->fillProductParams($productParams, $product, $qty, $shipmentParams->getGlobalShipPrice() ?? 0);
+            $this->fillProductParams($productParams, $product, $qty, $shipmentParams->getGlobalShipPrice() ?? 0, $price);
             $productsParams[$product->getId()] = $productParams;
         }
 
@@ -253,18 +254,18 @@ class TaxesService
                 $quoteItem->setData('base_transiteo_total_taxes', null);
             }
 
-            //Set Tax Amount if incoterm is ddp
-            if ($this->isDDPActivated()) {
-                $quoteItem->setTaxAmount($totalTaxes ?? 0);
-                if (isset($totalTaxes)) {
-                    $quoteItem->setBaseTaxAmount($totalTaxes / $currencyRate);
-                } else {
-                    $quoteItem->setBaseTaxAmount(0);
-                }
+            //if taxes have been retrieved
 
+            if (isset($totalTaxes)){
+                //Set Tax Amount if incoterm is ddp
+                if($this->isDDPActivated()) {
+                    $quoteItem->setTaxAmount($totalTaxes ?? 0);
+                    $quoteItem->setBaseTaxAmount($totalTaxes / $currencyRate);
+                }
+                //tax percent is included in every cases.
+                $quoteItem->setTaxPercent($transiteoProducts->getProductTaxPercent($id));
             }
-            //tax percent is included in every cases.
-            $quoteItem->setTaxPercent($transiteoProducts->getProductTaxPercent($id));
+
         }
     }
 
@@ -408,18 +409,19 @@ class TaxesService
      * @param ProductInterface $product
      * @param float $qty
      * @param float|int $globalShipPrice
+     * @param float|null $overridePrice
      * @return TransiteoApiProductParameters
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    protected function fillProductParams(TransiteoApiProductParameters $productParams,ProductInterface $product,float $qty = 1,float $globalShipPrice = 0){
+    protected function fillProductParams(TransiteoApiProductParameters $productParams,ProductInterface $product,float $qty = 1,float $globalShipPrice = 0, ?float $overridePrice = null){
         $productParams->setSku($this->config->getTransiteoProductSku($product));
         $productParams->setProductName($product->getName());
         $productParams->setWeight(round($product->getWeight(), 2));
         $productParams->setWeight(0);
         $productParams->setWeight_unit($this->config->getWeightUnit());
         $productParams->setQuantity($qty);
-        $productParams->setUnit_price(round($product->getFinalPrice() * $this->getCurrentCurrencyRate(), 2));
+        $productParams->setUnit_price(round(($overridePrice ?? $product->getFinalPrice()) * $this->getCurrentCurrencyRate(), 2));
         $productParams->setCurrency_unit_price($this->getCurrentStoreCurrency());
         if ($globalShipPrice  === 0) {
             $productParams->setUnit_ship_price(0); // 0 default
