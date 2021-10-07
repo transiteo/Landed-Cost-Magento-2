@@ -45,31 +45,56 @@ class Surcharge extends \Magento\Sales\Model\Order\Creditmemo\Total\AbstractTota
 
                 /**
                  * @var TransiteoItemTaxesExtensionInterface $orderItem
+                 * @var TransiteoItemTaxesExtensionInterface $item
                  */
                 if(isset($baseTransiteoTotalTaxes)){
-                    $baseTransiteoTotalTaxes -= $creditmemo->roundPrice(($orderItem->getBaseTransiteoTotalTaxes() ?? 0.0) * $ratio, 'base');
+                    $initialAmount = ($orderItem->getBaseTransiteoTotalTaxes() ?? 0.0);
+                    $amountToSubtract = $initialAmount * $ratio;
+                    $item->setBaseTransiteoTotalTaxes($creditmemo->roundPrice($initialAmount - $amountToSubtract, 'base'));
+                    $baseTransiteoTotalTaxes -= $amountToSubtract;
                 }
-                $transiteoTotalTaxes -= $creditmemo->roundPrice(($orderItem->getTransiteoTotalTaxes() ?? 0.0) * $ratio);
+                $initialAmount = ($orderItem->getTransiteoTotalTaxes() ?? 0.0);
+                $amountToSubtract = $initialAmount * $ratio;
+                $item->setTransiteoTotalTaxes($creditmemo->roundPrice($initialAmount - $amountToSubtract, ''));
+                $transiteoTotalTaxes -= $amountToSubtract;
                 if(isset($baseTransiteoDuty)){
-                    $baseTransiteoDuty -= $creditmemo->roundPrice(($orderItem->getBaseTransiteoDuty() ?? 0.0) * $ratio, 'base');
+                    $initialAmount = ($orderItem->getBaseTransiteoDuty() ?? 0.0);
+                    $amountToSubtract = $initialAmount * $ratio;
+                    $item->setBaseTransiteoDuty($creditmemo->roundPrice($initialAmount - $amountToSubtract, 'base'));
+                    $baseTransiteoDuty -= $amountToSubtract;
                 }
                 if(isset($transiteoDuty)){
-                    $transiteoDuty -= $creditmemo->roundPrice(($orderItem->getTransiteoDuty() ?? 0.0) * $ratio);
+                    $initialAmount = ($orderItem->getTransiteoDuty() ?? 0.0);
+                    $amountToSubtract = $initialAmount * $ratio;
+                    $item->setTransiteoDuty($creditmemo->roundPrice($initialAmount - $amountToSubtract, ''));
+                    $transiteoDuty -= $amountToSubtract;
                 }
                 if(isset($baseTransiteoVat)){
-                    $baseTransiteoVat -= $creditmemo->roundPrice(($orderItem->getBaseTransiteoVat() ?? 0.0) * $ratio, 'base');
+                    $initialAmount = ($orderItem->getBaseTransiteoVat() ?? 0.0);
+                    $amountToSubtract = $initialAmount * $ratio;
+                    $item->setBaseTransiteoVat($creditmemo->roundPrice($initialAmount - $amountToSubtract, 'base'));
+                    $baseTransiteoVat -= $amountToSubtract;
                 }
                 if(isset($transiteoVat)){
-                    $transiteoVat -= $creditmemo->roundPrice(($orderItem->getTransiteoVat() ?? 0.0) * $ratio);
+                    $initialAmount = ($orderItem->getTransiteoVat() ?? 0.0);
+                    $amountToSubtract = $initialAmount * $ratio;
+                    $item->setTransiteoVat($creditmemo->roundPrice($initialAmount - $amountToSubtract, ''));
+                    $transiteoVat -= $amountToSubtract;
                 }
                 if(isset($baseTransiteoSpecialTaxes)){
-                    $baseTransiteoSpecialTaxes -= $creditmemo->roundPrice(($orderItem->getBaseTransiteoSpecialTaxes() ?? 0.0) * $ratio);
+                    $initialAmount = ($orderItem->getBaseTransiteoSpecialTaxes() ?? 0.0);
+                    $amountToSubtract = $initialAmount * $ratio;
+                    $item->setBaseTransiteoSpecialTaxes($creditmemo->roundPrice($initialAmount - $amountToSubtract, 'base'));
+                    $baseTransiteoSpecialTaxes -= $amountToSubtract;
                 }
                 if(isset($transiteoSpecialTaxes)){
-                    $transiteoSpecialTaxes -= $creditmemo->roundPrice(($orderItem->getTransiteoSpecialTaxes() ?? 0.0) * $ratio);
+                    $initialAmount = ($orderItem->getTransiteoSpecialTaxes() ?? 0.0);
+                    $amountToSubtract = $initialAmount * $ratio;
+                    $item->setTransiteoSpecialTaxes($creditmemo->roundPrice($initialAmount - $amountToSubtract, ''));
+                    $transiteoSpecialTaxes -= $amountToSubtract;
                 }
-
             }
+
             /**
              *  @var TransiteoTaxesExtensionInterface $creditmemo
              */
@@ -83,8 +108,10 @@ class Surcharge extends \Magento\Sales\Model\Order\Creditmemo\Total\AbstractTota
             $creditmemo->setBaseTransiteoVat($baseTransiteoVat);
             $creditmemo->setTransiteoVat($transiteoVat);
 
-            $creditmemo->setGrandTotal($creditmemo->getGrandTotal() + $transiteoTotalTaxes);
-            $creditmemo->setBaseGrandTotal($creditmemo->getBaseGrandTotal() + $baseTransiteoTotalTaxes);
+            if($creditmemo->getTransiteoIncoterm() === "ddp"){
+                $creditmemo->setGrandTotal($creditmemo->getGrandTotal() + $transiteoTotalTaxes);
+                $creditmemo->setBaseGrandTotal($creditmemo->getBaseGrandTotal() + $baseTransiteoTotalTaxes);
+            }
         }
         return $this;
     }
