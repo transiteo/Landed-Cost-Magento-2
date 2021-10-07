@@ -264,12 +264,15 @@ class TransiteoProducts
             }
         }
 
+        $isNull = true;
+        $total = 0.0;
         if (isset($this->apiResponseContent["products"][$productId]["duty"])) {
-            $totalTax = 0;
-            $totalTax += ($this->apiResponseContent["products"][$productId]["duty"]["product_taxes_amount"] ?? 0);
-            $totalTax += ($this->apiResponseContent["products"][$productId]["duty"]["vat_taxes_amount"] ?? 0);
-            $totalTax += ($this->apiResponseContent["products"][$productId]["duty"]["shipping_taxes_amount"] ?? 0);
-            return $totalTax;
+            $isNull &= $this->safeSum($total, $this->apiResponseContent["products"][$productId]["duty"]["product_taxes_amount"] ?? null);
+            $isNull &= $this->safeSum($total, $this->apiResponseContent["products"][$productId]["duty"]["vat_taxes_amount"] ?? null);
+            $isNull &= $this->safeSum($total, $this->apiResponseContent["products"][$productId]["duty"]["shipping_taxes_amount"] ?? null);
+        }
+        if(!$isNull){
+            return $total;
         }
 
         return null;
@@ -306,7 +309,7 @@ class TransiteoProducts
     public function getProductTaxPercent(int $productId):?float
     {
         if(array_key_exists($productId, $this->productsParams)){
-            $taxes = $this->getTotalTaxes($productId) ?? 0;
+            $taxes = ($this->getTotalTaxes($productId) ?? 0) / $this->productsParams[$productId]->getQuantity();
             $price = $this->getProductPriceWithoutTaxes($productId);
             if($price === 0 || $price === null){
                 $price = 1;
@@ -331,14 +334,18 @@ class TransiteoProducts
             }
         }
 
+        $isNull = true;
+        $total = 0.0;
         if (isset($this->apiResponseContent["products"][$productId]["vat"])) {
-            $totalTax = 0;
             foreach (($this->apiResponseContent["products"][$productId]["vat"]) as $vat) {
-                $totalTax += ($vat["product_taxes_amount"] ?? 0);
-                $totalTax += ($vat["shipping_taxes_amount"] ?? 0);
+                $isNull &= $this->safeSum($total, $vat["product_taxes_amount"] ?? null);
+                $isNull &= $this->safeSum($total, $vat["shipping_taxes_amount"] ?? null);
             }
-            return $totalTax;
         }
+        if(!$isNull){
+            return $total;
+        }
+
         return null;
     }
 
@@ -406,13 +413,16 @@ class TransiteoProducts
             }
         }
 
+        $isNull = true;
+        $total = 0.0;
         if (isset($this->apiResponseContent["products"])
         && isset($this->apiResponseContent["products"][$productId])
         && isset($this->apiResponseContent["products"][$productId]["special_taxes"])
         ) {
-            $totalTax = 0;
-            $totalTax += ($this->apiResponseContent["products"][$productId]["special_taxes"]["special_taxes_amount"] ?? 0);
-            return $totalTax;
+            $isNull &= $this->safeSum($total, $this->apiResponseContent["products"][$productId]["special_taxes"]["special_taxes_amount"] ?? null);
+        }
+        if(!$isNull){
+            return $total;
         }
         return null;
     }
