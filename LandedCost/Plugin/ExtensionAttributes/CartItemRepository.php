@@ -74,10 +74,6 @@ class CartItemRepository
      */
     public function beforeSave( \Magento\Quote\Api\CartItemRepositoryInterface $subject, \Magento\Quote\Api\Data\CartItemInterface $entity){
         $extensionAttributes = $entity->getExtensionAttributes();
-        if(isset($extensionAttributes) && $extensionAttributes->getTransiteoTotalTaxes() === null){
-            $this->afterGet($subject, $entity);
-            $extensionAttributes = $entity->getExtensionAttributes();
-        }
         if(isset($extensionAttributes)){
             /**
              * @var TransiteoItemTaxesExtensionInterface $extensionAttributes

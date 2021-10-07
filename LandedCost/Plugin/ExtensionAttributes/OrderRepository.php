@@ -79,10 +79,6 @@ class OrderRepository
      */
     public function beforeSave( \Magento\Sales\Api\OrderRepositoryInterface $subject, \Magento\Sales\Api\Data\OrderInterface $entity){
         $extensionAttributes = $entity->getExtensionAttributes();
-        if(isset($extensionAttributes) && $extensionAttributes->getTransiteoTotalTaxes() === null){
-            $this->afterGet($subject, $entity);
-            $extensionAttributes = $entity->getExtensionAttributes();
-        }
         if(isset($extensionAttributes)){
             /**
              * @var TransiteoTaxesExtensionInterface $extensionAttributes

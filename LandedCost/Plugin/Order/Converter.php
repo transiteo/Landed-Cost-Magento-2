@@ -34,21 +34,6 @@ class Converter
      * @param \Magento\Sales\Model\Order\Item $orderItem
      * @return mixed
      */
-    public function aroundItemToShipmentItem(
-        \Magento\Sales\Model\Convert\Order $subject,
-        \Closure $proceed,
-        \Magento\Sales\Model\Order\Item $orderItem
-    ) {
-        $entityItem = $proceed($orderItem);
-        return $this->applyOrderTaxesToEntityItem($orderItem, $entityItem);
-    }
-
-    /**
-     * @param Order $subject
-     * @param \Closure $proceed
-     * @param \Magento\Sales\Model\Order\Item $orderItem
-     * @return mixed
-     */
     public function aroundItemToCreditmemoItem(
         \Magento\Sales\Model\Convert\Order $subject,
         \Closure $proceed,

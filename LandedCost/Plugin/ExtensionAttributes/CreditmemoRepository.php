@@ -79,10 +79,6 @@ class CreditmemoRepository
      */
     public function beforeSave( \Magento\Sales\Api\CreditmemoRepositoryInterface $subject, \Magento\Sales\Api\Data\CreditmemoInterface $entity){
         $extensionAttributes = $entity->getExtensionAttributes();
-        if(isset($extensionAttributes) && $extensionAttributes->getTransiteoTotalTaxes() === null){
-            $this->afterGet($subject, $entity);
-            $extensionAttributes = $entity->getExtensionAttributes();
-        }
         if(isset($extensionAttributes)){
             /**
              * @var TransiteoTaxesExtensionInterface $extensionAttributes
