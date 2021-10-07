@@ -103,10 +103,12 @@ class Taxes extends \Magento\Framework\View\Element\Template
         $creditMemo = $parent->getCreditmemo();
         $invoice = $parent->getInvoice();
         $isCreditMemo = false;
+        $isInvoice = false;
         if(isset($creditMemo)){
             $isCreditMemo = true;
             $salesEntity = $creditMemo;
         }elseif (isset($invoice)){
+            $isInvoice = true;
             $salesEntity = $invoice;
         }
 
@@ -124,7 +126,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
             $baseTransiteoSpecialTaxes = $salesEntity->getBaseTransiteoSpecialTaxes();
             if ($incoterm === "ddp") {
                 $included = ' ' . __('(included)');
-                if($isCreditMemo){
+                if($isCreditMemo || $isInvoice){
                     $included = '';
                 }
             } else {
@@ -142,7 +144,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
                 $totalSetted++;
             }
 
-            if (($totalSetted > 1)) {
+            if (($totalSetted > 1) && !$isCreditMemo && ! $isInvoice) {
                 $totals['transiteo_total_taxes'] = new \Magento\Framework\DataObject(
                     [
                         'code' => 'transiteo_total_taxes',
@@ -167,18 +169,6 @@ class Taxes extends \Magento\Framework\View\Element\Template
                 );
             }
 
-            if (isset($transiteoVat)) {
-                $totals['transiteo_vat'] = new \Magento\Framework\DataObject(
-                    [
-                        'code' => 'transiteo_vat',
-                        'field' => 'transiteo_vat_amount',
-                        'value' => $transiteoVat,
-                        'base_value' => $baseTransiteoVat,
-                        'label' => __('VAT/GST SubTotal' . $included),
-                    ]
-                );
-            }
-
             if (isset($transiteoDuty)) {
                 $totals['transiteo_duty'] = new \Magento\Framework\DataObject(
                     [
@@ -190,9 +180,21 @@ class Taxes extends \Magento\Framework\View\Element\Template
                     ]
                 );
             }
+
+            if (isset($transiteoVat)) {
+                $totals['transiteo_vat'] = new \Magento\Framework\DataObject(
+                    [
+                        'code' => 'transiteo_vat',
+                        'field' => 'transiteo_vat_amount',
+                        'value' => $transiteoVat,
+                        'base_value' => $baseTransiteoVat,
+                        'label' => __('VAT/GST SubTotal' . $included),
+                    ]
+                );
+            }
             $subtotalBefore = "shipping";
-            if(isset($creditMemo)){
-                $subtotalBefore = "subtotal";
+            if($isCreditMemo || $isInvoice){
+                $subtotalBefore = "shipping";
             }
 
             foreach ($totals as $value) {
