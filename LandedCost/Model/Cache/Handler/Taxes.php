@@ -68,7 +68,20 @@ class Taxes
      */
     public function getKeyFromRequest(array $request):string
     {
-        return $this->serializer->serialize($request);
+        $cacheKey = "";
+        foreach ($request as $key => $value){
+            if(isset($key)){
+                if(is_array($value)){
+                    $cacheKey .= '--' .$key;
+                    foreach ($value as $v){
+                        $cacheKey .= '-' . $v;
+                    }
+                }else{
+                    $cacheKey .= '-' .$key;
+                }
+            }
+        }
+        return $cacheKey;
     }
 
     /**
