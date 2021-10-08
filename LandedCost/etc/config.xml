@@ -87,6 +87,7 @@
             <duties>
                 <enabled_on>cart,checkout,pdp</enabled_on>
                 <incoterm>dap</incoterm>
+                <taxes_calculation_method>CIF</taxes_calculation_method>
                 <debug_mode>0</debug_mode>
             </duties>
             <pdp_settings>
