@@ -63,10 +63,23 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $quote->setTransiteoDisplay(false);
         parent::collect($quote, $shippingAssignment, $total);
 
-//        $items = $shippingAssignment->getItems();
-//        if (!count($items)) {
-//            return $this;
-//        }
+
+        if($quote->getItemsQty() === 0){
+            return $this;
+        }
+
+        if (isset($shippingAssignment)) {
+            $items = $shippingAssignment->getItems();
+            if (empty($items)) {
+                $items = $quote->getItemsCollection();
+            }
+        } else {
+            $items = $quote->getItemsCollection()->getItems();
+        }
+        if(!isset($items) || empty($items) || (reset($items)->getRowTotal()) === null){
+            return $this;
+        }
+
         $amount = 0;
         $isCheckoutCart = $this->manageCheckoutState();
         if (($isCheckoutCart && $this->taxexService->isActivatedOnCheckout()) ||

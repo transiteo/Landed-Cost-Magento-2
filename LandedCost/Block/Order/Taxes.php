@@ -144,7 +144,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
                 $totalSetted++;
             }
 
-            if (($totalSetted > 1) && !$isCreditMemo && ! $isInvoice) {
+            if (($totalSetted > 1)) {
                 $totals['transiteo_total_taxes'] = new \Magento\Framework\DataObject(
                     [
                         'code' => 'transiteo_total_taxes',
@@ -157,7 +157,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
                 );
             }
 
-            if (isset($transiteoSpecialTaxes)) {
+            if (isset($transiteoSpecialTaxes) && !$isCreditMemo && ! $isInvoice) {
                 $totals['transiteo_special_taxes'] = new \Magento\Framework\DataObject(
                     [
                         'code' => 'transiteo_special_taxes',
@@ -169,7 +169,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
                 );
             }
 
-            if (isset($transiteoDuty)) {
+            if (isset($transiteoDuty) && !$isCreditMemo && ! $isInvoice) {
                 $totals['transiteo_duty'] = new \Magento\Framework\DataObject(
                     [
                         'code' => 'transiteo_duty',
@@ -181,7 +181,7 @@ class Taxes extends \Magento\Framework\View\Element\Template
                 );
             }
 
-            if (isset($transiteoVat)) {
+            if (isset($transiteoVat) && !$isCreditMemo && ! $isInvoice) {
                 $totals['transiteo_vat'] = new \Magento\Framework\DataObject(
                     [
                         'code' => 'transiteo_vat',
