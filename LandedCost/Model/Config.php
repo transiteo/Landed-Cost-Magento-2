@@ -35,6 +35,8 @@ class Config
     public const CONFIG_PATH_PDP_DELAY = 'transiteo_settings/pdp_settings/delay';
     public const CONFIG_PATH_ORDER_IDENTIFIER = 'transiteo_settings/order_sync/order_id';
     public const CONFIG_PATH_ORDER_STATUS_CORRESPONDENCE = 'transiteo_settings/order_sync/status';
+    public const CONFIG_PATH_TAX_CALCULATION_METHOD = 'transiteo_settings/duties/taxes_calculation_method';
+    public const CONFIG_PATH_PRICE_INCLUDES_TAXES = 'tax/calculation/price_includes_tax';
 
     public const TRANSITEO_ORDER_STATUS = [
         'Payed',
@@ -441,6 +443,19 @@ class Config
         }
         $sku = str_replace(' ', '_', $sku);
         return ($storeId ?? $product->getStoreId()) . '_' . $sku;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsPriceIncludingTaxes(): bool
+    {
+        return (bool) $this->scopeConfig->getValue(self::CONFIG_PATH_PRICE_INCLUDES_TAXES, ScopeInterface::SCOPE_STORE);
+    }
+
+    public function getTaxesCalculationMethod(): string
+    {
+        return (string) $this->scopeConfig->getValue(self::CONFIG_PATH_TAX_CALCULATION_METHOD, ScopeInterface::SCOPE_STORE);
     }
 
 }
