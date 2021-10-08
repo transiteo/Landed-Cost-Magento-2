@@ -7,7 +7,7 @@
 
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
     <menu>
-        <add id="Transiteo_LandedCost::cross_border_head" title="Duties &amp; Taxes Calculator" module="Transiteo_LandedCost" sortOrder="100" parent="Magento_Backend::stores" resource="Transiteo_LandedCost::cross_border_head" />
+        <add id="Transiteo_LandedCost::cross_border_head" title="Transiteo Landed Cost" module="Transiteo_LandedCost" sortOrder="100" parent="Magento_Backend::stores" resource="Transiteo_LandedCost::cross_border_head" />
         <add id="Transiteo_LandedCost::activation" title="Activation" module="Transiteo_LandedCost" sortOrder="10" parent="Transiteo_LandedCost::cross_border_head" action="admin/system_config/edit/section/transiteo_activation" resource="Transiteo_LandedCost::activation" />
         <add id="Transiteo_LandedCost::settings" title="Settings" module="Transiteo_LandedCost" sortOrder="20" parent="Transiteo_LandedCost::cross_border_head" action="admin/system_config/edit/section/transiteo_settings" resource="Transiteo_LandedCost::settings" />
     </menu>
