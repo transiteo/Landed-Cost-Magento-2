@@ -55,7 +55,40 @@
             <label>Settings</label>
             <tab>transiteo</tab>
             <resource>Transiteo_LandedCost::settings</resource>
-            <group id="order_sync" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+            <group id="duties" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Duties and Taxes Display</label>
+                <field id="incoterm" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Incoterm</label>
+                    <source_model>Transiteo\LandedCost\Model\Config\Source\Incoterm</source_model>
+                    <comment>
+                        <![CDATA[<ul>
+                        <li>DAP, Taxes will not be added to the order</li>
+                        <li>DDP, Taxes will be added to the order</li>
+                        </ul>]]>
+                    </comment>
+                </field>
+                <field id="taxes_calculation_method" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Taxes calculation method</label>
+                    <source_model>Transiteo\LandedCost\Model\Config\Source\TaxesCalculationMethod</source_model>
+                    <comment>
+                        <![CDATA[<ul>
+                        <li>If it's CIF, we calcul the duties and taxes on product(s) and shipping price(s).</li>
+                        <li>If it's FOB, only on product(s).</li>
+                        </ul>]]>
+                    </comment>
+                </field>
+                <field id="debug_mode" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Enable Debug Mode</label>
+                    <comment>We will trace the events in the /var/log/Transiteo_LandedCost.log file.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="enabled_on" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="1"  showInStore="1" canRestore="1">
+                    <label>Pages to enable duties and taxes </label>
+                    <source_model>Transiteo\LandedCost\Model\Config\Source\Pages</source_model>
+                    <can_be_empty>1</can_be_empty>
+                </field>
+            </group>
+            <group id="order_sync" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>Order Sync</label>
                 <comment>All the order going to an other country than original store country will be sent to Transiteo</comment>
                 <field id="order_id" type="text" translate="label comment" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
@@ -68,7 +101,7 @@
                     <backend_model>Transiteo\LandedCost\Model\Config\Backend\Serialized\OrderStatusSerialized</backend_model>
                 </field>
             </group>
-            <group id="modal" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+            <group id="modal" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>Opening Pop-up</label>
                 <field id="show" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Enable Popup</label>
@@ -94,30 +127,7 @@
                     </depends>
                 </field>
             </group>
-            <group id="duties" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Duties and Taxes Display</label>
-                <field id="incoterm" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                    <label>Incoterm</label>
-                    <source_model>Transiteo\LandedCost\Model\Config\Source\Incoterm</source_model>
-                    <comment>
-                        <![CDATA[<ul>
-                        <li>DAP, Taxes will not be added to the order</li>
-                        <li>DDP, Taxes will be added to the order</li>
-                        </ul>]]>
-                    </comment>
-                </field>
-                <field id="debug_mode" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
-                    <label>Enable Debug Mode</label>
-                    <comment>We will trace the events in the /var/log/Transiteo_LandedCost.log file.</comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="enabled_on" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="1"  showInStore="1" canRestore="1">
-                    <label>Pages to enable duties and taxes </label>
-                    <source_model>Transiteo\LandedCost\Model\Config\Source\Pages</source_model>
-                    <can_be_empty>1</can_be_empty>
-                </field>
-            </group>
-            <group id="pdp_settings" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+            <group id="pdp_settings" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>Product Page Display Settings</label>
                 <depends>
                     <field id="transiteo_settings/duties/enabled_on">pdp</field>
