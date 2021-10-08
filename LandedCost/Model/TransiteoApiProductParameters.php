@@ -48,7 +48,9 @@ class TransiteoApiProductParameters
         $array['quantity'] = $this->quantity;
         $array['unit_price'] = $this->unit_price;
         $array['currency_unit_price'] = $this->currency_unit_price;
-        $array['unit_ship_price'] = $this->unit_ship_price;
+        if($this->unit_ship_price > 0){
+            $array['unit_ship_price'] = $this->unit_ship_price;
+        }
         //$array['currency_unit_ship_price'] = $this->currency_unit_price;
 
         return $array;
@@ -60,7 +62,15 @@ class TransiteoApiProductParameters
      */
     public function builArrayForCache(){
         $result = $this->buildArray();
-        return [$result['quantity'], $result['unit_price'], $result['currency_unit_price'], $result['unit_ship_price']];
+        $array = [
+            $result['quantity'],
+            $result['unit_price'],
+            $result['currency_unit_price'],
+        ];
+        if(array_key_exists('unit_ship_price', $result)){
+            $array[] = $result['unit_ship_price'];
+        }
+        return $array;
     }
 
     /**

@@ -270,6 +270,8 @@ class TransiteoProducts
             $isNull &= $this->safeSum($total, $this->apiResponseContent["products"][$productId]["duty"]["product_taxes_amount"] ?? null);
             $isNull &= $this->safeSum($total, $this->apiResponseContent["products"][$productId]["duty"]["vat_taxes_amount"] ?? null);
             $isNull &= $this->safeSum($total, $this->apiResponseContent["products"][$productId]["duty"]["shipping_taxes_amount"] ?? null);
+            $isNull &= $this->safeSum($total, $this->apiResponseContent["products"][$productId]["duty"]["packaging_taxes_amount"] ?? null);
+            $isNull &= $this->safeSum($total, $this->apiResponseContent["products"][$productId]["duty"]["insurance_taxes_amount"] ?? null);
         }
         if(!$isNull){
             return $total;
@@ -285,6 +287,9 @@ class TransiteoProducts
     public function getProductPriceWithoutTaxes(int $productId):?float
     {
         if(array_key_exists($productId, $this->productsParams)){
+            if($this->shipmentParams->isIncludedTaxes()){
+                return $this->productsParams[$productId]->getUnitPrice() - ($this->getTotalTaxes($productId) / $this->productsParams[$productId]->getQuantity());
+            }
             return $this->productsParams[$productId]->getUnitPrice();
         }
         return null;
@@ -297,7 +302,10 @@ class TransiteoProducts
     public function getProductPriceInclTaxes(int $productId):?float
     {
         if(array_key_exists($productId, $this->productsParams)){
-            return $this->productsParams[$productId]->getUnitPrice() + $this->getTotalTaxes($productId);
+            if($this->shipmentParams->isIncludedTaxes()){
+                return  $this->productsParams[$productId]->getUnitPrice();
+            }
+            return $this->productsParams[$productId]->getUnitPrice() + ($this->getTotalTaxes($productId) / $this->productsParams[$productId]->getQuantity());
         }
         return null;
     }
@@ -309,8 +317,8 @@ class TransiteoProducts
     public function getProductTaxPercent(int $productId):?float
     {
         if(array_key_exists($productId, $this->productsParams)){
-            $taxes = ($this->getTotalTaxes($productId) ?? 0) / $this->productsParams[$productId]->getQuantity();
             $price = $this->getProductPriceWithoutTaxes($productId);
+            $taxes = $this->getProductPriceInclTaxes($productId) - $price;
             if($price === 0 || $price === null){
                 $price = 1;
             }
@@ -340,6 +348,8 @@ class TransiteoProducts
             foreach (($this->apiResponseContent["products"][$productId]["vat"]) as $vat) {
                 $isNull &= $this->safeSum($total, $vat["product_taxes_amount"] ?? null);
                 $isNull &= $this->safeSum($total, $vat["shipping_taxes_amount"] ?? null);
+                $isNull &= $this->safeSum($total, $vat["packaging_taxes_amount"] ?? null);
+                $isNull &= $this->safeSum($total, $vat["insurance_taxes_amount"] ?? null);
             }
         }
         if(!$isNull){
@@ -419,7 +429,13 @@ class TransiteoProducts
         && isset($this->apiResponseContent["products"][$productId])
         && isset($this->apiResponseContent["products"][$productId]["special_taxes"])
         ) {
-            $isNull &= $this->safeSum($total, $this->apiResponseContent["products"][$productId]["special_taxes"]["special_taxes_amount"] ?? null);
+            foreach (($this->apiResponseContent["products"][$productId]["special_taxes"]) as $specialTaxes) {
+                $isNull &= $this->safeSum($total, $specialTaxes["product_taxes_amount"] ?? null);
+                $isNull &= $this->safeSum($total, $specialTaxes["shipping_taxes_amount"] ?? null);
+                $isNull &= $this->safeSum($total, $specialTaxes["packaging_taxes_amount"] ?? null);
+                $isNull &= $this->safeSum($total, $specialTaxes["insurance_taxes_amount"] ?? null);
+                $isNull &= $this->safeSum($total, $specialTaxes["special_taxes_amount"] ?? null);
+            }
         }
         if(!$isNull){
             return $total;
@@ -527,12 +543,8 @@ class TransiteoProducts
         $isNull = true;
         $totalTax = 0;
         if (isset($this->apiResponseContent["products"])) {
-            foreach ($this->apiResponseContent["products"] as $product) {
-                if (isset($product["duty"])) {
-                    $isNull &= $this->safeSum($totalTax, $product["duty"]["product_taxes_amount"] ?? null);
-                    $isNull &= $this->safeSum($totalTax, $product["duty"]["vat_taxes_amount"] ?? null);
-                    $isNull &= $this->safeSum($totalTax, $product["duty"]["shipping_taxes_amount"] ?? null);
-                }
+            foreach ($this->apiResponseContent["products"] as $id => $product) {
+                $isNull &= $this->getDuty($id);
             }
         }
 
@@ -565,13 +577,8 @@ class TransiteoProducts
         $isNull = true;
         $totalTax = 0;
         if (isset($this->apiResponseContent["products"])) {
-            foreach ($this->apiResponseContent["products"] as $product) {
-                if (isset($product["vat"])) {
-                    foreach (($product["vat"]) as $vat) {
-                        $isNull &= $this->safeSum($totalTax, $vat["product_taxes_amount"] ?? null);
-                        $isNull &= $this->safeSum($totalTax, $vat["shipping_taxes_amount"] ?? null);
-                    }
-                }
+            foreach ($this->apiResponseContent["products"] as $id => $product) {
+                $isNull &= $this->getVat($id);
             }
         }
 
@@ -601,18 +608,10 @@ class TransiteoProducts
         $isNull = true;
         $totalTax = 0;
         if (isset($this->apiResponseContent["products"])) {
-            foreach ($this->apiResponseContent["products"] as $product) {
-                if (isset($product["special_taxes"])) {
-                    foreach (($product["special_taxes"]) as $specialTaxes) {
-                        $isNull &= $this->safeSum($totalTax, $specialTaxes["product_taxes_amount"] ?? null);
-                        $isNull &= $this->safeSum($totalTax, $specialTaxes["shipping_taxes_amount"] ?? null);
-                        $isNull &= $this->safeSum($totalTax, $specialTaxes["vat_taxes_amount"] ?? null);
-                    }
-                }
+            foreach ($this->apiResponseContent["products"] as $id => $product) {
+                $isNull &= $this->getSpecialTaxes($id);
             }
         }
-
-        $isNull &= $this->safeSum($totalTax, $this->getShippingVat());
 
         if ($isNull) {
             return null;

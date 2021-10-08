@@ -30,6 +30,8 @@ use Transiteo\LandedCost\Model\TransiteoProductsFactory;
 class TaxesService
 {
     public const SHIPPING_AMOUNT = 'shipping_amount';
+    public const TAXES_CALCULATION_METHOD = 'taxes_calculation_method';
+    public const INCLUDED_TAX = 'included_tax';
     public const RECEIVER_PRO = 'receiver_pro';
     public const RECEIVER_ACTIVITY = 'receiver_activity';
     public const TO_COUNTRY = 'to_country';
@@ -152,7 +154,7 @@ class TaxesService
              * @var ProductInterface $product;
              */
             $productParams = $this->productParamsFactory->create();
-            $this->fillProductParams($productParams, $product, $qty, $shipmentParams->getGlobalShipPrice() ?? 0, $price);
+            $this->fillProductParams($productParams, $product, $qty, 0, $price);
             $productsParams[$product->getId()] = $productParams;
         }
 
@@ -231,7 +233,7 @@ class TaxesService
             $quoteItem->setData('transiteo_special_taxes', $specialTaxes);
             $quoteItem->setData('transiteo_total_taxes', $totalTaxes);
 
-            if (isset($vatAmount)) {
+            if ($currencyRate === 1.0) {
                 $quoteItem->setData('base_transiteo_vat', $vatAmount / $currencyRate);
             } else {
                 $quoteItem->setData('base_transiteo_vat', null);
@@ -258,7 +260,7 @@ class TaxesService
 
             if (isset($totalTaxes)){
                 //Set Tax Amount if incoterm is ddp
-                if($this->isDDPActivated()) {
+                if($this->isDDPActivated() && !$this->config->getIsPriceIncludingTaxes()) {
                     $quoteItem->setTaxAmount($totalTaxes ?? 0);
                     $quoteItem->setBaseTaxAmount($totalTaxes / $currencyRate);
                 }
@@ -293,18 +295,30 @@ class TaxesService
      */
     protected function fillShipmentParams(TransiteoApiShipmentParameters $shipmentParams,float $productsQty = 1, array $params = []): TransiteoApiShipmentParameters
     {
+        //get included Taxes
+        if(array_key_exists(self::INCLUDED_TAX, $params)){
+            $shipmentParams->setIsIncludedTaxes($params[self::INCLUDED_TAX]);
+        }else{
+            $shipmentParams->setIsIncludedTaxes($this->config->getIsPriceIncludingTaxes());
+        }
+
+        //get incoterm
+        if(array_key_exists(self::TAXES_CALCULATION_METHOD, $params)){
+            $shipmentParams->setTaxesCalculationMethod($params[self::TAXES_CALCULATION_METHOD]);
+        }else{
+            $shipmentParams->setTaxesCalculationMethod($this->config->getTaxesCalculationMethod());
+        }
+
+
         //get shipping amount
         if (array_key_exists(self::SHIPPING_AMOUNT, $params)) {
             $shippingAmount = $params[self::SHIPPING_AMOUNT];
         } else {
             $shippingAmount = 0;
         }
-        //define if shipping is global or not
-        if ($productsQty > 1) {
-            $shipmentParams->setShipmentType(true, round($shippingAmount, 2), $this->getCurrentStoreCurrency());
-        } else {
-            $shipmentParams->setShipmentType(false);
-        }
+
+        $shipmentParams->setShipmentType(true, round($shippingAmount, 2), $this->getCurrentStoreCurrency());
+
         $shipmentParams->setLang($this->getTransiteoLang());
 
         $shipmentParams->setFromCountry($this->config->getIso3Country($this->config->getWebsiteCountry())); // country from website ISO3

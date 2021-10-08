@@ -27,6 +27,12 @@ class TransiteoApiShipmentParameters
     private $transportCarrier;
     private $receiverPro;
     private $receiverActivity;
+    /**
+     * @var bool
+     */
+    protected $isIncludedTaxes;
+
+    protected $taxesCalculationMethod;
 
     public function __construct(
         SerializerInterface $serializer
@@ -43,6 +49,8 @@ class TransiteoApiShipmentParameters
             "to_country" => $this->toCountry,
             "to_district" => $this->toDistrict,
             "shipment_type" => $this->shipmentType,
+            'included_tax' => $this->isIncludedTaxes,
+            'incoterm' => $this->taxesCalculationMethod,
             "sender" => [
                 "pro" => $this->senderPro,
                 "revenue_country_annual" => $this->senderProRevenue,
@@ -86,7 +94,10 @@ class TransiteoApiShipmentParameters
         $array = [
             $result["to_country"],
             $result["to_district"],
-            $result["shipment_type"]
+            $result["shipment_type"],
+            $result["global_ship_price"],
+            $result['included_tax'],
+            $result['incoterm'],
         ];
         if ($this->shipmentType ==='GLOBAL') {
             $array[] = $result["global_ship_price"];
@@ -94,6 +105,44 @@ class TransiteoApiShipmentParameters
         }
         return $array;
     }
+
+    /**
+     * Set Is Included Taxes :
+     * @param bool $value
+     * @return TransiteoApiShipmentParameters
+     */
+    public function setIsIncludedTaxes(bool $value):TransiteoApiShipmentParameters
+    {
+        $this->isIncludedTaxes = $value;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isIncludedTaxes(): bool
+    {
+        return $this->isIncludedTaxes;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTaxesCalculationMethod():?string
+    {
+        return $this->taxesCalculationMethod;
+    }
+
+    /**
+     * @param mixed $taxesCalculationMethod
+     */
+    public function setTaxesCalculationMethod($taxesCalculationMethod):TransiteoApiShipmentParameters
+    {
+        $this->taxesCalculationMethod = $taxesCalculationMethod;
+        return $this;
+    }
+
+
 
     /**
      * Set the value of fromCountry
