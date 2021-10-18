@@ -13,14 +13,16 @@
                 <refresh_token></refresh_token>
                 <product_identifier>sku</product_identifier>
             </general>
-        </transiteo_activation>
-        <currency>
-            <transiteo>
-                <timeout>100</timeout>
-                <delay>1</delay>
-            </transiteo>
-        </currency>
-        <transiteo_settings>
+            <geoip>
+                <enable_geoip_download>0</enable_geoip_download>
+                <cron><![CDATA[0 4 * * *]]></cron>
+            </geoip>
+            <duties>
+                <enabled_on>cart,checkout,pdp</enabled_on>
+                <incoterm>dap</incoterm>
+                <taxes_calculation_method>CIF</taxes_calculation_method>
+                <debug_mode>0</debug_mode>
+            </duties>
             <order_sync>
                 <order_id>increment_id</order_id>
                 <status>
@@ -74,6 +76,14 @@
                     </item12>
                 </status>
             </order_sync>
+        </transiteo_activation>
+        <currency>
+            <transiteo>
+                <timeout>100</timeout>
+                <delay>1</delay>
+            </transiteo>
+        </currency>
+        <transiteo_landedcost_settings>
             <modal>
                 <show>1</show>
                 <button_color>#000000</button_color>
@@ -84,12 +94,6 @@
                     }
                 ]]></css>
             </modal>
-            <duties>
-                <enabled_on>cart,checkout,pdp</enabled_on>
-                <incoterm>dap</incoterm>
-                <taxes_calculation_method>CIF</taxes_calculation_method>
-                <debug_mode>0</debug_mode>
-            </duties>
             <pdp_settings>
                 <enable_loader>1</enable_loader>
                 <product_form_selector>#product_addtocart_form</product_form_selector>
@@ -110,6 +114,6 @@
                 <event_action>change input</event_action>
                 <delay>60</delay>
             </pdp_settings>
-        </transiteo_settings>
+        </transiteo_landedcost_settings>
     </default>
 </config>

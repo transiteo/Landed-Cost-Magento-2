@@ -22,21 +22,27 @@ use Magento\Store\Model\ScopeInterface;
 class Config
 {
     public const COOKIE_NAME = 'transiteo-popup-info';
-    public const CONFIG_PATH_PDP_LOADER_ENABLED = 'transiteo_settings/pdp_settings/enable_loader';
-    public const CONFIG_PATH_PDP_PRODUCT_FORM_SELECTOR = 'transiteo_settings/pdp_settings/product_form_selector';
-    public const CONFIG_PATH_PDP_QTY_FIELD_SELECTOR = 'transiteo_settings/pdp_settings/qty_field_selector';
-    public const CONFIG_PATH_PDP_TOTAL_TAXES_CONTAINER_SELECTOR = 'transiteo_settings/pdp_settings/total_taxes_container_selector';
-    public const CONFIG_PATH_PDP_VAT_CONTAINER_SELECTOR = 'transiteo_settings/pdp_settings/vat_container_selector';
-    public const CONFIG_PATH_PDP_DUTY_CONTAINER_SELECTOR = 'transiteo_settings/pdp_settings/duty_container_selector';
-    public const CONFIG_PATH_PDP_SPECIAL_TAXES_CONTAINER_SELECTOR = 'transiteo_settings/pdp_settings/special_taxes_container_selector';
-    public const CONFIG_PATH_PDP_COUNTRY_SELECTOR = 'transiteo_settings/pdp_settings/country_selector';
-    public const CONFIG_PATH_PDP_SUPER_ATTRIBUTE_SELECTOR = 'transiteo_settings/pdp_settings/super_attribute_selector';
-    public const CONFIG_PATH_PDP_EVENT_ACTION = 'transiteo_settings/pdp_settings/event_action';
-    public const CONFIG_PATH_PDP_DELAY = 'transiteo_settings/pdp_settings/delay';
-    public const CONFIG_PATH_ORDER_IDENTIFIER = 'transiteo_settings/order_sync/order_id';
-    public const CONFIG_PATH_ORDER_STATUS_CORRESPONDENCE = 'transiteo_settings/order_sync/status';
-    public const CONFIG_PATH_TAX_CALCULATION_METHOD = 'transiteo_settings/duties/taxes_calculation_method';
+    public const CONFIG_PATH_PDP_LOADER_ENABLED = 'transiteo_landedcost_settings/pdp_settings/enable_loader';
+    public const CONFIG_PATH_PDP_PRODUCT_FORM_SELECTOR = 'transiteo_landedcost_settings/pdp_settings/product_form_selector';
+    public const CONFIG_PATH_PDP_QTY_FIELD_SELECTOR = 'transiteo_landedcost_settings/pdp_settings/qty_field_selector';
+    public const CONFIG_PATH_PDP_TOTAL_TAXES_CONTAINER_SELECTOR = 'transiteo_landedcost_settings/pdp_settings/total_taxes_container_selector';
+    public const CONFIG_PATH_PDP_VAT_CONTAINER_SELECTOR = 'transiteo_landedcost_settings/pdp_settings/vat_container_selector';
+    public const CONFIG_PATH_PDP_DUTY_CONTAINER_SELECTOR = 'transiteo_landedcost_settings/pdp_settings/duty_container_selector';
+    public const CONFIG_PATH_PDP_SPECIAL_TAXES_CONTAINER_SELECTOR = 'transiteo_landedcost_settings/pdp_settings/special_taxes_container_selector';
+    public const CONFIG_PATH_PDP_COUNTRY_SELECTOR = 'transiteo_landedcost_settings/pdp_settings/country_selector';
+    public const CONFIG_PATH_PDP_SUPER_ATTRIBUTE_SELECTOR = 'transiteo_landedcost_settings/pdp_settings/super_attribute_selector';
+    public const CONFIG_PATH_PDP_EVENT_ACTION = 'transiteo_landedcost_settings/pdp_settings/event_action';
+    public const CONFIG_PATH_PDP_DELAY = 'transiteo_landedcost_settings/pdp_settings/delay';
+    public const CONFIG_PATH_ORDER_IDENTIFIER = 'transiteo_activation/order_sync/order_id';
+    public const CONFIG_PATH_ORDER_STATUS_CORRESPONDENCE = 'transiteo_activation/order_sync/status';
+    public const CONFIG_PATH_TAX_CALCULATION_METHOD = 'transiteo_activation/duties/taxes_calculation_method';
     public const CONFIG_PATH_PRICE_INCLUDES_TAXES = 'tax/calculation/price_includes_tax';
+    public const CONFIG_PATH_DUTIES_ENABLED_ON = 'transiteo_activation/duties/enabled_on';
+    public const CONFIG_PATH_GEOIP_DOWNLOADER_ENABLED = 'transiteo_activation/geoip/enable_geoip_download';
+    public const CONFIG_PATH_GEOIP_LICENCE_KEY = 'transiteo_activation/geoip/key';
+    public const CONFIG_PATH_GEOIP_CRON = 'transiteo_activation/geoip/cron';
+    public const CONFIG_PATH_TRANSITEO_CLIENT_ID = 'transiteo_activation/general/client_id';
+    public const CONFIG_PATH_TRANSITEO_REFRESH_TOKEN = 'transiteo_activation/general/refresh_token';
 
     public const TRANSITEO_ORDER_STATUS = [
         'Payed',
@@ -64,20 +70,60 @@ class Config
      * @var CountryFactory
      */
     protected $countryFactory;
+    /**
+     * @var \Magento\Framework\Encryption\EncryptorInterface
+     */
+    protected $encryptor;
 
     /**
      * @param ScopeConfigInterface $scopeConfig
      * @param RegionFactory $regionFactory
      * @param CountryFactory $countryFactory
+     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         RegionFactory $regionFactory,
-        CountryFactory $countryFactory
+        CountryFactory $countryFactory,
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor
     ) {
         $this->regionFactory = $regionFactory;
         $this->scopeConfig = $scopeConfig;
         $this->countryFactory = $countryFactory;
+        $this->encryptor = $encryptor;
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getTransiteoClientId():string
+    {
+        return (string) $this->encryptor->decrypt($this->scopeConfig->getValue(self::CONFIG_PATH_TRANSITEO_CLIENT_ID, ScopeInterface::SCOPE_STORE));
+    }
+
+    /**
+     * @return string
+     */
+    public function getTransiteoRefreshToken():string
+    {
+        return (string) $this->encryptor->decrypt($this->scopeConfig->getValue(self::CONFIG_PATH_TRANSITEO_REFRESH_TOKEN, ScopeInterface::SCOPE_STORE));
+    }
+
+    /**
+     * @return bool
+     */
+    public function isGeoIpEnabled():bool
+    {
+        return (bool) $this->scopeConfig->getValue(self::CONFIG_PATH_GEOIP_DOWNLOADER_ENABLED);
+    }
+
+    /**
+     * @return string
+     */
+    public function getGeoIpLicenseKey():string
+    {
+        return (string) $this->encryptor->decrypt($this->scopeConfig->getValue(self::CONFIG_PATH_GEOIP_LICENCE_KEY) ?? '');
     }
 
     /**
@@ -145,7 +191,7 @@ class Config
     public function isActivatedOnCartView(): bool
     {
         $values = explode(',', $this->scopeConfig->getValue(
-            'transiteo_settings/duties/enabled_on',
+            self::CONFIG_PATH_DUTIES_ENABLED_ON,
             ScopeInterface::SCOPE_STORE
         ));
         foreach ($values as $value) {
@@ -164,7 +210,7 @@ class Config
     public function isActivatedOnCheckout(): bool
     {
         $values = explode(',', $this->scopeConfig->getValue(
-            'transiteo_settings/duties/enabled_on',
+            self::CONFIG_PATH_DUTIES_ENABLED_ON,
             ScopeInterface::SCOPE_STORE
         ));
         foreach ($values as $value) {
@@ -208,7 +254,7 @@ class Config
     public function isDDPActivated()
     {
         return $this->scopeConfig->getValue(
-                'transiteo_settings/duties/incoterm',
+                'transiteo_activation/duties/incoterm',
                 ScopeInterface::SCOPE_STORE
             ) === 'ddp';
     }
@@ -221,7 +267,7 @@ class Config
     public function getIncoterm()
     {
         return $this->scopeConfig->getValue(
-            'transiteo_settings/duties/incoterm',
+            'transiteo_activation/duties/incoterm',
             ScopeInterface::SCOPE_STORE
         );
     }
@@ -235,7 +281,7 @@ class Config
     public function isActivatedOnProductPage(): bool
     {
         $values = explode(',', $this->scopeConfig->getValue(
-            'transiteo_settings/duties/enabled_on',
+            self::CONFIG_PATH_DUTIES_ENABLED_ON,
             ScopeInterface::SCOPE_STORE
         ));
         foreach ($values as $value) {

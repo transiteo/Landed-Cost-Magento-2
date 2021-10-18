@@ -68,13 +68,15 @@ class TransiteoApiService
 
     protected $idToken;
 
-    protected $scopeConfig;
-
     protected $flagManager;
     /**
      * @var Logger
      */
     protected $logger;
+    /**
+     * @var Config
+     */
+    protected $config;
 
     /**
      * TransiteoApiService constructor
@@ -82,7 +84,7 @@ class TransiteoApiService
      * @param ClientFactory $clientFactory
      * @param ResponseFactory $responseFactory
      * @param SerializerInterface $serializer
-     * @param ScopeConfigInterface $scopeConfig
+     * @param Config $config
      * @param FlagManager $flagManager
      * @param Logger $logger
      */
@@ -90,7 +92,7 @@ class TransiteoApiService
         ClientFactory $clientFactory,
         ResponseFactory $responseFactory,
         SerializerInterface $serializer,
-        ScopeConfigInterface $scopeConfig,
+        \Transiteo\LandedCost\Model\Config $config,
         FlagManager $flagManager,
         Logger $logger
     ) {
@@ -98,7 +100,7 @@ class TransiteoApiService
         $this->clientFactory = $clientFactory;
         $this->responseFactory = $responseFactory;
         $this->serializer = $serializer;
-        $this->scopeConfig = $scopeConfig;
+        $this->config = $config;
         $this->flagManager = $flagManager;
     }
 
@@ -107,8 +109,8 @@ class TransiteoApiService
      */
     protected function getIdTokenFromApi()
     {
-        $clientId = $this->scopeConfig->getValue('transiteo_activation/general/client_id', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-        $refreshToken = $this->scopeConfig->getValue('transiteo_activation/general/refresh_token', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $clientId = $this->config->getTransiteoClientId();
+        $refreshToken = $this->config->getTransiteoRefreshToken();
 
         $response = $this->doRequest(
             self::API_AUTH_REQUEST_URI . "oauth2/token",

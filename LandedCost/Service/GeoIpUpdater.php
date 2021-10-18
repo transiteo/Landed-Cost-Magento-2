@@ -16,10 +16,6 @@ use Psr\Log\LoggerInterface;
 
 class GeoIpUpdater
 {
-    const GEOIP_DOWNLOADER_ENABLED = 'transiteo_activation/geoip/enable_geoip_download';
-
-    const GEOIP_LICENCE_KEY = 'transiteo_activation/geoip/key';
-
     const GEOIP_DOWNLOAD_URL = 'download.maxmind.com/app/geoip_download';
 
     const GEOIP_DOWNLOAD_PATH = 'https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key=%1&suffix=tar.gz';
@@ -27,10 +23,6 @@ class GeoIpUpdater
     const GEOIP_DOWNLOAD_FOLDER = 'transiteo-geoip';
 
     const GEOIP_FILENAME = 'GeoLite2-Country.mmdb';
-    /**
-     * @var ScopeConfigInterface
-     */
-    protected $scopeConfig;
 
     /**
      * @var UrlHelper
@@ -56,16 +48,20 @@ class GeoIpUpdater
      * @var LoggerInterface
      */
     protected $logger;
+    /**
+     * @var \Transiteo\LandedCost\Model\Config
+     */
+    protected $config;
 
     public function __construct(
-        ScopeConfigInterface $scopeConfig,
         UrlHelper $urlHelper,
         DirectoryList $directoryList,
         WriteFactory $dirWriter,
         DriverPool $driverPool,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        \Transiteo\LandedCost\Model\Config $config
     ) {
-        $this->scopeConfig   = $scopeConfig;
+        $this->config   = $config;
         $this->urlHelper     = $urlHelper;
         $this->directoryList = $directoryList;
         $this->dirWriter     = $dirWriter;
@@ -151,7 +147,7 @@ class GeoIpUpdater
      */
     private function isEnabled()
     {
-        return $this->scopeConfig->getValue(self::GEOIP_DOWNLOADER_ENABLED);
+        return $this->config->isGeoIpEnabled();
     }
 
     /**
@@ -159,7 +155,7 @@ class GeoIpUpdater
      */
     private function getLicenseKey()
     {
-        return $this->scopeConfig->getValue(self::GEOIP_LICENCE_KEY);
+        return $this->config->getGeoIpLicenseKey();
     }
 
     /**

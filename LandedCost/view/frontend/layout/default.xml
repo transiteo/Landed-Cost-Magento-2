@@ -12,7 +12,7 @@
     </head>
     <body>
         <referenceContainer name="after.body.start">
-            <block class="Transiteo\LandedCost\Block\Modal" name="transiteo.modal" template="Transiteo_LandedCost::modal.phtml" cacheable="true" ifconfig="transiteo_settings/modal/show">
+            <block class="Transiteo\LandedCost\Block\Modal" name="transiteo.modal" template="Transiteo_LandedCost::modal.phtml" cacheable="true" ifconfig="transiteo_landedcost_settings/modal/show">
                 <block class="Magento\Theme\Block\Html\Header\Logo"
                        template="Transiteo_LandedCost::modal/logo.phtml"
                        name="transiteo.modal.logo"
@@ -26,7 +26,7 @@
                    name="transiteo.modal.button.link"
                    before="-"
                    cacheable="true"
-                   ifconfig="transiteo_settings/modal/show"
+                   ifconfig="transiteo_landedcost_settings/modal/show"
             />
         </referenceContainer>
     </body>
