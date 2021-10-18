@@ -52,6 +52,7 @@ class DeleteAfter implements ObserverInterface
             $product = $observer->getProduct();
             if($product->isDeleted()){
                 $this->productSync->asyncDeleteMultipleStoreValuesOfProduct((int) $product->getId());
+                $this->productSync->deleteMultipleStoreValuesOfProduct((int) $product->getId());
             }
         }catch(\Exception $e){
             $this->logger->error($e);
