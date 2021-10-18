@@ -25,11 +25,6 @@
                     <label>Refresh Token</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
-                <field id="product_identifier" translate="label comment" type="select" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
-                    <label>Product Identifier field</label>
-                    <comment>The attribute used as product identifier, linked with Transiteo Database. (default is SKU)</comment>
-                    <source_model>Transiteo\LandedCost\Model\Config\Source\ProductAttributes</source_model>
-                </field>
             </group>
             <group id="geoip" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>Maxmind GeoIP2 Lite</label>
@@ -67,7 +62,7 @@
                     <source_model>Transiteo\LandedCost\Model\Config\Source\Incoterm</source_model>
                     <comment>
                         <![CDATA[<ul>
-                        <li>DAP, Taxes will not be added to the order</li>
+                        <li>DDU, Taxes will not be added to the order</li>
                         <li>DDP, Taxes will be added to the order</li>
                         </ul>]]>
                     </comment>
@@ -94,6 +89,11 @@
                 <field id="order_id" type="text" translate="label comment" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Order Unique Identifier</label>
                     <comment>Enter the name of the column useed to identify the order. Default is "increment_id" but could be "entity_id".</comment>
+                </field>
+                <field id="product_identifier" translate="label comment" type="select" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Product Identifier field</label>
+                    <comment>The attribute used as product identifier, linked with Transiteo Database. (default is SKU)</comment>
+                    <source_model>Transiteo\LandedCost\Model\Config\Source\ProductAttributes</source_model>
                 </field>
                 <field id="status" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Status correspondance</label>
@@ -216,9 +216,6 @@
                 <label>Transiteo</label>
                 <field id="timeout" translate="label" type="text" sortOrder="0" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Connection Timeout in Seconds</label>
-                </field>
-                <field id="delay" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
-                    <label>Connection Delay Time in Seconds</label>
                 </field>
             </group>
         </section>

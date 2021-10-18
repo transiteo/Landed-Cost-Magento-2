@@ -116,7 +116,7 @@ define([
             if(window.checkoutConfig.transiteo_incoterm === 'ddp'){
                 return $t('DDP : Duty & taxes included in the order. No Taxes to pay at arrival.');
             }else{
-               return  $t('DAP : Duty & Taxes not included in the order. It will have to be paid at arrival.');
+               return  $t('DDU : Duty & Taxes not included in the order. It will have to be paid at arrival.');
             }
 
         },

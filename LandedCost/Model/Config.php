@@ -45,18 +45,12 @@ class Config
     public const CONFIG_PATH_TRANSITEO_REFRESH_TOKEN = 'transiteo_activation/general/refresh_token';
 
     public const TRANSITEO_ORDER_STATUS = [
-        'Payed',
-        'Pending Payment',
-        'Held',
-        'Modified',
-        'Sent',
-        'Received',
-        'Returned',
-        'Canceled',
-        'Refunded',
+        'PAID',
+        'AWAITING',
+        'CANCELLED'
     ];
 
-    public const TRANSITEO_DEFAULT_STATUS = 'Pending Payment';
+    public const TRANSITEO_DEFAULT_STATUS = 'PAID';
 
     /**
      * @var ScopeConfigInterface
@@ -227,7 +221,7 @@ class Config
     public function getProductIdentifier(): string
     {
         return (string)$this->scopeConfig->getValue(
-            'transiteo_activation/general/product_identifier',
+            'transiteo_activation/order_sync/product_identifier',
             ScopeInterface::SCOPE_STORE
         );
     }
