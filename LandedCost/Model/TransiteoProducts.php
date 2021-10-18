@@ -544,7 +544,7 @@ class TransiteoProducts
         $totalTax = 0;
         if (isset($this->apiResponseContent["products"])) {
             foreach ($this->apiResponseContent["products"] as $id => $product) {
-                $isNull &= $this->getDuty($id);
+                $isNull &= $this->safeSum($totalTax, $this->getDuty($id));
             }
         }
 
@@ -578,7 +578,7 @@ class TransiteoProducts
         $totalTax = 0;
         if (isset($this->apiResponseContent["products"])) {
             foreach ($this->apiResponseContent["products"] as $id => $product) {
-                $isNull &= $this->getVat($id);
+                $isNull &= $this->safeSum($totalTax, $this->getVat($id));
             }
         }
 
@@ -609,7 +609,7 @@ class TransiteoProducts
         $totalTax = 0;
         if (isset($this->apiResponseContent["products"])) {
             foreach ($this->apiResponseContent["products"] as $id => $product) {
-                $isNull &= $this->getSpecialTaxes($id);
+                $isNull &= $this->safeSum($totalTax, $this->getSpecialTaxes($id));
             }
         }
 
