@@ -52,14 +52,18 @@ class SaveAfter implements ObserverInterface
             if($product->isObjectNew()){
                 if($product->getStoreId() === 0){
                     $this->productSync->asyncCreateMultipleStoreValuesOfProduct((int) $product->getId());
+                    $this->productSync->createMultipleStoreValuesOfProduct((int) $product->getId());
                 }else{
                     $this->productSync->asyncCreateProduct($product);
+                    $this->productSync->createProduct($product);
                 }
             }else if($product->hasDataChanges()){
                 if($product->getStoreId() === 0){
                     $this->productSync->asyncUpdateMultipleStoreValuesOfProduct((int) $product->getId());
+                    $this->productSync->updateMultipleStoreValuesOfProduct((int) $product->getId());
                 }else{
                     $this->productSync->asyncUpdateProduct($product);
+                    $this->productSync->updateProduct($product);
                 }
             }
         }catch(\Exception $e){

@@ -8,7 +8,8 @@
 declare(strict_types=1);
 namespace Transiteo\LandedCost\Plugin\Sync\Product;
 
-use \Magento\Catalog\Model\Indexer\Category\Product;
+use Magento\Catalog\Model\Indexer\Category\Product;
+use Magento\MysqlMq\Model\ResourceModel\MessageStatusCollection;
 use Transiteo\LandedCost\Service\ProductSync;
 
 class ProductIndexer
@@ -17,14 +18,21 @@ class ProductIndexer
      * @var ProductSync
      */
     protected $productSync;
+    /**
+     * @var MessageStatusCollection
+     */
+    protected $messageStatusCollection;
 
     /**
      * @param ProductSync $productSync
+     * @param MessageStatusCollection $messageStatusCollection
      */
     public function __construct(
-        ProductSync $productSync
+        ProductSync $productSync,
+        MessageStatusCollection $messageStatusCollection
     )
     {
+        $this->messageStatusCollection = $messageStatusCollection;
         $this->productSync = $productSync;
     }
 
@@ -34,6 +42,7 @@ class ProductIndexer
      */
     public function afterExecuteFull(Product $subject, $result)
     {
+        $this->clearAllWaitingProductSyncMesssages();
         $this->productSync->asyncUpdateAllProducts();
     }
 
@@ -66,5 +75,17 @@ class ProductIndexer
      */
     public function afterExecuteRow(Product $subject,$result, $id){
         $this->productSync->asyncUpdateMultipleStoreValuesOfProduct((int) $id);
+    }
+
+    /**
+     *
+     */
+    protected function clearAllWaitingProductSyncMesssages():void
+    {
+        $connection =  $this->messageStatusCollection->getResource()->getConnection();
+        $queueMessage = $connection->getTableName("queue_message");
+        $queueMessageStatus = $connection->getTableName("queue_message_status");
+        $sql = "DELETE qm FROM queue_message AS qm LEFT JOIN queue_message_status qms on qm.id = qms.message_id WHERE qm.topic_name = 'transiteo.sync.product' AND qms.status = 2;";
+        $connection->query($sql, ['queue_message' => $queueMessage, "queue_message_status" => $queueMessageStatus]);
     }
 }

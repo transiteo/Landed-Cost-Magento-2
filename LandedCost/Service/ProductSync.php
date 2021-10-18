@@ -85,6 +85,21 @@ class ProductSync
     }
 
     /**
+     * @param int $productId
+     * @param array|null $storeIds If = null, all stores values will be affected
+     */
+    public function createMultipleStoreValuesOfProduct(int $productId, ?array $storeIds = null):void
+    {
+        try{
+            foreach ($this->getStoreValuesOfProduct($productId, $storeIds) as $product){
+                $this->createProduct($product);
+            }
+        }catch(\Magento\Framework\Exception\NoSuchEntityException $e){
+            $this->apiService->getLogger()->error($e);
+        }
+    }
+
+    /**
      * @param ProductInterface $product
      * @return string|null Return error message or null if success.
      * @throws \Magento\Framework\Exception\NoSuchEntityException
@@ -96,6 +111,21 @@ class ProductSync
     }
 
     /**
+     * @param int $productId
+     * @param array|null $storeIds If = null, all stores values will be affected
+     */
+    public function updateMultipleStoreValuesOfProduct(int $productId, ?array $storeIds = null):void
+    {
+        try{
+            foreach ($this->getStoreValuesOfProduct($productId, $storeIds) as $product){
+                $this->updateProduct($product);
+            }
+        }catch(\Magento\Framework\Exception\NoSuchEntityException $e){
+            $this->apiService->getLogger()->error($e);
+        }
+    }
+
+    /**
      * @param ProductInterface $product
      * @return string|null Return error message or null if success.
      * @throws \Magento\Framework\Exception\NoSuchEntityException
@@ -104,6 +134,21 @@ class ProductSync
     {
         $productParams = $this->transformProductIntoParam($product, Request::HTTP_METHOD_DELETE);
         return $this->actionOnProduct($productParams, Request::HTTP_METHOD_DELETE);
+    }
+
+    /**
+     * @param int $productId
+     * @param array|null $storeIds If = null, all stores values will be affected
+     */
+    public function deleteMultipleStoreValuesOfProduct(int $productId, ?array $storeIds = null):void
+    {
+        try{
+            foreach ($this->getStoreValuesOfProduct($productId, $storeIds) as $product){
+                $this->deleteProduct($product);
+            }
+        }catch(\Magento\Framework\Exception\NoSuchEntityException $e){
+            $this->apiService->getLogger()->error($e);
+        }
     }
 
     /**
@@ -182,8 +227,9 @@ class ProductSync
             'weight' => (float) ($product->getWeight() ?? 0.5),
             'weight_unit' => (string) $this->config->getWeightUnit($product->getStoreId()),
             'store_id' => (int) $product->getStoreId(),
-            'product_id' => (int) $product->getId()
-//            "unit_price" => $product->getPrice() ?? 0.0
+            'product_id' => (int) $product->getId(),
+            "unit_price" => (float) ($product->getPrice() ?? 0.0),
+            "unit_price_currency" => (string) ($product->getStore()->getCurrentCurrencyCode())
         ];
 
 
@@ -354,37 +400,41 @@ class ProductSync
          */
         $collection = $this->productCollectionFactory->create();
 
-        $listOfRemoteProducts = $this->getListOfProducts();
-        if(isset($listOfRemoteProducts) && is_array($listOfRemoteProducts)){
-            $remoteIds = array_column($listOfRemoteProducts,'product_id');
-
-            $productIds = $collection->getAllIds();
-
-            //create new products
-            $newProducts = \array_diff($productIds, $remoteIds);
-            foreach ($newProducts as $productId){
-                $this->asyncCreateMultipleStoreValuesOfProduct((int) $productId, $storeIds);
-            }
-
-            //update products
-            $updatedProducts = \array_diff($productIds, $newProducts);
-            foreach ($updatedProducts as $productId){
-                $this->asyncUpdateMultipleStoreValuesOfProduct((int) $productId, $storeIds);
-            }
-
-            //delete products
-            $deletedProducts = \array_diff($remoteIds, $productIds);
-            $listOfRemoteSkus = [];
-            if(!empty($deletedProducts)){
-                foreach ($listOfRemoteProducts as $product){
-                    if(\in_array($product->product_id ?? null, $deletedProducts, true)){
-                        $listOfRemoteSkus[] = $product->sku ?? '';
-                    }
-                }
-                foreach ($listOfRemoteSkus as $sku){
-                    $this->asyncDeleteBySku($sku);
-                }
-            }
+//        $listOfRemoteProducts = $this->getListOfProducts();
+//        if(isset($listOfRemoteProducts) && is_array($listOfRemoteProducts)){
+//            $remoteIds = array_column($listOfRemoteProducts,'product_id');
+//
+//            $productIds = $collection->getAllIds();
+//
+//            //create new products
+//            $newProducts = \array_diff($productIds, $remoteIds);
+//            foreach ($newProducts as $productId){
+//                $this->asyncCreateMultipleStoreValuesOfProduct((int) $productId, $storeIds);
+//            }
+//
+//            //update products
+//            $updatedProducts = \array_diff($productIds, $newProducts);
+//            foreach ($updatedProducts as $productId){
+//                $this->asyncUpdateMultipleStoreValuesOfProduct((int) $productId, $storeIds);
+//            }
+//
+//            //delete products
+//            $deletedProducts = \array_diff($remoteIds, $productIds);
+//            $listOfRemoteSkus = [];
+//            if(!empty($deletedProducts)){
+//                foreach ($listOfRemoteProducts as $product){
+//                    if(\in_array($product->product_id ?? null, $deletedProducts, true)){
+//                        $listOfRemoteSkus[] = $product->sku ?? '';
+//                    }
+//                }
+//                foreach ($listOfRemoteSkus as $sku){
+//                    $this->asyncDeleteBySku($sku);
+//                }
+//            }
+//        }
+        $productIds = $collection->getAllIds();
+        foreach ($productIds as $id){
+            $this->asyncUpdateMultipleStoreValuesOfProduct($id, $storeIds);
         }
     }
 
