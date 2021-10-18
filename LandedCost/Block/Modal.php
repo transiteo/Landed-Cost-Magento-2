@@ -119,7 +119,7 @@ class Modal extends \Magento\Framework\View\Element\Template
      */
     public function getModalTitle()
     {
-        $title = $this->scopeConfig->getValue('transiteo_settings/modal/title',
+        $title = $this->scopeConfig->getValue('transiteo_landedcost_settings/modal/title',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 
         return $title === null ? null :  $this->escaper->escapeHtml($title);
@@ -130,7 +130,7 @@ class Modal extends \Magento\Framework\View\Element\Template
      */
     public function getModalButtonColor()
     {
-        $buttonColor = $this->scopeConfig->getValue('transiteo_settings/modal/button_color',
+        $buttonColor = $this->scopeConfig->getValue('transiteo_landedcost_settings/modal/button_color',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 
         return $buttonColor === null ? null :  $this->escaper->escapeHtml($buttonColor);
@@ -141,7 +141,7 @@ class Modal extends \Magento\Framework\View\Element\Template
      */
     public function getModalCss()
     {
-        $css = $this->scopeConfig->getValue('transiteo_settings/modal/css',
+        $css = $this->scopeConfig->getValue('transiteo_landedcost_settings/modal/css',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
 
         return $css === null ? null :  $this->escaper->escapeHtml($css);

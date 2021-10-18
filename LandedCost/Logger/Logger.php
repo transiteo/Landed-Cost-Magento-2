@@ -46,7 +46,7 @@ class Logger extends \Monolog\Logger
     protected function isLoggingActive()
     {
         return $this->scopeConfig->getValue(
-            'transiteo_settings/duties/debug_mode',
+            'transiteo_activation/duties/debug_mode',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
     }
