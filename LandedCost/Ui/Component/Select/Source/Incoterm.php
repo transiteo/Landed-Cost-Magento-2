@@ -12,7 +12,7 @@ class Incoterm implements \Magento\Framework\Data\OptionSourceInterface
     {
         return [
             [
-                'value' => 'dap',
+                'value' => 'ddu',
                 'label' => __('No')
             ],
             [
