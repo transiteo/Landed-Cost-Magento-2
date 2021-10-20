@@ -164,9 +164,7 @@ class TransiteoProducts
         ];
 
         //////////////////LOGGER//////////////
-        ob_start();
-        var_dump($request);
-        $result = ob_get_clean();
+        $result = \json_encode($request);
         $this->apiService->getLogger()->debug("Request : " . $result);
         ///////////////////////////////////////
 
@@ -189,9 +187,7 @@ class TransiteoProducts
         if ($status == "200") {
             if (isset($responseArray)) {
                 ////LOGGER////
-                ob_start();
-                var_dump($responseArray);
-                $result = ob_get_clean();
+                $result = \json_encode($responseArray);
                 $this->apiService->getLogger()->debug('Response Content : ' . $result);
             }
         } else {

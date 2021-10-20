@@ -121,9 +121,17 @@
     </type>
     <type name="Transiteo\LandedCost\Logger\Logger">
         <arguments>
-            <argument name="name" xsi:type="string">crossborder</argument>
+            <argument name="name" xsi:type="string">transiteo_landedcost</argument>
             <argument name="handlers"  xsi:type="array">
                 <item name="system" xsi:type="object">Transiteo\LandedCost\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Transiteo\LandedCost\Logger\QueueLogger">
+        <arguments>
+            <argument name="name" xsi:type="string">transiteo_landedcost_sync</argument>
+            <argument name="handlers"  xsi:type="array">
+                <item name="system" xsi:type="object">Transiteo\LandedCost\Logger\QueueHandler</item>
             </argument>
         </arguments>
     </type>
