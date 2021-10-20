@@ -211,7 +211,7 @@ class ProductSync
      * @return array
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    protected function transformProductIntoParam(ProductInterface $product, string $method):array
+    public function transformProductIntoParam(ProductInterface $product, string $method):array
     {
         //send only the product id for deleting
         if($method === Request::HTTP_METHOD_DELETE){

@@ -19,7 +19,7 @@ class ProductSyncHandler
 {
 
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @var  \Transiteo\LandedCost\Logger\QueueLogger
      */
     protected $logger;
     /**
@@ -32,12 +32,12 @@ class ProductSyncHandler
     protected $productRepository;
 
     /**
-     * @param \Psr\Log\LoggerInterface $logger
+     * @param  \Transiteo\LandedCost\Logger\QueueLogger $logger
      * @param \Transiteo\LandedCost\Service\ProductSync $productSync
      * @param ProductRepositoryInterface $productRepository
      */
     public function __construct(
-        \Psr\Log\LoggerInterface $logger,
+        \Transiteo\LandedCost\Logger\QueueLogger $logger,
         \Transiteo\LandedCost\Service\ProductSync $productSync,
         ProductRepositoryInterface $productRepository
     )
@@ -57,31 +57,26 @@ class ProductSyncHandler
             $params = unserialize($message);
             $method = $params["method"];
             $errorMessage = null;
-            if(array_key_exists("product", $params)){
+            if(array_key_exists("product", $params)) {
                 $product = $params["product"];
+            }else {
+                $productModel = $this->productRepository->getById((int) $params['product_id'],false,(int) $params['store_id']);
+                $product = $this->productSync->transformProductIntoParam($productModel, $method);
+            }
                 $errorMessage = $this->productSync->actionOnProduct($product, $method);
                 //if the product does not exist, create it.
                 if($errorMessage && $method === Request::HTTP_METHOD_PUT){
+                    if(!isset($productModel)){
+                        $productModel = $this->productRepository->getById((int) $params['product_id'],false,(int) $params['store_id']);
+                    }
+                    $product = $this->productSync->transformProductIntoParam($productModel, Request::HTTP_METHOD_POST);
                     $errorMessage = $this->productSync->actionOnProduct($product, Request::HTTP_METHOD_POST);
                 }
-            }else{
-                $productModel = $this->productRepository->getById((int) $params['product_id'],false,(int) $params['store_id']);
-                if($method === Request::HTTP_METHOD_DELETE){
-                    $errorMessage = $this->productSync->deleteProduct($productModel);
-                }
-                if($method === Request::HTTP_METHOD_POST){
-                    $errorMessage = $this->productSync->createProduct($productModel);
-                }
-                if($method === Request::HTTP_METHOD_PUT){
-                    $errorMessage = $this->productSync->updateProduct($productModel);
-                    //if the product does not exist, create it.
-                    if($errorMessage){
-                        $errorMessage = $this->productSync->createProduct($productModel);
-                    }
-                }
-            }
             if($errorMessage) {
-                throw new \Exception("Error in response from Api, error : " . $errorMessage . "  in message " . $message);
+                $requestParams =  \json_encode($product);
+                $message = "Error in response from Api, error : " . $errorMessage . "  in message " . $message . " with request : " . $requestParams;
+                $this->logger->error($message);
+                throw new \Exception($message);
             }
         }catch (\Exception $exception){
             $this->logger->error($exception);

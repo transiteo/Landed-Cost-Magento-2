@@ -147,7 +147,7 @@ class OrderSync
      * @return array
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    protected function transformOrderIntoParam(OrderInterface $order, string $method):array
+    public function transformOrderIntoParam(OrderInterface $order, string $method):array
     {
         //send only the order id for deleting
         if($method === Request::HTTP_METHOD_DELETE){

@@ -37,7 +37,7 @@ class OrderSyncHandler
      * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
-        \Transiteo\LandedCost\Logger\Logger $logger,
+        \Transiteo\LandedCost\Logger\QueueLogger $logger,
         \Transiteo\LandedCost\Service\OrderSync $orderSync,
         OrderRepositoryInterface $orderRepository
     )
@@ -59,38 +59,32 @@ class OrderSyncHandler
             $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
             $logger = new \Zend\Log\Logger();
             $logger->addWriter($writer);
-            ob_start();
-            var_dump($params);
-            $result = ob_get_clean();
+            $result = \json_encode($params);
             $logger->info($result);
             ///////////////////////////////////////
             $method = $params["method"];
             $errorMessage = null;
-            if(array_key_exists("order", $params)){
+            if(array_key_exists("order", $params)) {
                 $order = $params["order"];
-                $errorMessage = $this->orderSync->actionOnOrder($order, $method);
-                //if the order does not exist, create it.
-                if($errorMessage && $method === Request::HTTP_METHOD_PUT){
-                    $errorMessage = $this->orderSync->actionOnOrder($order, Request::HTTP_METHOD_POST);
-                }
-            }else{
+            } else{
                 $orderModel = $this->orderRepository->get((int) $params['order_id']);
-                if($method === Request::HTTP_METHOD_DELETE){
-                    $errorMessage = $this->orderSync->deleteOrder($orderModel);
+                $order = $this->orderSync->transformOrderIntoParam($orderModel, $method);
+            }
+
+            $errorMessage = $this->orderSync->actionOnOrder($order, $method);
+            //if the order does not exist, create it.
+            if($errorMessage && $method === Request::HTTP_METHOD_PUT){
+                if(!isset($orderModel)){
+                    $orderModel = $this->orderRepository->get((int) $params['order_id']);
                 }
-                if($method === Request::HTTP_METHOD_POST){
-                    $errorMessage = $this->orderSync->createOrder($orderModel);
-                }
-                if($method === Request::HTTP_METHOD_PUT){
-                    $errorMessage = $this->orderSync->updateOrder($orderModel);
-                    //if the order does not exist, create it.
-                    if($errorMessage){
-                        $errorMessage = $this->orderSync->createOrder($orderModel);
-                    }
-                }
+                $order = $this->orderSync->transformOrderIntoParam($orderModel, Request::HTTP_METHOD_POST);
+                $errorMessage = $this->orderSync->actionOnOrder($order, Request::HTTP_METHOD_POST);
             }
             if($errorMessage) {
-                throw new \Exception("Error in response from Api, error : " . $errorMessage . "  in message " . $message);
+                $message = "Error in response from Api, error : " . $errorMessage . "  in message " . $message . " with request : " . $requestParams;
+                $this->logger->error($message);
+                $requestParams =  \json_encode($order);
+                throw new \Exception("Error in response from Api, error : " . $errorMessage . "  in message " . $message . " with request : " . $requestParams);
             }
         }catch (\Exception $exception){
             $this->logger->error($exception);
