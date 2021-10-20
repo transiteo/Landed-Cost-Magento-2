@@ -131,6 +131,7 @@ class TransiteoProducts
         $cacheKey = $this->taxesCacheHandler->getKeyFromRequest($cacheParams);
         $cachedTaxes = $this->taxesCacheHandler->loadFromCache($cacheKey);
         if(!isset($cachedTaxes)){
+            $this->apiService->getLogger()->debug('Requesting to API :');
             $this->apiResponseContent = \json_decode(($this->getDutiesFromApi($finalParams)), true);
             //set products ids as keys for results products
             if (isset($this->apiResponseContent["products"])&& isset($this->productsParams)) {
@@ -144,6 +145,7 @@ class TransiteoProducts
             }
         }else{
             $this->apiResponseContent = $cachedTaxes;
+            $this->apiService->getLogger()->debug('Loading from cache '. $cacheKey . ' result :' . \json_encode($cachedTaxes));
             $this->responseIsOk = true;
         }
 
