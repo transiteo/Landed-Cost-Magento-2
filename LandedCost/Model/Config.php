@@ -481,6 +481,7 @@ class Config
         }else{
             $sku = $product->getData($productIdentifier);
         }
+        $sku = \mb_convert_encoding($sku, 'ASCII', 'UTF-8');
         $sku = str_replace(' ', '_', $sku);
         return ($storeId ?? $product->getStoreId()) . '_' . $sku;
     }
