@@ -75,7 +75,7 @@ class ProductSyncHandler
             if($errorMessage) {
                 $requestParams =  \json_encode($product);
                 $message = "Error in response from Api, error : " . $errorMessage . "  in message " . $message . " with request : " . $requestParams;
-                $this->logger->error($message);
+                $this->logger->debug($message);
                 throw new \Exception($message);
             }
         }catch (\Exception $exception){

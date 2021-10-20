@@ -82,12 +82,12 @@ class OrderSyncHandler
             }
             if($errorMessage) {
                 $message = "Error in response from Api, error : " . $errorMessage . "  in message " . $message . " with request : " . $requestParams;
-                $this->logger->error($message);
+                $this->logger->debug($message);
                 $requestParams =  \json_encode($order);
                 throw new \Exception("Error in response from Api, error : " . $errorMessage . "  in message " . $message . " with request : " . $requestParams);
             }
         }catch (\Exception $exception){
-            $this->logger->error($exception);
+            $this->logger->debug($exception);
             throw $exception;
         }
     }

@@ -13,7 +13,7 @@ class QueueHandler extends \Magento\Framework\Logger\Handler\Base
      * Logging level
      * @var int
      */
-    protected $loggerType = Logger::ERROR;
+    protected $loggerType = Logger::DEBUG;
 
     /**
      * File name
