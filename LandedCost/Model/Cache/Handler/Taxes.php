@@ -77,7 +77,7 @@ class Taxes
                         $cacheKey .= '-' . $v;
                     }
                 }else{
-                    $cacheKey .= '-' .$key;
+                    $cacheKey .= '-' .$value;
                 }
             }
         }
