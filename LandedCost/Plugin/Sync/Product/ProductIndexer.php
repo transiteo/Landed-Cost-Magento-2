@@ -85,7 +85,9 @@ class ProductIndexer
         $connection =  $this->messageStatusCollection->getResource()->getConnection();
         $queueMessage = $connection->getTableName("queue_message");
         $queueMessageStatus = $connection->getTableName("queue_message_status");
-        $sql = "DELETE qm FROM queue_message AS qm LEFT JOIN queue_message_status qms on qm.id = qms.message_id WHERE qm.topic_name = 'transiteo.sync.product' AND qms.status = 2;";
-        $connection->query($sql, ['queue_message' => $queueMessage, "queue_message_status" => $queueMessageStatus]);
+        $sql = "DELETE qm FROM {$queueMessage} AS qm LEFT JOIN {$queueMessageStatus} qms on qm.id = qms.message_id WHERE qm.topic_name = 'transiteo.sync.product' AND qms.status = 2;";
+        $connection->startSetup();
+        $connection->query($sql);
+        $connection->endSetup();
     }
 }
