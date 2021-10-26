@@ -1,0 +1,233 @@
+<?xml version="1.0"?>
+<!--
+  ~ Transiteo LandedCost
+  ~
+  ~ NOTICE OF LICENSE
+  ~ if you did not receive a copy of the license and are unable to
+  ~ obtain it through the world-wide-web, please send an email
+  ~ to contact@bird.eu so we can send you a copy immediately.
+  ~ @category      Transiteo
+  ~ @package       Transiteo_LandedCost
+  ~ @copyright    Open Software License (OSL 3.0)
+  ~ @author          Blackbird Team
+  ~ @license          MIT
+  ~ @support        https://github.com/transiteo/Landed-Cost-Magento-2/issues/new/
+  -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="transiteo" translate="label" sortOrder="900">
+            <label>Transiteo Landed Cost</label>
+        </tab>
+        <section id="transiteo_activation" translate="label" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Activation</label>
+            <tab>transiteo</tab>
+            <resource>Transiteo_LandedCost::activation</resource>
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Token and Client Id</label>
+                <field id="client_id" translate="label" type="obscure" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Client ID</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="refresh_token" translate="label" type="obscure" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Refresh Token</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+            </group>
+            <group id="geoip" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Maxmind GeoIP2 Lite</label>
+
+                <field id="enable_geoip_download" translate="label" sortOrder="10" type="select" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Enable GeoIp Database download</label>
+                    <comment>To use with Modal to locate the visitor's country.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+
+                <field id="key" translate="label" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>GeoIp License Key</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <depends>
+                        <field id="enable_geoip_download">1</field>
+                    </depends>
+                </field>
+                <field id="cron" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Cron Schedule</label>
+                    <comment>Used to schedule the job that is updating the Geoip database.</comment>
+                    <depends>
+                        <field id="enable_geoip_download">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="duties" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Duties and Taxes Settings</label>
+                <field id="enabled_on" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="1"  showInStore="1" canRestore="1">
+                    <label>Pages to enable duties and taxes </label>
+                    <source_model>Transiteo\LandedCost\Model\Config\Source\Pages</source_model>
+                    <can_be_empty>1</can_be_empty>
+                </field>
+                <field id="incoterm" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Incoterm</label>
+                    <source_model>Transiteo\LandedCost\Model\Config\Source\Incoterm</source_model>
+                    <comment>
+                        <![CDATA[<ul>
+                        <li>DDU, Taxes will not be added to the order</li>
+                        <li>DDP, Taxes will be added to the order</li>
+                        </ul>]]>
+                    </comment>
+                </field>
+                <field id="taxes_calculation_method" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Taxes calculation method</label>
+                    <source_model>Transiteo\LandedCost\Model\Config\Source\TaxesCalculationMethod</source_model>
+                    <comment>
+                        <![CDATA[<ul>
+                        <li>If it's CIF, we calcul the duties and taxes on product(s) and shipping price(s).</li>
+                        <li>If it's FOB, only on product(s).</li>
+                        </ul>]]>
+                    </comment>
+                </field>
+                <field id="debug_mode" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Enable Debug Mode</label>
+                    <comment>We will trace the events in the /var/log/Transiteo_LandedCost.log file.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="order_sync" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Order Sync</label>
+                <comment>All the order going to an other country than original store country will be sent to Transiteo</comment>
+                <field id="order_id" type="text" translate="label comment" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Order Unique Identifier</label>
+                    <comment>Enter the name of the column useed to identify the order. Default is "increment_id" but could be "entity_id".</comment>
+                </field>
+                <field id="product_identifier" translate="label comment" type="select" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Product Identifier field</label>
+                    <comment>The attribute used as product identifier, linked with Transiteo Database. (default is SKU)</comment>
+                    <source_model>Transiteo\LandedCost\Model\Config\Source\ProductAttributes</source_model>
+                </field>
+                <field id="status" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Status correspondance</label>
+                    <frontend_model>Transiteo\LandedCost\Block\Adminhtml\Form\Field\OrderStatusCorrespondence</frontend_model>
+                    <backend_model>Transiteo\LandedCost\Model\Config\Backend\Serialized\OrderStatusSerialized</backend_model>
+                </field>
+            </group>
+        </section>
+        <section id="transiteo_landedcost_settings" translate="label" sortOrder="131" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Settings</label>
+            <tab>transiteo</tab>
+            <resource>Transiteo_LandedCost::settings</resource>
+            <group id="pdp_settings" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Product Page Display Settings</label>
+<!--                <depends>-->
+<!--                    <field id="transiteo_landedcost_settings/duties/enabled_on">pdp</field>-->
+<!--                </depends>-->
+                <field id="display_under_sku" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="10" canRestore="1">
+                    <label>Display under sku</label>
+                    <comment>We will display the subtotal block under sku</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="display_under_price" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="20" canRestore="1">
+                    <label>Display under price</label>
+                    <comment>We will display the subtotal block under price</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="display_under_add_to_cart" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="30" canRestore="1">
+                    <label>Display under add to cart button</label>
+                    <comment>We will display the subtotal block under add to cart button</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="enable_loader" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="40" canRestore="1">
+                    <label>Display Spinner while calculating new subtotal</label>
+                    <comment>We will enable the loader spinner when the taxes are being updated.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+
+                </field>
+                <field id="product_form_selector" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="50" canRestore="1">
+                    <label>Product Form Selector</label>
+                    <comment>The HTML selector of the product form including the input quantity. For more information go to https://www.w3schools.com/cssref/css_selectors.asp</comment>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="qty_field_selector" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="60" canRestore="1">
+                    <label>Qty Field Selector</label>
+                    <comment>The HTML selector of the quantity input to analyse. For more information go to https://www.w3schools.com/cssref/css_selectors.asp</comment>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="super_attribute_selector" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="70" canRestore="1">
+                    <label>Super Attribute Selector</label>
+                    <comment>If you use your own template for configurable. For more information go to https://www.w3schools.com/cssref/css_selectors.asp</comment>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="country_selector" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="80" canRestore="1">
+                    <label>Country Selector</label>
+                    <comment>The HTML selector of the country input selector to analyse. For more information go to https://www.w3schools.com/cssref/css_selectors.asp</comment>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="total_taxes_container_selector" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="90" canRestore="1">
+                    <label>Total Taxes Container Selector</label>
+                    <comment>If you want to use your own templates use the HTML selector of your total taxes block. For more information go to https://www.w3schools.com/cssref/css_selectors.asp</comment>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="vat_container_selector" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="100" canRestore="1">
+                    <label>VAT / GST Container Selector</label>
+                    <comment>If you want to use your own templates use the HTML selector of your vat block. For more information go to https://www.w3schools.com/cssref/css_selectors.asp</comment>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="duty_container_selector" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="110" canRestore="1">
+                    <label>Duty Container Selector</label>
+                    <comment>If you want to use your own templates use the HTML selector of your duty block. For more information go to https://www.w3schools.com/cssref/css_selectors.asp</comment>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="special_taxes_container_selector" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="120" canRestore="1">
+                    <label>Special Taxes Container Selector</label>
+                    <comment>If you want to use your own templates use the HTML selector of your special taxes block. For more information go to https://www.w3schools.com/cssref/css_selectors.asp</comment>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="event_action" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="130" canRestore="1">
+                    <label>Event Action</label>
+                    <comment>Events to listen to update the total price of the product. For example : change, input, blur, focus, select. For more information go to https://www.w3schools.com/js/js_events_examples.asp</comment>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="delay" translate="label comment" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="160" canRestore="1">
+                    <label>Delay</label>
+                    <comment>The delay before sending the request to update the price (in milliseconds).</comment>
+                    <validate>required-entry integer validate-greater-than-zero</validate>
+                </field>
+            </group>
+            <group id="modal" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Opening Pop-up</label>
+                <field id="show" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Enable Popup</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="title" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Title</label>
+                    <depends>
+                        <field id="show">1</field>
+                    </depends>
+                </field>
+                <field id="button_color" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Button Color</label>
+                    <frontend_model>Transiteo\LandedCost\Block\Admin\Color</frontend_model>
+                    <depends>
+                        <field id="show">1</field>
+                    </depends>
+                </field>
+                <field id="css" translate="label" type="textarea" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Additional CSS</label>
+                    <depends>
+                        <field id="show">1</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+        <section id="currency">
+            <group id="transiteo" translate="label" sortOrder="42" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Transiteo</label>
+                <field id="timeout" translate="label" type="text" sortOrder="0" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Connection Timeout in Seconds</label>
+                </field>
+            </group>
+        </section>
+
+    </system>
+</config>

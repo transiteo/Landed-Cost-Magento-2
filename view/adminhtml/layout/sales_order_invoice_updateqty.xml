@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!--
+  ~ Transiteo LandedCost
+  ~
+  ~ NOTICE OF LICENSE
+  ~ if you did not receive a copy of the license and are unable to
+  ~ obtain it through the world-wide-web, please send an email
+  ~ to contact@bird.eu so we can send you a copy immediately.
+  ~ @category      Transiteo
+  ~ @package       Transiteo_LandedCost
+  ~ @copyright    Open Software License (OSL 3.0)
+  ~ @author          Blackbird Team
+  ~ @license          MIT
+  ~ @support        https://github.com/transiteo/Landed-Cost-Magento-2/issues/new/
+  -->
+
+<!--
+  ~
+  -->
+
+<!--
+  ~
+  -->
+
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="invoice_totals">
+            <block class="Transiteo\LandedCost\Block\Order\Taxes" name="order.totals.transiteo" />
+        </referenceBlock>
+    </body>
+</page>

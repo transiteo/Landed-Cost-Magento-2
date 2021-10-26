@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!--
+  ~ Transiteo LandedCost
+  ~
+  ~ NOTICE OF LICENSE
+  ~ if you did not receive a copy of the license and are unable to
+  ~ obtain it through the world-wide-web, please send an email
+  ~ to contact@bird.eu so we can send you a copy immediately.
+  ~ @category      Transiteo
+  ~ @package       Transiteo_LandedCost
+  ~ @copyright    Open Software License (OSL 3.0)
+  ~ @author          Blackbird Team
+  ~ @license          MIT
+  ~ @support        https://github.com/transiteo/Landed-Cost-Magento-2/issues/new/
+  -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Magento_Backend::stores">
+                    <resource id="Magento_Backend::stores_settings">
+                        <resource id="Magento_Config::config">
+                            <resource id="Transiteo_LandedCost::cross_border_head" title="Transiteo CrossBorder" sortOrder="100" >
+                                <resource id="Transiteo_LandedCost::settings" title="Settings" sortOrder="20">
+                                    <resource id="Transiteo_LandedCost::popup_customize" title="Customize Popup" sortOrder="10" />
+                                    <resource id="Transiteo_LandedCost::duties_display_update" title="Update Duties Display" sortOrder="20" />
+                                </resource>
+                                <resource id="Transiteo_LandedCost::activation" title="Activation" sortOrder="10">
+                                    <resource id="Transiteo_LandedCost::token_update" title="Update Token" sortOrder="10" />
+                                </resource>
+                            </resource>
+                        </resource>
+                    </resource>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>
