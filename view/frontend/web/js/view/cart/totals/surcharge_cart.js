@@ -1,0 +1,105 @@
+/*
+ * Transiteo LandedCost
+ *
+ * NOTICE OF LICENSE
+ * if you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to contact@bird.eu so we can send you a copy immediately.
+ * @category      Transiteo
+ * @package       Transiteo_LandedCost
+ * @copyright    Open Software License (OSL 3.0)
+ * @author          Blackbird Team
+ * @license          MIT
+ * @support        https://github.com/transiteo/Landed-Cost-Magento-2/issues/new/
+ */
+
+define([
+    'Magento_Checkout/js/view/summary/abstract-total',
+    'Magento_Checkout/js/model/quote',
+    'jquery',
+    'mage/translate'
+], function (Component, quote, $, $t) {
+    'use strict';
+
+    return Component.extend({
+        defaults: {
+            template: 'Transiteo_LandedCost/summary/surcharge_cart'
+        },
+        totals: quote.getTotals(),
+
+        /**
+         * @return {*|Boolean}
+         */
+        isDisplayed: function () {
+            //get pure value
+            const pureValue = this.getPureValue();
+
+            const test = this.isFullMode() && pureValue != null;
+            if(test){
+                //change value
+                const transiteo_total_taxes = document.getElementById('transiteo_total_taxes_amount');
+                if(transiteo_total_taxes){
+                    transiteo_total_taxes.innerHTML = this.getFormattedPrice(pureValue);
+                }
+
+                $(".totals-tax").remove();
+            }
+            return test;
+        },
+
+        /**
+         * Get surcharge title
+         *
+         * @returns {null|String}
+         */
+        getTitle: function () {
+            if (!this.totals()) {
+                return null;
+            }
+
+            return $t('Duty and Taxes');
+        },
+
+        /**
+         * @return {Number}
+         */
+        getPureValue: function () {
+            var url = window.checkoutConfig.transiteo_checkout_taxes_url
+            // fetch states with country id
+            var param = "quote=" + window.checkoutConfig.quote_id;
+            $.ajax({
+                url: url,
+                async: false,
+                data: param,
+                type: "POST",
+                dataType: "json",
+                error(data) {
+                    console.log("no taxes response !");
+                }
+            }).done(function (data){
+                window.checkoutConfig.transiteo_duty = data.transiteo_duty;
+                window.checkoutConfig.transiteo_vat = data.transiteo_vat;
+                window.checkoutConfig.transiteo_total_taxes = data.transiteo_total_taxes;
+                window.checkoutConfig.transiteo_special_taxes = data.transiteo_special_taxes;
+                window.checkoutConfig.transiteo_incoterm = data.transiteo_incoterm;
+            })
+
+            return window.checkoutConfig.transiteo_total_taxes;
+        },
+
+        getIncluded: function (){
+            if(window.checkoutConfig.transiteo_incoterm === 'ddp'){
+                return $t('(Included)');
+            }else{
+                return $t('(Not included)');
+            }
+        },
+
+        /**
+         * @return {*|String}
+         */
+        getValue: function () {
+            return this.getFormattedPrice(this.getPureValue());
+        }
+    });
+});

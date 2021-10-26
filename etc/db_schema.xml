@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Transiteo LandedCost
+  ~
+  ~ NOTICE OF LICENSE
+  ~ if you did not receive a copy of the license and are unable to
+  ~ obtain it through the world-wide-web, please send an email
+  ~ to contact@bird.eu so we can send you a copy immediately.
+  ~ @category      Transiteo
+  ~ @package       Transiteo_LandedCost
+  ~ @copyright    Open Software License (OSL 3.0)
+  ~ @author          Blackbird Team
+  ~ @license          MIT
+  ~ @support        https://github.com/transiteo/Landed-Cost-Magento-2/issues/new/
+  -->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="transiteo_district" resource="default" engine="innodb" comment="Transiteo District Table">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true"
+                comment="Entity ID"/>
+        <column xsi:type="varchar" name="iso" nullable="false" length="255" comment="Iso Code"/>
+        <column xsi:type="varchar" name="country_id" nullable="false" length="2" comment="Country ID"/>
+        <column xsi:type="varchar" name="state" nullable="true" length="3" comment="State"/>
+        <column xsi:type="varchar" name="label" nullable="false" length="255" comment="Label"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <index referenceId="TRANSITEO_DISTRICT_COUNTRY" indexType="btree">
+            <column name="country_id"/>
+        </index>
+        <index referenceId="TRANSITEO_DISTRICT_ISO" indexType="btree">
+            <column name="iso"/>
+        </index>
+    </table>
+    <table name="sales_order" resource="sales" engine="innodb" comment="Sales Order">
+        <column xsi:type="varchar" name="transiteo_incoterm" length="255"
+                nullable="true" comment="Incoterm Applied To Order"/>
+        <column xsi:type="decimal" name="base_transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="base_transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Duty"/>
+        <column xsi:type="decimal" name="transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Duty"/>
+        <column xsi:type="decimal" name="base_transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="base_transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Special Taxes"/>
+        <column xsi:type="decimal" name="transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Special Taxes"/>
+    </table>
+    <table name="sales_order_item" resource="sales" engine="innodb" comment="Sales Order">
+        <column xsi:type="decimal" name="base_transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="base_transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Duty"/>
+        <column xsi:type="decimal" name="transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Duty"/>
+        <column xsi:type="decimal" name="base_transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="base_transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Special Taxes"/>
+        <column xsi:type="decimal" name="transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Special Taxes"/>
+    </table>
+    <table name="sales_order_grid" resource="sales" engine="innodb" comment="Sales Order">
+        <column xsi:type="varchar" name="transiteo_incoterm" length="255"
+                nullable="true" comment="Incoterm Applied To Order"/>
+        <column xsi:type="decimal" name="base_transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="base_transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Duty"/>
+        <column xsi:type="decimal" name="base_transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="base_transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Special Taxes"/>
+    </table>
+    <table name="quote" resource="default" engine="innodb" comment="Quote Order">
+        <column xsi:type="varchar" name="transiteo_incoterm" length="255"
+                nullable="true" comment="Incoterm Applied To Order"/>
+        <column xsi:type="decimal" name="base_transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="base_transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Duty"/>
+        <column xsi:type="decimal" name="transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Duty"/>
+        <column xsi:type="decimal" name="base_transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="base_transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Special Taxes"/>
+        <column xsi:type="decimal" name="transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Special Taxes"/>
+    </table>
+    <table name="quote_item" resource="default" engine="innodb" comment="Quote Order">
+        <column xsi:type="decimal" name="base_transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="base_transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Duty"/>
+        <column xsi:type="decimal" name="transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Duty"/>
+        <column xsi:type="decimal" name="base_transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="base_transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Special Taxes"/>
+        <column xsi:type="decimal" name="transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Special Taxes"/>
+    </table>
+
+    <table name="sales_invoice" resource="sales" engine="innodb" comment="Sales Invoice">
+        <column xsi:type="varchar" name="transiteo_incoterm" length="255"
+                nullable="true" comment="Incoterm Applied To Order"/>
+        <column xsi:type="decimal" name="base_transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="base_transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Duty"/>
+        <column xsi:type="decimal" name="transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Duty"/>
+        <column xsi:type="decimal" name="base_transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="base_transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Special Taxes"/>
+        <column xsi:type="decimal" name="transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Special Taxes"/>
+    </table>
+    <table name="sales_invoice_item" resource="sales" engine="innodb" comment="Sales Invoice Item">
+        <column xsi:type="decimal" name="base_transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="base_transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Duty"/>
+        <column xsi:type="decimal" name="transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Duty"/>
+        <column xsi:type="decimal" name="base_transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="base_transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Special Taxes"/>
+        <column xsi:type="decimal" name="transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Special Taxes"/>
+    </table>
+    <table name="sales_invoice_grid" resource="sales" engine="innodb" comment="Sales Invoice">
+        <column xsi:type="varchar" name="transiteo_incoterm" length="255"
+                nullable="true" comment="Incoterm Applied To Order"/>
+        <column xsi:type="decimal" name="base_transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="base_transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Duty"/>
+        <column xsi:type="decimal" name="base_transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="base_transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Special Taxes"/>
+    </table>
+
+    <table name="sales_creditmemo" resource="sales" engine="innodb" comment="Sales Creditmemo">
+        <column xsi:type="varchar" name="transiteo_incoterm" length="255"
+                nullable="true" comment="Incoterm Applied To Order"/>
+        <column xsi:type="decimal" name="base_transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="base_transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Duty"/>
+        <column xsi:type="decimal" name="transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Duty"/>
+        <column xsi:type="decimal" name="base_transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="base_transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Special Taxes"/>
+        <column xsi:type="decimal" name="transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Special Taxes"/>
+    </table>
+    <table name="sales_creditmemo_item" resource="sales" engine="innodb" comment="Sales Creditmemo Item">
+        <column xsi:type="decimal" name="base_transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="base_transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Duty"/>
+        <column xsi:type="decimal" name="transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Duty"/>
+        <column xsi:type="decimal" name="base_transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="base_transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Base Transiteo Special Taxes"/>
+        <column xsi:type="decimal" name="transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Special Taxes"/>
+    </table>
+    <table name="sales_creditmemo_grid" resource="sales" engine="innodb" comment="Sales Creditmemo">
+        <column xsi:type="varchar" name="transiteo_incoterm" length="255"
+                nullable="true" comment="Incoterm Applied To Order"/>
+        <column xsi:type="decimal" name="base_transiteo_total_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Total Taxes"/>
+        <column xsi:type="decimal" name="base_transiteo_duty" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Duty"/>
+        <column xsi:type="decimal" name="base_transiteo_vat" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo VAT/GST"/>
+        <column xsi:type="decimal" name="base_transiteo_special_taxes" scale="4" precision="20" unsigned="false"
+                nullable="true" comment="Transiteo Special Taxes"/>
+    </table>
+</schema>

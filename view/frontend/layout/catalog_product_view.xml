@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!--
+  ~ Transiteo LandedCost
+  ~
+  ~ NOTICE OF LICENSE
+  ~ if you did not receive a copy of the license and are unable to
+  ~ obtain it through the world-wide-web, please send an email
+  ~ to contact@bird.eu so we can send you a copy immediately.
+  ~ @category      Transiteo
+  ~ @package       Transiteo_LandedCost
+  ~ @copyright    Open Software License (OSL 3.0)
+  ~ @author          Blackbird Team
+  ~ @license          MIT
+  ~ @support        https://github.com/transiteo/Landed-Cost-Magento-2/issues/new/
+  -->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="product.info.stock.sku">
+            <block class="Transiteo\LandedCost\Block\Modal" name="transiteo.LandedCost.product.view.under.sku" template="Transiteo_LandedCost::product/view/duties-taxes.phtml" after="-" ifconfig="transiteo_landedcost_settings/pdp_settings/display_under_sku">
+                <arguments>
+                    <argument name="viewModel" xsi:type="object">Transiteo\LandedCost\ViewModel\ConfigDataProvider</argument>
+                    <argument name="settings" xsi:type="array">
+                        <item name="requestUrl" xsi:type="url" path="transiteo/product/dutiesandtaxes"/>
+                    </argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+        <referenceContainer name="product.info.main">
+            <block class="Transiteo\LandedCost\Block\Modal" name="transiteo.LandedCost.product.view.under.price" template="Transiteo_LandedCost::product/view/duties-taxes.phtml" before="product.info" ifconfig="transiteo_landedcost_settings/pdp_settings/display_under_price">
+                <arguments>
+                    <argument name="viewModel" xsi:type="object">Transiteo\LandedCost\ViewModel\ConfigDataProvider</argument>
+                    <argument name="settings" xsi:type="array">
+                        <item name="requestUrl" xsi:type="url" path="transiteo/product/dutiesandtaxes"/>
+                    </argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+        <referenceContainer name="product.info.form.content">
+            <block class="Transiteo\LandedCost\Block\Modal" name="transiteo.LandedCost.product.view.under.add.to.cart" template="Transiteo_LandedCost::product/view/duties-taxes.phtml" after="product.info.addtocart" ifconfig="transiteo_landedcost_settings/pdp_settings/display_under_add_to_cart">
+                <arguments>
+                    <argument name="viewModel" xsi:type="object">Transiteo\LandedCost\ViewModel\ConfigDataProvider</argument>
+                    <argument name="settings" xsi:type="array">
+                        <item name="requestUrl" xsi:type="url" path="transiteo/product/dutiesandtaxes"/>
+                    </argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

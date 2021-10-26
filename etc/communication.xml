@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!--
+  ~ Transiteo LandedCost
+  ~
+  ~ NOTICE OF LICENSE
+  ~ if you did not receive a copy of the license and are unable to
+  ~ obtain it through the world-wide-web, please send an email
+  ~ to contact@bird.eu so we can send you a copy immediately.
+  ~ @category      Transiteo
+  ~ @package       Transiteo_LandedCost
+  ~ @copyright    Open Software License (OSL 3.0)
+  ~ @author          Blackbird Team
+  ~ @license          MIT
+  ~ @support        https://github.com/transiteo/Landed-Cost-Magento-2/issues/new/
+  -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Communication/etc/communication.xsd">
+    <topic name="transiteo.sync.order" request="string">
+        <handler name="processOrderSync"
+                 type="Transiteo\LandedCost\Model\Sync\OrderSyncHandler"
+                 method="process"/>
+    </topic>
+    <topic name="transiteo.sync.product" request="string">
+        <handler name="processProductSync"
+                 type="Transiteo\LandedCost\Model\Sync\ProductSyncHandler"
+                 method="process"/>
+    </topic>
+</config>

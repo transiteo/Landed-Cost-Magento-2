@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!--
+  ~ Transiteo LandedCost
+  ~
+  ~ NOTICE OF LICENSE
+  ~ if you did not receive a copy of the license and are unable to
+  ~ obtain it through the world-wide-web, please send an email
+  ~ to contact@bird.eu so we can send you a copy immediately.
+  ~ @category      Transiteo
+  ~ @package       Transiteo_LandedCost
+  ~ @copyright    Open Software License (OSL 3.0)
+  ~ @author          Blackbird Team
+  ~ @license          MIT
+  ~ @support        https://github.com/transiteo/Landed-Cost-Magento-2/issues/new/
+  -->
+
+<!--
+  ~
+  -->
+
+<!--
+  ~
+  -->
+
+<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout_generic.xsd">
+<!--    <referenceBlock name="render.product.prices">-->
+<!--        <arguments>-->
+<!--            <argument name="default" xsi:type="array">-->
+<!--                <item name="default_amount_render_template" xsi:type="string">-->
+<!--                    Transiteo_LandedCost::product/price/amount/default.phtml-->
+<!--                </item>-->
+<!--            </argument>-->
+<!--        </arguments>-->
+<!--    </referenceBlock>-->
+
+
+    <referenceBlock name="render.product.prices">
+        <arguments>
+            <argument name="default" xsi:type="array">
+                <item name="prices" xsi:type="array">
+                    <item name="transiteo_duties" xsi:type="array">
+                        <item name="render_template" xsi:type="string">
+                            Transiteo_LandedCost::product/price/duties.phtml
+                        </item>
+                    </item>
+                </item>
+            </argument>
+        </arguments>
+    </referenceBlock>
+
+    <referenceBlock name="render.product.prices">
+        <arguments>
+            <argument name="default" xsi:type="array">
+                <item name="adjustments" xsi:type="array">
+                    <item name="default" xsi:type="array">
+                        <item name="duties" xsi:type="array">
+                            <item name="adjustment_render_class" xsi:type="string">Transiteo\LandedCost\Pricing\Render\Adjustment</item>
+                            <item name="adjustment_render_template" xsi:type="string">Transiteo_LandedCost::pricing/adjustment.phtml</item>
+                        </item>
+                    </item>
+                </item>
+            </argument>
+            <argument name="bundle" xsi:type="array">
+                <item name="adjustments" xsi:type="array">
+                    <item name="bundle_option" xsi:type="array">
+                        <item name="duties" xsi:type="array">
+                            <item name="adjustment_render_class" xsi:type="string">Magento\Tax\Pricing\Render\Adjustment</item>
+                            <item name="adjustment_render_template" xsi:type="string">Magento_Tax::pricing/adjustment/bundle.phtml</item>
+                        </item>
+                    </item>
+                </item>
+            </argument>
+        </arguments>
+    </referenceBlock>
+</layout>
