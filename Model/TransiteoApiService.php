@@ -23,16 +23,12 @@ use GuzzleHttp\ClientFactory;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\ResponseFactory;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\FlagManager;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Webapi\Rest\Request;
-use Transiteo\LandedCost\Controller\Cookie;
 use Transiteo\LandedCost\Logger\Logger;
 
 /**
-
-
  * Class TransiteoApiService
  */
 class TransiteoApiService
@@ -43,8 +39,8 @@ class TransiteoApiService
     public const API_REQUEST_URI = 'https://api.transiteo.io/';
 
     /**
-    * API AUTH request URL
-    */
+     * API AUTH request URL
+     */
     public const API_AUTH_REQUEST_URI = 'https://auth.transiteo.io/';
 
     /**
@@ -114,49 +110,16 @@ class TransiteoApiService
     }
 
     /**
-     * Get Id Token to use for auth in next requests
+     * @return string
      */
-    protected function getIdTokenFromApi()
+    public function getIdToken():string
     {
-        $clientId = $this->config->getTransiteoClientId();
-        $refreshToken = $this->config->getTransiteoRefreshToken();
-
-        $response = $this->doRequest(
-            self::API_AUTH_REQUEST_URI . "oauth2/token",
-            [
-                'headers' => [
-                    'Content-type'     => 'application/x-www-form-urlencoded',
-                ],
-                'form_params' => [
-                    'grant_type' => 'refresh_token',
-                    'client_id' => $clientId,
-                    'refresh_token' => $refreshToken
-                ],
-                'http_errors' => false
-            ],
-            Request::HTTP_METHOD_POST
-        );
-
-        $status = $response->getStatusCode(); // 200 status code
-        $responseBody = $response->getBody();
-        $responseContent = $responseBody->getContents(); // here you will have the API response in JSON format
-
-        if ($status == 200) {
-            $responseArray = $this->serializer->unserialize($responseContent);
-
-            $this->idToken  = $responseArray['id_token'];
-            //$this->cookie->set(self::COOKIE_NAME, $this->idToken, 3500);
-            $this->flagManager->saveFlag(self::ID_TOKEN_FLAG_NAME, $this->idToken);
-            $accessToken    = $responseArray['access_token'];
-            $this->flagManager->saveFlag(self::ACCESS_TOKEN_FLAG_NAME, $accessToken);
-            $expires_in     = $responseArray['expires_in'];
-            $this->flagManager->saveFlag(self::TOKEN_EXPIRES_IN_FLAG_NAME, $expires_in);
-            $token_type     = $responseArray['token_type'];
-            $this->flagManager->saveFlag(self::TOKEN_TYPE_FLAG_NAME, $token_type);
-            $date = new \DateTime();
-            $this->flagManager->saveFlag(self::TOKEN_RECEIVED_TIMESTAMP, $date->getTimestamp());
+        $idTokenStored = $this->flagManager->getFlagData(self::ID_TOKEN_FLAG_NAME);
+        if (($this->idToken === null && $idTokenStored === null) || $this->hasTokenExpired()) {
+            $this->refreshIdToken();
+        } elseif ($this->idToken === null && $idTokenStored !== null) {
+            $this->idToken = $idTokenStored;
         }
-
         return $this->idToken;
     }
 
@@ -165,7 +128,7 @@ class TransiteoApiService
      *
      * @return bool
      */
-    protected function hasTokenExpired()
+    protected function hasTokenExpired(): bool
     {
         $tokenTimestamp = $this->flagManager->getFlagData(self::TOKEN_RECEIVED_TIMESTAMP);
         if ($tokenTimestamp !== null) {
@@ -179,9 +142,62 @@ class TransiteoApiService
     /**
      * Refresh the Id Token
      */
-    public function refreshIdToken()
+    public function refreshIdToken(): string
     {
-        $this->idToken =  $this->getIdTokenFromApi();
+        $this->idToken = $this->getIdTokenFromApi();
+        return $this->idToken;
+    }
+
+    /**
+     * Get Id Token to use for auth in next requests
+     */
+    protected function getIdTokenFromApi(): string
+    {
+        $clientId = $this->config->getTransiteoClientId();
+        $refreshToken = $this->config->getTransiteoRefreshToken();
+
+        $request = [
+            'headers' => [
+                'Content-type' => 'application/x-www-form-urlencoded',
+            ],
+            'form_params' => [
+                'grant_type' => 'refresh_token',
+                'client_id' => $clientId,
+                'refresh_token' => $refreshToken
+            ],
+            'http_errors' => false
+        ];
+
+        $this->logger->debug("Getting new refresh token");
+        $this->logger->debug(\json_encode($request));
+
+        $response = $this->doRequest(
+            self::API_AUTH_REQUEST_URI . "oauth2/token",
+            $request,
+            Request::HTTP_METHOD_POST
+        );
+
+        $status = $response->getStatusCode(); // 200 status code
+        $responseBody = $response->getBody();
+        $responseContent = $responseBody->getContents(); // here you will have the API response in JSON format
+        $this->logger->debug($responseContent);
+
+        if ($status === 200 && $responseContent !== "") {
+            $responseArray = $this->serializer->unserialize($responseContent);
+
+            $this->idToken = $responseArray['id_token'];
+            $this->flagManager->saveFlag(self::ID_TOKEN_FLAG_NAME, $this->idToken);
+            $accessToken = $responseArray['access_token'];
+            $this->flagManager->saveFlag(self::ACCESS_TOKEN_FLAG_NAME, $accessToken);
+            $expires_in = $responseArray['expires_in'];
+            $this->flagManager->saveFlag(self::TOKEN_EXPIRES_IN_FLAG_NAME, $expires_in);
+            $token_type = $responseArray['token_type'];
+            $this->flagManager->saveFlag(self::TOKEN_TYPE_FLAG_NAME, $token_type);
+            $date = new \DateTime();
+            $this->flagManager->saveFlag(self::TOKEN_RECEIVED_TIMESTAMP, $date->getTimestamp());
+        }
+
+        return (string) $this->idToken;
     }
 
     /**
@@ -215,20 +231,6 @@ class TransiteoApiService
         }
 
         return $response;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getIdToken()
-    {
-        $idTokenStored = $this->flagManager->getFlagData(self::ID_TOKEN_FLAG_NAME);
-        if (($this->idToken === null &&  $idTokenStored === null) || $this->hasTokenExpired()) {
-            $this->refreshIdToken();
-        } elseif ($this->idToken === null && $idTokenStored !== null) {
-            $this->idToken = $idTokenStored;
-        }
-        return $this->idToken;
     }
 
     /**

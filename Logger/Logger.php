@@ -29,8 +29,12 @@ class Logger extends \Monolog\Logger
      */
     protected $scopeConfig;
 
-    public function __construct($name, array $handlers = [], array $processors = [], ScopeConfigInterface $scopeConfig)
-    {
+    public function __construct(
+        $name,
+        ScopeConfigInterface $scopeConfig,
+        array $handlers = [],
+        array $processors = []
+    ) {
         $this->scopeConfig = $scopeConfig;
         parent::__construct($name, $handlers, $processors);
     }
@@ -54,8 +58,8 @@ class Logger extends \Monolog\Logger
      */
     protected function isLoggingActive()
     {
-        return $this->scopeConfig->getValue(
-            'transiteo_activation/duties/debug_mode',
+        return (bool)$this->scopeConfig->getValue(
+            'transiteo_settings/duties/debug_mode',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
     }

@@ -43,6 +43,8 @@ class CurrencyRate
      */
     public function getCurrencyRate($currencyFrom, $currencyTo, $timeout, $amount = 1):string
     {
+        $this->transiteoApiService->getLogger()->debug("Getting Currency rate");
+
         $response = $this->transiteoApiService->doRequest(
             TransiteoApiService::API_REQUEST_URI . "v1/data/currency?amount=1&toCurrency=" . $currencyTo . "&fromCurrency=" . $currencyFrom,
             [
@@ -60,6 +62,7 @@ class CurrencyRate
 
         $responseBody = $response->getBody();
         $responseContent = $responseBody->getContents();
+        $this->transiteoApiService->getLogger()->debug($responseContent);
 
         if ($status == "401") {
             $responseArray = \json_decode($responseContent);
