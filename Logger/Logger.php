@@ -17,6 +17,7 @@
 namespace Transiteo\LandedCost\Logger;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Stringable;
 
 /**
  * Class Logger
@@ -29,24 +30,25 @@ class Logger extends \Monolog\Logger
      */
     protected $scopeConfig;
 
-    public function __construct($name, array $handlers = [], array $processors = [], ScopeConfigInterface $scopeConfig)
-    {
+    public function __construct(
+        $name,
+        ScopeConfigInterface $scopeConfig,
+        array $handlers = [],
+        array $processors = []
+    ) {
         $this->scopeConfig = $scopeConfig;
         parent::__construct($name, $handlers, $processors);
     }
 
     /**
-     * @param string $message
-     * @param array $context
-     * @return bool
+     * @param string|Stringable $message The log message
+     * @param mixed[]           $context The log context
      */
-    public function debug($message, array $context = [])
+    public function debug($message, array $context = []): void
     {
         if ($this->isLoggingActive()) {
-            return parent::debug($message, $context);
+            parent::debug($message, $context);
         }
-
-        return true;
     }
 
     /**
@@ -54,7 +56,7 @@ class Logger extends \Monolog\Logger
      */
     protected function isLoggingActive()
     {
-        return $this->scopeConfig->getValue(
+        return (bool)$this->scopeConfig->getValue(
             'transiteo_activation/duties/debug_mode',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );

@@ -17,7 +17,7 @@ composer require transiteo/landed-cost
 
 **Zip Package:**
 
-Unzip the package in app/code/Transiteo/ContentManagerIndexerDisabler, from the root of your Magento instance.
+Unzip the package in app/code/Transiteo/LandedCost, from the root of your Magento instance.
 
 ### Install the module
 
@@ -35,7 +35,7 @@ All the Products and Orders will be synchronised with Transiteo in order to retr
 - The message queue consumer transiteo.sync.product` is responsible for synchronising the products.
 ```shell
 ### To manually launch the synchronisation of products
-bin/magento queue:consumers:run transiteo.sync.product
+bin/magento queue:consumers:start transiteo.sync.product
 ```
 - The message queue consumer `transiteo.sync.order is responsible for synchronising the products.
 ```shell

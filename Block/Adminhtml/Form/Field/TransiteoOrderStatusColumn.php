@@ -27,8 +27,8 @@ class TransiteoOrderStatusColumn extends \Magento\Framework\View\Element\Html\Se
 
     public function __construct(
         \Magento\Framework\View\Element\Context $context,
-        array $data = [],
-        TransiteoOrderStatus $orderStatus
+        TransiteoOrderStatus $orderStatus,
+        array $data = []
     )
     {
         $this->orderStatus = $orderStatus;

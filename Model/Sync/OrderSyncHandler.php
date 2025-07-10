@@ -20,6 +20,8 @@ namespace Transiteo\LandedCost\Model\Sync;
 
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Webapi\Rest\Request;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
 
 /**
  *
@@ -65,9 +67,11 @@ class OrderSyncHandler
         try {
             $params = unserialize($message);
             //////////////////LOGGER//////////////
-            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-            $logger = new \Zend\Log\Logger();
-            $logger->addWriter($writer);
+//            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
+//            $logger->addWriter($writer);
+
+            $logger = new Logger('transiteo');
+            $logger->pushHandler(new StreamHandler(BP . '/var/log/test.log', Logger::DEBUG));
             $result = \json_encode($params);
             $logger->info($result);
             ///////////////////////////////////////
