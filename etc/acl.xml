@@ -18,6 +18,9 @@
     <acl>
         <resources>
             <resource id="Magento_Backend::admin">
+                <resource id="Transiteo_LandedCost::transiteo" title="Transiteo" sortOrder="100">
+                    <resource id="Transiteo_LandedCost::transiteo_matrix" title="Transiteo Matrix" sortOrder="10" />
+                </resource>
                 <resource id="Magento_Backend::stores">
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">

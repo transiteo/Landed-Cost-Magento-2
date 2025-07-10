@@ -32,8 +32,8 @@ class OrderStatusColumn extends \Magento\Framework\View\Element\Html\Select
      */
     public function __construct(
         \Magento\Framework\View\Element\Context $context,
-        array $data = [],
-        \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory $orderStatusCollectionFactory
+        \Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory $orderStatusCollectionFactory,
+        array $data = []
     )
     {
         $this->orderStatusCollectionFactory = $orderStatusCollectionFactory;

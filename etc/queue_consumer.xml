@@ -25,4 +25,9 @@
               handler="Transiteo\LandedCost\Model\Sync\ProductSyncHandler::process"
               connection="db"
     />
+    <consumer name="transiteo.sync.category"
+              queue="transiteo_sync_category_queue"
+              handler="Transiteo\LandedCost\Model\Sync\CategorySyncHandler::process"
+              connection="db"
+    />
 </config>

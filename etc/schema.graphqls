@@ -1,0 +1,37 @@
+type PriceDisplayOption {
+  includedInPrice: Boolean
+  roundedPrice: Boolean
+}
+
+type TransiteoPriceDisplaySettings {
+  homepage: PriceDisplayOption
+  categoryPage: PriceDisplayOption
+  searchPage: PriceDisplayOption
+  sellerPage: PriceDisplayOption
+  productPage: PriceDisplayOption
+  checkoutCartPage: PriceDisplayOption
+  checkoutPaymentPage: PriceDisplayOption
+}
+
+type TaxItem {
+  label: String!
+  rate: Float!
+}
+
+type CategoryTaxData {
+  category_id: Int!
+  iso: String!
+  restricted: Boolean!
+  duty: Float
+  local_tax: Float
+  sales_tax: Float
+  special_taxes: [TaxItem]
+  eco_tax: Float
+}
+
+type Query {
+    transiteoPriceDisplaySettings: TransiteoPriceDisplaySettings
+    @resolver(class: "Transiteo\\LandedCost\\Model\\Resolver\\PriceDisplaySettings")
+  transiteoCategoryTaxMatrix: [CategoryTaxData!]!
+    @resolver(class: "Transiteo\\LandedCost\\Model\\Resolver\\CategoryTaxDataResolver")
+}

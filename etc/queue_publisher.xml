@@ -21,4 +21,7 @@
     <publisher topic="transiteo.sync.product">
         <connection name="db" exchange="transiteo-sync-product-exchange" disabled="false"/>
     </publisher>
+    <publisher topic="transiteo.sync.category">
+        <connection name="db" exchange="transiteo-sync-category-exchange" disabled="false"/>
+    </publisher>
 </config>

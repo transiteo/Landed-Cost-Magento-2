@@ -27,4 +27,10 @@
                  destinationType="queue"
                  destination="transiteo_sync_product_queue"/>
     </exchange>
+    <exchange name="transiteo-sync-category-exchange" type="topic" connection="db">
+        <binding id="process"
+                 topic="transiteo.sync.category"
+                 destinationType="queue"
+                 destination="transiteo_sync_category_queue"/>
+    </exchange>
 </config>

@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd"
+         dataSource="transiteo_categorymatrix_listing_data_source">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">transiteo_categorymatrix_listing.transiteo_categorymatrix_listing_data_source</item>
+            <item name="deps" xsi:type="string">transiteo_categorymatrix_listing.transiteo_categorymatrix_listing_data_source</item>
+        </item>
+        <item name="buttons" xsi:type="array">
+            <item name="sync_countries" xsi:type="string">Transiteo\LandedCost\Block\Adminhtml\Matrix\Button\SyncDropdown</item>
+            <item name="sync_all" xsi:type="string">Transiteo\LandedCost\Block\Adminhtml\Matrix\Button\Sync</item>
+        </item>
+        <item name="spinner" xsi:type="string">transiteo_categorymatrix_columns</item>
+    </argument>
+
+    <dataSource name="transiteo_categorymatrix_listing_data_source">
+        <argument name="dataProvider" xsi:type="configurableObject">
+            <argument name="class" xsi:type="string">Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider</argument>
+            <argument name="name" xsi:type="string">transiteo_categorymatrix_listing_data_source</argument>
+            <argument name="primaryFieldName" xsi:type="string">entity_id</argument>
+            <argument name="requestFieldName" xsi:type="string">id</argument>
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="update_url" xsi:type="url" path="mui/index/render"/>
+                </item>
+            </argument>
+        </argument>
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/grid/provider</item>
+            </item>
+        </argument>
+    </dataSource>
+
+    <!-- toolbar : bouton global -->
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+
+    <columns name="transiteo_categorymatrix_columns">
+        <column name="category_id">
+            <settings>
+                <label>Category ID</label>
+                <filter>text</filter>
+                <sorting>asc</sorting>
+            </settings>
+        </column>
+        <!--column name="category_name">
+            <settings><label>Category</label></settings>
+        </column-->
+        <column name="country_iso">
+            <settings><label>Country ISO</label></settings>
+        </column>
+        <column name="restricted">
+            <settings><label>Restriction</label></settings>
+        </column>
+        <column name="duty">
+            <settings><label>Duty (%)</label></settings>
+        </column>
+        <column name="local_taxe">
+            <settings><label>Local Tax (%)</label></settings>
+        </column>
+        <column name="salestax">
+            <settings><label>Sales Tax (%)</label></settings>
+        </column>
+        <column name="special_taxe">
+            <settings><label>Special Tax (%)</label></settings>
+        </column>
+        <column name="eco_tax">
+            <settings><label>Eco Tax (€)</label></settings>
+        </column>
+    </columns>
+</listing>

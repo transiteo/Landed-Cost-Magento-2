@@ -1,0 +1,174 @@
+{
+    "transiteo_district": {
+        "column": {
+            "entity_id": true,
+            "iso": true,
+            "country_id": true,
+            "state": true,
+            "label": true
+        },
+        "index": {
+            "TRANSITEO_DISTRICT_COUNTRY_ID": true,
+            "TRANSITEO_DISTRICT_ISO": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "sales_order": {
+        "column": {
+            "transiteo_incoterm": true,
+            "base_transiteo_total_taxes": true,
+            "transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "transiteo_vat": true,
+            "base_transiteo_special_taxes": true,
+            "transiteo_special_taxes": true
+        }
+    },
+    "sales_order_item": {
+        "column": {
+            "base_transiteo_total_taxes": true,
+            "transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "transiteo_vat": true,
+            "base_transiteo_special_taxes": true,
+            "transiteo_special_taxes": true
+        }
+    },
+    "sales_order_grid": {
+        "column": {
+            "transiteo_incoterm": true,
+            "base_transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "base_transiteo_special_taxes": true
+        }
+    },
+    "quote": {
+        "column": {
+            "transiteo_incoterm": true,
+            "base_transiteo_total_taxes": true,
+            "transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "transiteo_vat": true,
+            "base_transiteo_special_taxes": true,
+            "transiteo_special_taxes": true
+        }
+    },
+    "quote_item": {
+        "column": {
+            "base_transiteo_total_taxes": true,
+            "transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "transiteo_vat": true,
+            "base_transiteo_special_taxes": true,
+            "transiteo_special_taxes": true
+        }
+    },
+    "sales_invoice": {
+        "column": {
+            "transiteo_incoterm": true,
+            "base_transiteo_total_taxes": true,
+            "transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "transiteo_vat": true,
+            "base_transiteo_special_taxes": true,
+            "transiteo_special_taxes": true
+        }
+    },
+    "sales_invoice_item": {
+        "column": {
+            "base_transiteo_total_taxes": true,
+            "transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "transiteo_vat": true,
+            "base_transiteo_special_taxes": true,
+            "transiteo_special_taxes": true
+        }
+    },
+    "sales_invoice_grid": {
+        "column": {
+            "transiteo_incoterm": true,
+            "base_transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "base_transiteo_special_taxes": true
+        }
+    },
+    "sales_creditmemo": {
+        "column": {
+            "transiteo_incoterm": true,
+            "base_transiteo_total_taxes": true,
+            "transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "transiteo_vat": true,
+            "base_transiteo_special_taxes": true,
+            "transiteo_special_taxes": true
+        }
+    },
+    "sales_creditmemo_item": {
+        "column": {
+            "base_transiteo_total_taxes": true,
+            "transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "transiteo_vat": true,
+            "base_transiteo_special_taxes": true,
+            "transiteo_special_taxes": true
+        }
+    },
+    "sales_creditmemo_grid": {
+        "column": {
+            "transiteo_incoterm": true,
+            "base_transiteo_total_taxes": true,
+            "base_transiteo_duty": true,
+            "base_transiteo_vat": true,
+            "base_transiteo_special_taxes": true
+        }
+    },
+    "transiteo_category_matrix": {
+        "column": {
+            "entity_id": true,
+            "category_id": true,
+            "country_iso": true,
+            "restricted": true,
+            "duty": true,
+            "local_tax": true,
+            "sales_tax": true,
+            "special_taxes": true,
+            "eco_tax": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "TRANSITEO_CATEGORY_MATRIX_CATEGORY_ID_COUNTRY_ISO": true
+        }
+    },
+    "transiteo_category_sync_log": {
+        "column": {
+            "log_id": true,
+            "action": true,
+            "payload": true,
+            "created_at": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    }
+}

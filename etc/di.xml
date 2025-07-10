@@ -208,4 +208,19 @@
         <plugin name="transiteo_extension_attributes" type="Transiteo\LandedCost\Plugin\ExtensionAttributes\CreditmemoItemRepository"/>
     </type>
 
+    <!-- Business intelligence -->
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="transiteo_categorymatrix_listing_data_source" xsi:type="string">TransiteoCategoryMatrixCollection</item>
+            </argument>
+        </arguments>
+    </type>
+    <virtualType name="TransiteoCategoryMatrixCollection"
+                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">transiteo_category_matrix</argument>
+            <argument name="resourceModel" xsi:type="string">Transiteo\LandedCost\Model\ResourceModel\CategoryMatrix</argument>
+        </arguments>
+    </virtualType>
 </config>
