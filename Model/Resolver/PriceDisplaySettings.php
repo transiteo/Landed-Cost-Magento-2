@@ -52,8 +52,8 @@
             $result = [];
             foreach ($pages as $page) {
                 $result[$this->camelize($page)] = [
-                    'includedInPrice' => $this->getFlag($page . '/included_in_price', $storeId),
-                    'roundedPrice' => $this->getFlag($page . '/rounded_price', $storeId),
+                    'includedInPrice' => $this->getFlag($page . '_included_in_price', $storeId),
+                    'roundedPrice' => $this->getFlag($page . '_rounded_price', $storeId),
                 ];
             }
 

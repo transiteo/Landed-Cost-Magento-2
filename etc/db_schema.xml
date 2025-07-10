@@ -226,13 +226,13 @@
         <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Primary key" />
         <column xsi:type="int" name="category_id" unsigned="true" nullable="false" comment="Magento Category ID" />
         <column xsi:type="varchar" name="country_iso" length="2" nullable="false" comment="ISO country code" />
-        <column xsi:type="smallint" name="restricted" unsigned="true" length="1" default="0" comment="Import restriction flag" />
+        <column xsi:type="smallint" name="restricted" unsigned="true" default="0" comment="Import restriction flag" />
         <column xsi:type="decimal" name="duty" scale="4" precision="12" nullable="true" comment="Duty %" />
         <column xsi:type="decimal" name="local_tax" scale="4" precision="12" nullable="true" comment="Local tax %" />
         <column xsi:type="decimal" name="sales_tax" scale="4" precision="12" nullable="true" comment="Sales tax %" />
         <column xsi:type="text" name="special_taxes" nullable="true" comment="JSON with label/% pairs" />
         <column xsi:type="decimal" name="eco_tax" scale="4" precision="12" nullable="true" comment="Eco tax value (€)" />
-        <column xsi:type="timestamp" name="updated_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="CURRENT_TIMESTAMP" />
+        <column xsi:type="timestamp" name="updated_at" nullable="false" default="CURRENT_TIMESTAMP" />
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="entity_id" />
         </constraint>

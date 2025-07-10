@@ -225,7 +225,7 @@
                 <field id="homepage" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Homepage</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <config_path>transiteo_settings/price_display/homepage/included_in_price</config_path>
+                    <config_path>transiteo_settings/price_display/homepage_included_in_price</config_path>
                     <tooltip><![CDATA[
                         <strong>False</strong>: taxes are displayed separately, not included in the product price.<br/>
                         <strong>True</strong>: taxes are included directly in the displayed product price.
@@ -234,7 +234,7 @@
                 <field id="homepage_rounded" translate="label" type="select" sortOrder="2" showInDefault="1" showInWebsite="1">
                     <label>Rounded price (Homepage)</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <config_path>transiteo_settings/price_display/homepage/rounded_price</config_path>
+                    <config_path>transiteo_settings/price_display/homepage_rounded_price</config_path>
                     <depends>
                         <field id="homepage">1</field>
                     </depends>
@@ -244,7 +244,7 @@
                 <field id="category_page" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Category Page</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <config_path>transiteo_settings/price_display/category_page/included_in_price</config_path>
+                    <config_path>transiteo_settings/price_display/category_page_included_in_price</config_path>
                     <tooltip><![CDATA[
                         <strong>False</strong>: taxes are displayed separately, not included in the product price.<br/>
                         <strong>True</strong>: taxes are included directly in the displayed product price.
@@ -253,7 +253,7 @@
                 <field id="category_page_rounded" translate="label" type="select" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Rounded price (Category Page)</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <config_path>transiteo_settings/price_display/category_page/rounded_price</config_path>
+                    <config_path>transiteo_settings/price_display/category_page_rounded_price</config_path>
                     <depends>
                         <field id="category_page">1</field>
                     </depends>
@@ -263,7 +263,7 @@
                 <field id="search_page" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Search Page</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <config_path>transiteo_settings/price_display/search_page/included_in_price</config_path>
+                    <config_path>transiteo_settings/price_display/search_page_included_in_price</config_path>
                     <tooltip><![CDATA[
                         <strong>False</strong>: taxes are displayed separately, not included in the product price.<br/>
                         <strong>True</strong>: taxes are included directly in the displayed product price.
@@ -272,7 +272,7 @@
                 <field id="search_page_rounded" translate="label" type="select" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Rounded price (Search Page)</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <config_path>transiteo_settings/price_display/search_page/rounded_price</config_path>
+                    <config_path>transiteo_settings/price_display/search_page_rounded_price</config_path>
                     <depends>
                         <field id="search_page">1</field>
                     </depends>
@@ -282,7 +282,7 @@
                 <field id="seller_page" translate="label" type="select" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Seller Page</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <config_path>transiteo_settings/price_display/seller_page/included_in_price</config_path>
+                    <config_path>transiteo_settings/price_display/seller_page_included_in_price</config_path>
                     <tooltip><![CDATA[
                         <strong>False</strong>: taxes are displayed separately, not included in the product price.<br/>
                         <strong>True</strong>: taxes are included directly in the displayed product price.
@@ -291,7 +291,7 @@
                 <field id="seller_page_rounded" translate="label" type="select" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Rounded price (Seller Page)</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <config_path>transiteo_settings/price_display/seller_page/rounded_price</config_path>
+                    <config_path>transiteo_settings/price_display/seller_page_rounded_price</config_path>
                     <depends>
                         <field id="seller_page">1</field>
                     </depends>
@@ -301,7 +301,7 @@
                 <field id="product_page" translate="label" type="select" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Product Page</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <config_path>transiteo_settings/price_display/product_page/included_in_price</config_path>
+                    <config_path>transiteo_settings/price_display/product_page_included_in_price</config_path>
                     <tooltip><![CDATA[
                         <strong>False</strong>: taxes are displayed separately, not included in the product price.<br/>
                         <strong>True</strong>: taxes are included directly in the displayed product price.
@@ -310,7 +310,7 @@
                 <field id="product_page_rounded" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Rounded price (Product Page)</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <config_path>transiteo_settings/price_display/product_page/rounded_price</config_path>
+                    <config_path>transiteo_settings/price_display/product_page_rounded_price</config_path>
                     <depends>
                         <field id="product_page">1</field>
                     </depends>
@@ -320,7 +320,7 @@
                 <field id="checkout_cart_page" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Checkout Cart Page</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <config_path>transiteo_settings/price_display/checkout_cart_page/included_in_price</config_path>
+                    <config_path>transiteo_settings/price_display/checkout_cart_page_included_in_price</config_path>
                     <tooltip><![CDATA[
                         <strong>False</strong>: taxes are displayed separately, not included in the product price.<br/>
                         <strong>True</strong>: taxes are included directly in the displayed product price.
@@ -329,7 +329,7 @@
                 <field id="checkout_cart_page_rounded" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Rounded price (Checkout Cart Page)</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <config_path>transiteo_settings/price_display/checkout_cart_page/rounded_price</config_path>
+                    <config_path>transiteo_settings/price_display/checkout_cart_page_rounded_price</config_path>
                     <depends>
                         <field id="checkout_cart_page">1</field>
                     </depends>
@@ -338,7 +338,7 @@
                 <!-- Checkout Payment Page -->
                 <field id="checkout_payment_page" translate="label" type="select" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Checkout Payment Page</label>
-                    <config_path>transiteo_settings/price_display/checkout_payment_page/included_in_price</config_path>
+                    <config_path>transiteo_settings/price_display/checkout_payment_page_included_in_price</config_path>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <tooltip><![CDATA[
                         <strong>False</strong>: taxes are displayed separately, not included in the product price.<br/>
@@ -348,7 +348,7 @@
                 <field id="checkout_payment_page_rounded" translate="label" type="select" sortOrder="14" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Rounded price (Checkout Payment Page)</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <config_path>transiteo_settings/price_display/checkout_payment_page/rounded_price</config_path>
+                    <config_path>transiteo_settings/price_display/checkout_payment_page_rounded_price</config_path>
                     <depends>
                         <field id="checkout_payment_page">1</field>
                     </depends>
