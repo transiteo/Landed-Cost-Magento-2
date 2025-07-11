@@ -85,7 +85,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         } else {
             $items = $quote->getItemsCollection()->getItems();
         }
-        if(!isset($items) || empty($items) || (reset($items)->getRowTotal()) === null){
+        if(!isset($items) || empty($items) || ($items->getFirstItem()->getRowTotal()) === null){
             return $this;
         }
 
