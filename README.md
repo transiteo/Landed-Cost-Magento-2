@@ -40,7 +40,7 @@ bin/magento queue:consumers:start transiteo.sync.product
 - The message queue consumer `transiteo.sync.order is responsible for synchronising the products.
 ```shell
 ### To manually launch the synchronisation of orders
-bin/magento queue:consumers:run transiteo.sync.order
+bin/magento queue:consumers:start transiteo.sync.order
 ```
 When a product or an order is saved, synchronisation messages will be added to the queues.
 
@@ -48,7 +48,13 @@ When indexing the indexer `catalog_product_category is running`, all the product
 ```shell
 ### To manually launch the synchronisation of all the products
 bin/magento indexer:reindex catalog_product_category
-bin/magento queue:consumers:run transiteo.sync.order
+bin/magento queue:consumers:start transiteo.sync.order
+```
+
+- The message queue consumer transiteo.sync.category is responsible for synchronising the categories.
+```shell
+### To manually launch the synchronisation of all the categories
+bin/magento queue:consumers:start transiteo.sync.category
 ```
 
 ### Cache Management

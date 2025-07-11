@@ -225,7 +225,7 @@
     <table name="transiteo_category_matrix" resource="default" engine="innodb" comment="Transiteo category‑country duty matrix">
         <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Primary key" />
         <column xsi:type="int" name="category_id" unsigned="true" nullable="false" comment="Magento Category ID" />
-        <column xsi:type="varchar" name="country_iso" length="2" nullable="false" comment="ISO country code" />
+        <column xsi:type="varchar" name="country_iso" length="5" nullable="false" comment="ISO country code" />
         <column xsi:type="smallint" name="restricted" unsigned="true" default="0" comment="Import restriction flag" />
         <column xsi:type="decimal" name="duty" scale="4" precision="12" nullable="true" comment="Duty %" />
         <column xsi:type="decimal" name="local_tax" scale="4" precision="12" nullable="true" comment="Local tax %" />

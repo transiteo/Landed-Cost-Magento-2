@@ -20,14 +20,12 @@
             $country = $this->getRequest()->getParam('country');
 
             if (!empty($country)) {
-                $this->categorySyncService->getListOfCategories($country);
+                $this->categorySyncService->addListCategoryToAsync($country);
             } else {
-                $this->categorySyncService->actionOnCategories();
+                $this->categorySyncService->addCategoriesToAsync();
             }
 
             $this->messageManager->addSuccessMessage(__('Synchronization added to queue.'));
-
-
 
             $resultRedirect = $this->resultRedirectFactory->create();
             return $resultRedirect->setPath('transiteo/matrix/index');

@@ -68,7 +68,7 @@
          *
          * @throws NoSuchEntityException
          */
-        public function getListOfCategories(?string $codePays = null, array $categoryIds = []): ?array
+        public function getListOfCategories(?string $codePays = null, array $categoryIdsArray = []): ?array
         {
             $request = [
                 'headers' => [
@@ -78,6 +78,8 @@
             ];
 
             $url = TransiteoApiService::API_REQUEST_URI . "v2/customer/categories?";
+
+            $categoryIds = $categoryIdsArray;
 
             if (empty($categoryIds)) {
                 $categoryIds = 'all';
@@ -112,7 +114,7 @@
 
             if (($status == "401") && isset($responseArray['message']) && $responseArray['message'] === "The incoming token has expired") {
                 $this->apiService->refreshIdToken();
-                return $this->getListOfCategories($codePays, $categoryIds);
+                return $this->getListOfCategories($codePays, $categoryIdsArray);
             }
 
             if ($status != "200") {
@@ -173,6 +175,19 @@
         {
             $data = [
                 'category_ids' => $categoryIds
+            ];
+
+            $message = serialize($data);
+            $this->publisher->publish(self::SYNC_CATEGORY_TOPIC, $message);
+        }
+
+        /**
+         * @param array $categoryIds
+         */
+        public function addListCategoryToAsync(string $country): void
+        {
+            $data = [
+                'country' => $country
             ];
 
             $message = serialize($data);

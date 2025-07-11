@@ -15,7 +15,7 @@
 
     <dataSource name="transiteo_categorymatrix_listing_data_source">
         <argument name="dataProvider" xsi:type="configurableObject">
-            <argument name="class" xsi:type="string">Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider</argument>
+            <argument name="class" xsi:type="string">Transiteo\LandedCost\Ui\DataProvider\Matrix\DataProvider</argument>
             <argument name="name" xsi:type="string">transiteo_categorymatrix_listing_data_source</argument>
             <argument name="primaryFieldName" xsi:type="string">entity_id</argument>
             <argument name="requestFieldName" xsi:type="string">id</argument>
@@ -48,9 +48,9 @@
                 <sorting>asc</sorting>
             </settings>
         </column>
-        <!--column name="category_name">
+        <column name="category_name">
             <settings><label>Category</label></settings>
-        </column-->
+        </column>
         <column name="country_iso">
             <settings><label>Country ISO</label></settings>
         </column>
@@ -60,13 +60,13 @@
         <column name="duty">
             <settings><label>Duty (%)</label></settings>
         </column>
-        <column name="local_taxe">
+        <column name="local_tax">
             <settings><label>Local Tax (%)</label></settings>
         </column>
-        <column name="salestax">
+        <column name="sales_tax">
             <settings><label>Sales Tax (%)</label></settings>
         </column>
-        <column name="special_taxe">
+        <column name="special_taxes">
             <settings><label>Special Tax (%)</label></settings>
         </column>
         <column name="eco_tax">
