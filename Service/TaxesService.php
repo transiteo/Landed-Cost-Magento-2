@@ -442,7 +442,7 @@ class TaxesService
     protected function fillProductParams(TransiteoApiProductParameters $productParams,ProductInterface $product,float $qty = 1,float $globalShipPrice = 0, ?float $overridePrice = null){
         $productParams->setSku($this->config->getTransiteoProductSku($product));
         $productParams->setProductName($product->getName());
-        $productParams->setWeight(round($product->getWeight(), 2));
+        $productParams->setWeight(round(floatval($product->getWeight()), 2));
         $productParams->setWeight(0);
         $productParams->setWeight_unit($this->config->getWeightUnit());
         $productParams->setQuantity($qty);

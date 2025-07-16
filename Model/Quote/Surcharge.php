@@ -85,7 +85,9 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         } else {
             $items = $quote->getItemsCollection()->getItems();
         }
-        if(!isset($items) || empty($items) || ($items->getFirstItem()->getRowTotal()) === null){
+        if(!isset($items) || empty($items)
+            || (is_object($items) && $items->getFirstItem()->getRowTotal()) === null
+            || (is_array($items) && reset($items) === null)) {
             return $this;
         }
 
@@ -278,7 +280,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
     protected function getTransiteoTaxes($quote, $total, $shippingAssignment = null)
     {
         ////LOGGER////
-        $this->taxexService->getLogger()->addDebug('Request for quoteID => ' . ($quote->getId() ?? '') . ' ' . ($quote->getCustomerEmail() ?? ''));
+        $this->taxexService->getLogger()->debug('Request for quoteID => ' . ($quote->getId() ?? '') . ' ' . ($quote->getCustomerEmail() ?? ''));
         /**
          * @var \Magento\Quote\Api\Data\CartItemInterface $quoteItem
          */
@@ -399,7 +401,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $this->specialTaxes = $taxes[TaxesService::RETURN_KEY_SPECIAL_TAXES];
         $this->totalTaxes = $taxes[TaxesService::RETURN_KEY_TOTAL_TAXES];
         //////////////////LOGGER//////////////
-        $this->taxexService->getLogger()->addDebug(
+        $this->taxexService->getLogger()->debug(
             'Result for quoteID => ' . ($quote->getId() ?? '') . ' ' . ($quote->getCustomerEmail() ?? '') . ' : ' .
             ',Duty => ' . ($taxes[TaxesService::RETURN_KEY_DUTY] ?? 'null') .
             ' ,VAT => ' . ($taxes[TaxesService::RETURN_KEY_VAT] ?? 'null') .
