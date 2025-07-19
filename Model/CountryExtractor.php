@@ -17,6 +17,11 @@
             $this->storeManager = $storeManager;
         }
 
+        /**
+         * Retourne les pays depuis tous les codes de boutiques.
+         *
+         * @return array
+         */
         public function getCountries(): array
         {
             $stores = $this->storeManager->getStores();
@@ -31,5 +36,21 @@
             }
 
             return array_keys($languages);
+        }
+
+        /**
+         * Retourne le code pays depuis le code de la boutique.
+         *
+         * @param string $storeCode
+         *
+         * @return string|null
+         */
+        public function getCountryByStoreCode(string $storeCode): ?string
+        {
+            if (str_ends_with($storeCode, '_store')) {
+                return strtoupper(substr($storeCode, 0, -strlen('_store')));
+            }
+
+            return null; // Return null if the store code does not match the expected format
         }
     }

@@ -33,4 +33,10 @@
     <event name="catalog_product_save_after">
         <observer name="transiteo_product_sync_save_after" instance="Transiteo\LandedCost\Observer\Sync\Product\SaveAfter" />
     </event>
+    <event name="catalog_category_save_after">
+        <observer name="transiteo_category_sync_save_after" instance="Transiteo\LandedCost\Observer\Sync\Category\SaveAfter" />
+    </event>
+    <event name="store_add">
+        <observer name="transiteo_store_add" instance="Transiteo\LandedCost\Observer\Sync\Category\StoreViewAdd" />
+    </event>
 </config>

@@ -16,9 +16,9 @@
 
     namespace Transiteo\LandedCost\Service;
 
-    use Blackbird\ContentManager\Block\View\Field\Product;
     use Magento\Catalog\Api\Data\CategoryInterface;
     use Magento\Catalog\Model\ResourceModel\Category\CollectionFactory;
+    use Magento\Framework\Exception\LocalizedException;
     use Magento\Framework\Exception\NoSuchEntityException;
     use Magento\Framework\MessageQueue\PublisherInterface;
     use Magento\Framework\Webapi\Rest\Request;
@@ -152,30 +152,44 @@
 
         /**
          * @param CategoryInterface $category
+         * @param string|null $country
          *
          * @return array
          */
-        public function transformCategoryIntoParam(CategoryInterface $category): array
+        public function transformCategoryIntoParam(CategoryInterface $category, ?string $country = null): array
         {
             $result = [];
 
-            $result[] = [
-                'category_name' => $category->getName(),
-                'category_id' => $category->getId(),
-                'country_iso' => $this->countryExtractor->getCountries()
-            ];
+            if (!empty($country)) {
+                $result[] = [
+                    'category_name' => $category->getName(),
+                    'category_id' => $category->getId(),
+                    'country_iso' => [$country]
+                ];
+            } else {
+                $result[] = [
+                    'category_name' => $category->getName(),
+                    'category_id' => $category->getId(),
+                    'country_iso' => $this->countryExtractor->getCountries()
+                ];
+            }
 
             return $result;
         }
 
         /**
          * @param array $categoryIds
+         * @param string|null $country
          */
-        public function addCategoriesToAsync(array $categoryIds = []): void
+        public function addCategoriesToAsync(array $categoryIds = [], ?string $country = null): void
         {
             $data = [
                 'category_ids' => $categoryIds
             ];
+
+            if (!empty($country)) {
+                $data['country'] = $country;
+            }
 
             $message = serialize($data);
             $this->publisher->publish(self::SYNC_CATEGORY_TOPIC, $message);
@@ -196,12 +210,15 @@
 
         /**
          * @param array $categoryIds
+         * @param int $page
+         * @param string|null $country
          *
          * @return bool indique si on a encore des lignes à traiter
          *
-         * @throws \Magento\Framework\Exception\LocalizedException
+         * @throws NoSuchEntityException
+         * @throws LocalizedException
          */
-        public function actionOnCategories(array $categoryIds = [], int $page = 1): bool
+        public function actionOnCategories(array $categoryIds = [], int $page = 1, ?string $country = null): bool
         {
             $categories = $this->categoryCollectionFactory->create()
                 ->addAttributeToSelect('name');
@@ -221,7 +238,7 @@
 
             $params = [];
             foreach ($categories as $category) {
-                $categoryParams = $this->transformCategoryIntoParam($category);
+                $categoryParams = $this->transformCategoryIntoParam($category, $country);
                 $params = array_merge($params, $categoryParams);
             }
 
@@ -233,7 +250,7 @@
 
             if ($hasNextPage) {
                 $page += 1;
-                return $this->actionOnCategories($categories->getAllIds(), $page);
+                return $this->actionOnCategories($categories->getAllIds(), $page, $country);
             }
 
             return $hasNextPage;

@@ -47,7 +47,7 @@
             try {
                 $params = unserialize($message);
                 if (array_key_exists("category_ids", $params)) {
-                    $this->categorySync->actionOnCategories($params['category_ids']);
+                    $this->categorySync->actionOnCategories($params['category_ids'], 1, $params['country'] ?? null);
                 } elseif (array_key_exists("country", $params)) {
                     $this->categorySync->getListOfCategories($params['country']);
                 }
