@@ -36,7 +36,7 @@
     {
         public const SYNC_CATEGORY_TOPIC = "transiteo.sync.category";
 
-        public const POST_CATEGORY_PAGE_SIZE = 100;
+        public const POST_CATEGORY_PAGE_SIZE = 10;
 
         /**
          * @param TransiteoApiService $apiService
@@ -234,8 +234,6 @@
 
             $categories->load();
 
-            $hasNextPage = $categories->getSize() === self::POST_CATEGORY_PAGE_SIZE;
-
             $params = [];
             foreach ($categories as $category) {
                 $categoryParams = $this->transformCategoryIntoParam($category, $country);
@@ -248,13 +246,10 @@
 
             $this->actionOnCategory($params);
 
-            if ($hasNextPage) {
-                $page += 1;
-                return $this->actionOnCategories($categories->getAllIds(), $page, $country);
-            }
-
-            return $hasNextPage;
+            $page += 1;
+            return $this->actionOnCategories($categories->getAllIds(), $page, $country);
         }
+
 
         /**
          * @param array $categoryParams

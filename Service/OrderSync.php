@@ -14,6 +14,8 @@
  * @support        https://github.com/transiteo/Landed-Cost-Magento-2/issues/new/
  */
 
+declare(strict_types=1);
+
 namespace Transiteo\LandedCost\Service;
 
 
@@ -200,17 +202,15 @@ class OrderSync
             'arrival_country' => $this->config->getIso3Country($order->getShippingAddress()->getCountryId()),
             'products' => $products,
             "shipping_carrier" => $this->getShippingCarrier($order),
-            "amount_products" => (float) $productTotal,
+//            "amount_products" => (float) $productTotal,
             "amount_shipping" => (float) $order->getShippingAmount(),
-            "amount_duty" => (float) $order->getTransiteoDuty(),
-            "amount_vat" => (float) $order->getTransiteoVat(),
-            "amount_specialtaxes" => (float) $order->getTransiteoSpecialTaxes(),
+//            "amount_duty" => (float) $order->getTransiteoDuty(),
+//            "amount_vat" => (float) $order->getTransiteoVat(),
+//            "amount_specialtaxes" => (float) $order->getTransiteoSpecialTaxes(),
             "currency" => $currencyCode,
             "order_statut" => $this->transformStatusIntoTransiteoOne($order->getStatus()),
             "order_update_statut" => (int) ($orderUpdateDate . '000')
         ];
-
-
 
         return $result;
     }

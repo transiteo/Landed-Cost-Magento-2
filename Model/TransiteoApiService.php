@@ -207,6 +207,7 @@ class TransiteoApiService
                 $params
             );
         } catch (GuzzleException $exception) {
+//            dd($exception);
             /** @var Response $response */
             $response = $this->responseFactory->create([
                 'status' => $exception->getCode(),

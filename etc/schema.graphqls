@@ -30,8 +30,189 @@ type CategoryTaxData {
 }
 
 type Query {
-    transiteoPriceDisplaySettings: TransiteoPriceDisplaySettings
-    @resolver(class: "Transiteo\\LandedCost\\Model\\Resolver\\PriceDisplaySettings")
+  transiteoPriceDisplaySettings: TransiteoPriceDisplaySettings
+  @resolver(class: "Transiteo\\LandedCost\\Model\\Resolver\\PriceDisplaySettings")
   transiteoCategoryTaxMatrix: [CategoryTaxData!]!
-    @resolver(class: "Transiteo\\LandedCost\\Model\\Resolver\\CategoryTaxDataResolver")
+  @resolver(class: "Transiteo\\LandedCost\\Model\\Resolver\\CategoryTaxDataResolver")
+}
+
+type DutiesTaxesVatFeesResult {
+  label: String
+  percentage: Float
+  product_taxes_amount: Float
+  shipping_taxes_amount: Float
+  packaging_taxes_amount: Float
+  insurance_taxes_amount: Float
+  message: String
+}
+
+type DutiesTaxesSpecialTaxesResult {
+  label: String
+  percentage: Float
+  product_taxes_amount: Float
+  shipping_taxes_amount: Float
+  packaging_taxes_amount: Float
+  insurance_taxes_amount: Float
+  message: String
+  vat_product_taxes_amount: String
+  vat_shipping_taxes_amount: Float
+  vat_packaging_taxes_amount: Float
+  vat_insurance_taxes_amount: Float
+  vat_taxes_amount: Float
+}
+
+type DutiesTaxesDutyFeesResult {
+  label: String
+  percentage: Float
+  product_taxes_amount: Float
+  shipping_taxes_amount: Float
+  packaging_taxes_amount: Float
+  insurance_taxes_amount: Float
+  message: String
+  vat_product_taxes_amount: Float
+  vat_shipping_taxes_amount: Float
+  vat_packaging_taxes_amount: Float
+  vat_insurance_taxes_amount: Float
+  vat_taxes_amount: Float
+  agreement: String
+}
+
+type DutiesTaxesProductIdentification {
+  value: String
+  type: String
+}
+
+type DutiesTaxesProductResult {
+  identification: DutiesTaxesProductIdentification
+  product_statut: String
+  amount_exclusive: Float
+  amount_inclusive_vat: Float
+  discount_exclusive: Float
+  discount_inclusive_vat: Float
+  amount_duty_and_tax: Float
+  amount_total: Float
+  percentage_duty_and_tax: Float
+  duty: DutiesTaxesDutyFeesResult
+  special_taxes: [DutiesTaxesSpecialTaxesResult]
+  vat: [DutiesTaxesVatFeesResult]
+}
+
+type DutyShippingGlobalResult {
+  label: String
+  amount: Float
+  percentage: Float
+  vat_amount: Float
+}
+
+type SpecialTaxesShippingGlobalResult {
+  label: String
+  amount: Float
+  percentage: Float
+  vat_amount: Float
+  message: String
+}
+
+type VatShippingGlobalResult {
+  label: String
+  amount: Float
+  percentage: Float
+  vat_amount: Float
+  message: String
+}
+
+type DutiesTaxesGlobalResult {
+  duty: DutyShippingGlobalResult
+  special_taxes: [SpecialTaxesShippingGlobalResult]
+  vat: [VatShippingGlobalResult]
+  amount_exclusive: Float
+  amount_inclusive_vat: Float
+  amount_total: Float
+  amount_duty_and_tax: Float
+  percentage_duty_and_tax: Float
+}
+
+type ExtraFeesResult {
+  percentage: Float
+  amount: Float
+  currency: String
+}
+
+type GlobalResult {
+  amount: Float
+  discount_exclusive: Float
+  discount_inclusive_vat: Float
+  amount_exclusive: Float
+  amount_inclusive_vat: Float
+  amount_total: Float
+  amount_duty_and_tax: Float
+  percentage_duty_and_tax: Float
+}
+
+type DutiesTaxesCalculationResult {
+  products: [DutiesTaxesProductResult!]!
+  shipping_global: DutiesTaxesGlobalResult
+  packaging_global: DutiesTaxesGlobalResult
+  insurance_global: DutiesTaxesGlobalResult
+  transit_fees_global: Float
+  incoterm: String
+  extra_fees: ExtraFeesResult
+  global: GlobalResult
+  timestamp: Int
+  #  shipmentType: String
+  #  ecommerceType: String
+  #  extraFees: Float
+}
+
+input DutiesTaxesSenderInput {
+  pro: Boolean
+  revenue_country_annual: Float
+  currency_revenue_country_annual: String
+  seller_id: String
+}
+
+input DutiesTaxesReceiverInput {
+  pro: Boolean
+  activity_id: String
+}
+
+input productIdentificationInput {
+  value: String
+  type: String
+}
+
+input DutiesTaxesProductInput {
+  identification: productIdentificationInput
+  weight: Float
+  weight_unit: String
+  quantity: Int
+  unit_price: Float
+  currency_unit_price: String
+  unit_ship_price: Float
+  unit_packaging_price: Float
+  unit_insurance_price: Float
+}
+
+input DutiesTaxesCalculationInput {
+  products: [DutiesTaxesProductInput!]!
+  lang: String
+  from_country: String!
+  to_country: String!
+  shipment_type: String!
+  global_ship_price: Float!
+  currency_global_ship_price: String!
+  global_packaging_price: Float
+  currency_global_packaging_price: String
+  global_insurance_price: Float
+  currency_global_insurance_price: String
+  included_tax: Boolean
+  incoterm: String
+  extra_fees: Float
+  sender: DutiesTaxesSenderInput!
+  receiver: DutiesTaxesReceiverInput!
+}
+
+## Duty Taxes Calculation on Checkout Page ##
+type Query {
+  calculateDutiesTaxes (input: DutiesTaxesCalculationInput! @doc(description: "Product input in query.")):
+  DutiesTaxesCalculationResult @resolver(class: "Transiteo\\LandedCost\\Model\\Resolver\\CalculateMarketplaceTaxesResolver") @doc(description: "Duty & Taxes Calculation on checkout payment page")
 }

@@ -28,7 +28,6 @@ use Monolog\Handler\StreamHandler;
  */
 class OrderSyncHandler
 {
-
     /**
      * @var \Transiteo\LandedCost\Logger\Logger
      */
@@ -51,56 +50,59 @@ class OrderSyncHandler
         \Transiteo\LandedCost\Logger\QueueLogger $logger,
         \Transiteo\LandedCost\Service\OrderSync $orderSync,
         OrderRepositoryInterface $orderRepository
-    )
-    {
+    ) {
         $this->orderRepository = $orderRepository;
-        $this->logger = $logger;
+        $this->logger = new Logger('custom');
+        $logFile = BP . '/var/log/test.log';
+        $logger->pushHandler(new StreamHandler($logFile, Logger::INFO));
         $this->orderSync = $orderSync;
     }
 
     /**
      * @param string $message
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Exception
      */
     public function process(string $message)
     {
         try {
             $params = unserialize($message);
-            //////////////////LOGGER//////////////
-//            $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/test.log');
-//            $logger->addWriter($writer);
 
-            $logger = new Logger('transiteo');
-            $logger->pushHandler(new StreamHandler(BP . '/var/log/test.log', Logger::DEBUG));
-            $result = \json_encode($params);
-            $logger->info($result);
+            //////////////////LOGGER//////////////
+            $result = json_encode($params);
+            $this->logger->info($result);
             ///////////////////////////////////////
+
             $method = $params["method"];
             $errorMessage = null;
-            if(array_key_exists("order", $params)) {
+            if (array_key_exists("order", $params)) {
                 $order = $params["order"];
-            } else{
-                $orderModel = $this->orderRepository->get((int) $params['order_id']);
+            } else {
+                $orderModel = $this->orderRepository->get((int)$params['order_id']);
                 $order = $this->orderSync->transformOrderIntoParam($orderModel, $method);
             }
 
             $errorMessage = $this->orderSync->actionOnOrder($order, $method);
+            $this->logger->debug($errorMessage);
+
             //if the order does not exist, create it.
-            if($errorMessage && $method === Request::HTTP_METHOD_PUT){
-                if(!isset($orderModel)){
-                    $orderModel = $this->orderRepository->get((int) $params['order_id']);
+            if ($errorMessage && $method === Request::HTTP_METHOD_PUT) {
+                if (!isset($orderModel)) {
+                    $orderModel = $this->orderRepository->get((int)$params['order_id']);
                 }
                 $order = $this->orderSync->transformOrderIntoParam($orderModel, Request::HTTP_METHOD_POST);
                 $errorMessage = $this->orderSync->actionOnOrder($order, Request::HTTP_METHOD_POST);
             }
-            if($errorMessage) {
-                $message = "Error in response from Api, error : " . $errorMessage . "  in message " . $message . " with request : " . $requestParams;
-                $this->logger->debug($message);
-                $requestParams =  \json_encode($order);
-                throw new \Exception("Error in response from Api, error : " . $errorMessage . "  in message " . $message . " with request : " . $requestParams);
+            if ($errorMessage) {
+                $message = "Error in response from Api, error : " . $errorMessage . "  in message " . $message . " with request : " . $message;
+                $this->logger->debug($errorMessage);
+                $requestParams = \json_encode($order);
+                throw new \Exception(
+                    "Error in response from Api, error : " . $errorMessage . "  in message " . $message . " with request : " . $requestParams
+                );
             }
-        }catch (\Exception $exception){
-            $this->logger->debug($exception);
+        } catch (\Exception $exception) {
+            //////////////////LOGGER//////////////
+            $this->logger->error($exception->getTraceAsString());
             throw $exception;
         }
     }
