@@ -24,4 +24,7 @@
     <publisher topic="transiteo.sync.category">
         <connection name="db" exchange="transiteo-sync-category-exchange" disabled="false"/>
     </publisher>
+    <publisher topic="transiteo.sync.seller">
+        <connection name="db" exchange="transiteo-sync-seller-exchange" disabled="false"/>
+    </publisher>
 </config>

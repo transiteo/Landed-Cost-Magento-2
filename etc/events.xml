@@ -39,4 +39,7 @@
     <event name="store_add">
         <observer name="transiteo_store_add" instance="Transiteo\LandedCost\Observer\Sync\Category\StoreViewAdd" />
     </event>
+    <event name="mp_approve_seller">
+        <observer name="transiteo_mp_approve_seller" instance="Transiteo\LandedCost\Observer\Sync\Seller\SaveAfter" />
+    </event>
 </config>

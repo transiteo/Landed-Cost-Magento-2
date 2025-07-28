@@ -246,6 +246,7 @@
         <column xsi:type="int" name="log_id" identity="true" unsigned="true" nullable="false" comment="Primary key" />
         <column xsi:type="varchar" name="action" length="32" nullable="false" />
         <column xsi:type="text" name="payload" />
+        <column xsi:type="text" name="result" />
         <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" />
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="log_id" />

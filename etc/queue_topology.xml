@@ -33,4 +33,10 @@
                  destinationType="queue"
                  destination="transiteo_sync_category_queue"/>
     </exchange>
+    <exchange name="transiteo-sync-seller-exchange" type="topic" connection="db">
+        <binding id="process"
+                 topic="transiteo.sync.seller"
+                 destinationType="queue"
+                 destination="transiteo_sync_seller_queue"/>
+    </exchange>
 </config>

@@ -30,4 +30,9 @@
                  type="Transiteo\LandedCost\Model\Sync\CategorySyncHandler"
                  method="process"/>
     </topic>
+    <topic name="transiteo.sync.seller" request="string">
+        <handler name="processSellerSync"
+                 type="Transiteo\LandedCost\Model\Sync\SellerSyncHandler"
+                 method="process"/>
+    </topic>
 </config>

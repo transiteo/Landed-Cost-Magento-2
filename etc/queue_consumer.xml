@@ -30,4 +30,9 @@
               handler="Transiteo\LandedCost\Model\Sync\CategorySyncHandler::process"
               connection="db"
     />
+    <consumer name="transiteo.sync.seller"
+              queue="transiteo_sync_seller_queue"
+              handler="Transiteo\LandedCost\Model\Sync\SellerSyncHandler::process"
+              connection="db"
+    />
 </config>

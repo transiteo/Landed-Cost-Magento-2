@@ -18,6 +18,7 @@
 
     use Magento\Catalog\Api\Data\CategoryInterface;
     use Magento\Catalog\Model\ResourceModel\Category\CollectionFactory;
+    use Magento\Framework\Exception\AlreadyExistsException;
     use Magento\Framework\Exception\LocalizedException;
     use Magento\Framework\Exception\NoSuchEntityException;
     use Magento\Framework\MessageQueue\PublisherInterface;
@@ -62,13 +63,15 @@
 
         /**
          * @param string|null $codePays
-         * @param array $categoryIds
+         * @param array $categoryIdsArray
+         * @param int $index
          *
          * @return array|null
          *
          * @throws NoSuchEntityException
+         * @throws AlreadyExistsException
          */
-        public function getListOfCategories(?string $codePays = null, array $categoryIdsArray = []): ?array
+        public function getListOfCategories(?string $codePays = null, array $categoryIdsArray = [], int $index = 0): ?array
         {
             $request = [
                 'headers' => [
@@ -87,18 +90,17 @@
                 $categoryIds = implode(',', $categoryIds);
             }
 
-            $url .= 'category_ids=' . $categoryIds;
-
-            if (!empty($codePays)) {
-                $url .= '&country_iso=' . $codePays;
+            if (!empty($categoryIds)) {
+                $url .= 'category_ids=' . $categoryIds;
             }
 
-            // Enregistre la synchro de données
-            $categorySyncLog = $this->categorySyncLogFactory->create()
-                ->setAction(CategorySyncLog::TYPE_GET)
-                ->setPayload($url)
-                ->setCreatedAt(date('Y-m-d H:i:s'));
-            $this->categorySyncLogResourceModel->save($categorySyncLog);
+            if (!empty($codePays)) {
+                $url .= '&country=' . $codePays;
+            }
+
+            if (!empty($index)) {
+                $url .= '&index=' . $index;
+            }
 
             $response = $this->apiService->doRequest(
                 $url,
@@ -109,6 +111,14 @@
 
             $responseBody = $response->getBody();
             $responseContent = $responseBody->getContents();
+
+            // Enregistre la synchro de données
+            $categorySyncLog = $this->categorySyncLogFactory->create()
+                ->setAction(CategorySyncLog::TYPE_GET)
+                ->setPayload($url)
+                ->setCreatedAt(date('Y-m-d H:i:s'))
+                ->setResult($status . ' - ' . $response->getReasonPhrase());
+            $this->categorySyncLogResourceModel->save($categorySyncLog);
 
             $responseArray = json_decode($responseContent, true);
 
@@ -131,6 +141,10 @@
             foreach ($responseArray['data'] as $taxeData) {
                 // Enregistrement des données dans transiteo_category_matrix
                 $this->saveCategoryTaxData($taxeData);
+            }
+
+            if (!empty($responseArray['index'])) {
+                $this->getListOfCategories($codePays, $categoryIdsArray, $responseArray['index']);
             }
 
             return $responseArray;
@@ -221,7 +235,9 @@
         public function actionOnCategories(array $categoryIds = [], int $page = 1, ?string $country = null): bool
         {
             $categories = $this->categoryCollectionFactory->create()
-                ->addAttributeToSelect('name');
+                ->addAttributeToSelect('name')
+                ->addAttributeToSort('name', 'ASC')
+                ->addAttributeToSort('entity_id', 'ASC');
 
             if (!empty($categoryIds)) {
                 $categories->addFieldToFilter('entity_id', ['in' => $categoryIds]);
@@ -240,16 +256,16 @@
                 $params = array_merge($params, $categoryParams);
             }
 
-            if (empty($params)) {
+            $this->actionOnCategory($params);
+
+            if ($categories->getSize() <= ($page * self::POST_CATEGORY_PAGE_SIZE)) {
+                // loop end, no more categories to process
                 return false;
             }
 
-            $this->actionOnCategory($params);
-
-            $page += 1;
+            $page++;
             return $this->actionOnCategories($categories->getAllIds(), $page, $country);
         }
-
 
         /**
          * @param array $categoryParams
@@ -271,13 +287,6 @@
 
             $url = TransiteoApiService::API_REQUEST_URI . "v2/customer/categories";
 
-            // Enregistre la synchro de données
-            $categorySyncLog = $this->categorySyncLogFactory->create()
-                ->setAction(CategorySyncLog::TYPE_POST)
-                ->setPayload(json_encode($categoryParams))
-                ->setCreatedAt(date('Y-m-d H:i:s'));
-            $this->categorySyncLogResourceModel->save($categorySyncLog);
-
             $response = $this->apiService->doRequest(
                 $url,
                 $request,
@@ -290,6 +299,14 @@
             $responseContent = $responseBody->getContents();
 
             $responseArray = json_decode($responseContent, true);
+
+            // Enregistre la synchro de données
+            $categorySyncLog = $this->categorySyncLogFactory->create()
+                ->setAction(CategorySyncLog::TYPE_POST)
+                ->setPayload(json_encode($categoryParams))
+                ->setResult($status . ' - ' . $response->getReasonPhrase())
+                ->setCreatedAt(date('Y-m-d H:i:s'));
+            $this->categorySyncLogResourceModel->save($categorySyncLog);
 
             if (($status == "401") && isset($responseArray['message']) && $responseArray['message'] === "The incoming token has expired") {
                 $this->apiService->refreshIdToken();
