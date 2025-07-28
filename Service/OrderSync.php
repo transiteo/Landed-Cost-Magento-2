@@ -190,7 +190,8 @@ class OrderSync
         if(empty($statusHistories)){
             $orderUpdateDate = strtotime($order->getCreatedAt());
         }else{
-            $orderUpdateDate = strtotime(end($statusHistories)->getCreatedAt());
+            $orderUpdateDate = strtotime(end($statusHistories)->getCreatedAt()
+                ?? (new \DateTime())->format("Y-m-d H:i:s"));
         }
         $result = [
             'order_id' => $order->getData($this->config->getOrderIdentifier()),

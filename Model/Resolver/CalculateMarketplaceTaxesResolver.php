@@ -25,20 +25,13 @@ use Magento\Framework\Webapi\Rest\Request;
  */
 class CalculateMarketplaceTaxesResolver implements ResolverInterface
 {
-    private $apiService;
-
-    private $customerSession;
-
     /**
      * CalculateMarketplaceTaxesResolver constructor.
      * @param TransiteoApiService $apiService
      * @param CustomerSession $customerSession
      */
-    public function __construct(TransiteoApiService $apiService, CustomerSession $customerSession)
-    {
-        $this->apiService = $apiService;
-        $this->customerSession = $customerSession;
-    }
+    public function __construct(private TransiteoApiService $apiService, private CustomerSession $customerSession)
+    {}
 
     /**
      * @param $field

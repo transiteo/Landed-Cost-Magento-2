@@ -14,6 +14,7 @@
  * @license          MIT
  * @support        https://github.com/transiteo/Landed-Cost-Magento-2/issues/new/
  */
+declare(strict_types=1);
 
 namespace Transiteo\LandedCost\Model\Quote;
 
@@ -105,8 +106,8 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                 }
             } catch (\Exception $exception) {
                 //////////////////LOGGER//////////////
-                $this->taxexService->getLogger()->addError($exception->getMessage());
-                ///////////////////////////////////////
+                $this->taxexService->getLogger()->error($exception->getMessage());
+                //  /////////////////////////////////////
                 $this->totalTaxes = null;
                 $this->specialTaxes = null;
                 $this->duty = null;
@@ -205,7 +206,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                 $quote->save();
             }catch (\Exception $e){
                 //////////////////LOGGER//////////////
-                $this->taxexService->getLogger()->addError($e->getMessage());
+                $this->taxexService->getLogger()->error($e->getMessage());
                 ///////////////////////////////////////
             }
         }
