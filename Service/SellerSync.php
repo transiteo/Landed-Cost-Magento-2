@@ -68,7 +68,7 @@
             $seller = $this->sellerFactory->create();
 
             try {
-                $this->sellerResource->load($seller, $sellerID);
+                $this->sellerResource->load($seller, $sellerID, 'seller_id');
             } catch (Exception) {
                 return null;
             }
@@ -77,9 +77,9 @@
                 return null;
             }
 
-            $categoryParams = $this->transformSellerIntoParam($seller);
+            $sellerParams = $this->transformSellerIntoParam($seller);
 
-            return $this->actionOnSeller($categoryParams);
+            return $this->actionOnSeller($sellerParams);
         }
 
         /**
