@@ -54,8 +54,15 @@
         {
             try {
                 /** @var Seller $seller */
-                $seller = $observer->getEvent()->getSeller();
-                $this->sellerSync->createSellerAsync($seller);
+                $seller = $observer->getEvent()->getObject();
+
+                // Send seller only when shop_title is set
+                $newShopTitle = trim((string)$seller->getData('shop_title'));
+                $oldShopTitle = trim((string)$seller->getOrigData('shop_title'));
+
+                if (empty($oldShopTitle) && !empty($newShopTitle)) {
+                    $this->sellerSync->createSellerAsync($seller);
+                }
             } catch (Exception $e) {
                 $this->logger->error($e);
             }

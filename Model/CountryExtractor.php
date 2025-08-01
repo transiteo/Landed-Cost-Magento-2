@@ -2,6 +2,7 @@
 
     namespace Transiteo\LandedCost\Model;
 
+    use Magento\Directory\Model\ResourceModel\Country\CollectionFactory as CountryCollectionFactory;
     use Magento\Store\Model\StoreManagerInterface;
 
     /**
@@ -10,11 +11,10 @@
      */
     class CountryExtractor
     {
-        protected StoreManagerInterface $storeManager;
-
-        public function __construct(StoreManagerInterface $storeManager)
-        {
-            $this->storeManager = $storeManager;
+        public function __construct(
+            protected StoreManagerInterface $storeManager,
+            private CountryCollectionFactory $countryCollectionFactory
+        ) {
         }
 
         /**
@@ -34,8 +34,23 @@
                     $languages[$lang] = true;
                 }
             }
+            
+            $countryCollection = $this->countryCollectionFactory->create();
+            $countryCollection->addFieldToSelect(['country_id', 'iso2_code', 'iso3_code']);
 
-            return array_keys($languages);
+            $iso2ToIso3 = [];
+            foreach ($countryCollection as $country) {
+                $iso2ToIso3[strtoupper($country->getData('iso2_code'))] = $country->getData('iso3_code');
+            }
+
+            $result = [];
+            foreach (array_keys($languages) as $iso2) {
+                if (isset($iso2ToIso3[$iso2])) {
+                    $result[] = $iso2ToIso3[$iso2];
+                }
+            }
+
+            return array_unique($result);
         }
 
         /**
