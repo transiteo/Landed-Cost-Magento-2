@@ -96,9 +96,9 @@ class CalculateMarketplaceTaxesResolver implements ResolverInterface
 
                 throw new \Exception($message);
             }
-            $responseArray->timestamp = (new \DateTime())->getTimestamp();
+            $response = ((array)$responseArray)[0] ?? [];
 
-            return (array)$responseArray;
+            return ((array)$response);
         } catch (\Exception $e) {
             throw new GraphQlInputException(__('Unable to calculate duties and taxes: ' . $e->getMessage()));
         }

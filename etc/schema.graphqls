@@ -77,9 +77,19 @@ type DutiesTaxesDutyFeesResult {
   agreement: String
 }
 
+enum IDENTIFICATION_TYPE
+{
+    FRONT
+    BARCODE
+    HS17
+    TEXT
+    SKU
+    CATEGORY
+}
+
 type DutiesTaxesProductIdentification {
   value: String
-  type: String
+  type: IDENTIFICATION_TYPE
 }
 
 type DutiesTaxesProductResult {
@@ -95,6 +105,7 @@ type DutiesTaxesProductResult {
   duty: DutiesTaxesDutyFeesResult
   special_taxes: [DutiesTaxesSpecialTaxesResult]
   vat: [DutiesTaxesVatFeesResult]
+  transit_fees: Float
 }
 
 type DutyShippingGlobalResult {
@@ -149,65 +160,71 @@ type GlobalResult {
 }
 
 type DutiesTaxesCalculationResult {
-  products: [DutiesTaxesProductResult!]!
-  shipping_global: DutiesTaxesGlobalResult
-  packaging_global: DutiesTaxesGlobalResult
-  insurance_global: DutiesTaxesGlobalResult
-  transit_fees_global: Float
-  incoterm: String
+  products: [DutiesTaxesProductResult]
+  incoterm: INCOTERM
   extra_fees: ExtraFeesResult
   global: GlobalResult
-  timestamp: Int
-  #  shipmentType: String
-  #  ecommerceType: String
-  #  extraFees: Float
+  timestamp: ID
 }
 
 input DutiesTaxesSenderInput {
-  pro: Boolean
+  pro: Boolean!
   revenue_country_annual: Float
   currency_revenue_country_annual: String
-  seller_id: String
+  seller_id: String!
 }
 
 input DutiesTaxesReceiverInput {
-  pro: Boolean
+  pro: Boolean!
   activity_id: String
 }
 
 input productIdentificationInput {
-  value: String
-  type: String
+  value: String!
+  type: IDENTIFICATION_TYPE!
 }
 
 input DutiesTaxesProductInput {
-  identification: productIdentificationInput
-  weight: Float
-  weight_unit: String
-  quantity: Int
-  unit_price: Float
+  identification: productIdentificationInput!
+  weight: Float!
+  weight_unit: String!
+  quantity: Int!
+  unit_price: Float!
+  group_shipping_price: Float
   currency_unit_price: String
-  unit_ship_price: Float
-  unit_packaging_price: Float
-  unit_insurance_price: Float
+  from_country: String! @doc(description: "ISO3 of the departure country")
+  to_country: String! @doc(description: "ISO3 of the destination country")
+  included_tax: Boolean!
+  incoterm: INCOTERM!
+  sender: DutiesTaxesSenderInput!
+}
+
+enum ECOMMERCE_TYPE @doc(description: "Type of e-commerce to use")
+{
+    ESHOP @doc(description: "For e-shop e-commerce")
+    MARKETPLACE  @doc(description: "For marketplace e-commerce")
+}
+
+enum SALES_TERM @doc(description: "Term of sales")
+{
+    btob @doc(description: "Business to business")
+    btoc @doc(description: "Business to client")
+}
+
+enum INCOTERM
+{
+    CIF
+    FOB
 }
 
 input DutiesTaxesCalculationInput {
   products: [DutiesTaxesProductInput!]!
-  lang: String
-  from_country: String!
-  to_country: String!
   shipment_type: String!
-  global_ship_price: Float!
-  currency_global_ship_price: String!
-  global_packaging_price: Float
-  currency_global_packaging_price: String
-  global_insurance_price: Float
-  currency_global_insurance_price: String
-  included_tax: Boolean
-  incoterm: String
+  included_tax: Boolean!
+  incoterm: INCOTERM!
   extra_fees: Float
-  sender: DutiesTaxesSenderInput!
+  ecommerce_type: ECOMMERCE_TYPE!
+  sales_term: SALES_TERM!
   receiver: DutiesTaxesReceiverInput!
 }
 
