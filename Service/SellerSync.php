@@ -68,7 +68,7 @@
             $seller = $this->sellerFactory->create();
 
             try {
-                $this->sellerResource->load($seller, $sellerID, 'seller_id');
+                $this->sellerResource->load($seller, $sellerID);
             } catch (Exception) {
                 return null;
             }

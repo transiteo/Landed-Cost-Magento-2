@@ -29,13 +29,6 @@ type CategoryTaxData {
   eco_tax: Float
 }
 
-type Query {
-  transiteoPriceDisplaySettings: TransiteoPriceDisplaySettings
-  @resolver(class: "Transiteo\\LandedCost\\Model\\Resolver\\PriceDisplaySettings")
-  transiteoCategoryTaxMatrix: [CategoryTaxData!]!
-  @resolver(class: "Transiteo\\LandedCost\\Model\\Resolver\\CategoryTaxDataResolver")
-}
-
 type DutiesTaxesVatFeesResult {
   label: String
   percentage: Float
@@ -232,4 +225,9 @@ input DutiesTaxesCalculationInput {
 type Query {
   calculateDutiesTaxes (input: DutiesTaxesCalculationInput! @doc(description: "Product input in query.")):
   DutiesTaxesCalculationResult @resolver(class: "Transiteo\\LandedCost\\Model\\Resolver\\CalculateMarketplaceTaxesResolver") @doc(description: "Duty & Taxes Calculation on checkout payment page")
+  transiteoPriceDisplaySettings: TransiteoPriceDisplaySettings @resolver(class: "Transiteo\\LandedCost\\Model\\Resolver\\PriceDisplaySettings")
+  transiteoCategoryTaxMatrix(
+        id: [Int!]! @doc(description: "ID of the categories")
+        country_iso: [String!]! @doc(description: "ISO3 of the countries")
+    ): [CategoryTaxData!]! @resolver(class: "Transiteo\\LandedCost\\Model\\Resolver\\CategoryTaxDataResolver")
 }

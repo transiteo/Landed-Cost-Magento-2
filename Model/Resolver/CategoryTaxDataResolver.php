@@ -20,6 +20,14 @@
         public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
         {
             $select = $this->connection->select()->from('transiteo_category_matrix');
+            if (!empty($args['id']) && is_array($args['id'])) {
+                $select->where('category_id IN (?)', $args['id']);
+            }
+
+            if (!empty($args['country_iso']) && is_array($args['country_iso'])) {
+                $select->where('country_iso IN (?)', $args['country_iso']);
+            }
+
             $rows   = $this->connection->fetchAll($select);
             return array_map(function ($row) {
                 return [
