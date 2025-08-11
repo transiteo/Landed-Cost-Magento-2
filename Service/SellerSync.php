@@ -91,26 +91,41 @@
         public function transformSellerIntoParam(Seller $seller): array
         {
             $customer = $this->customerFactory->create();
+            $result = [];
+
             try {
                 $this->customerResource->load($customer, $seller->getSellerId());
+
+                $addresses = $customer->getAddresses();
+
+                foreach ($addresses as $address) {
+                    $result = [
+                        'country'     => $address->getCountryId(),
+                        'street'      => implode(' ', $address->getStreet()), // Street est un array
+                        'postal_code' => $address->getPostcode(),
+                        'city'        => $address->getCity(),
+                    ];
+
+                    break;
+                }
             } Catch (Exception) {
             }
 
-            $result = [
-                'id' => $seller->getSellerId(),
-                'name' => $seller->getShopTitle(),
-                'mail' => $customer->getEmail(),
-                'manager_name' => $customer->getName(),
-                'phone' => $seller->getContactNumber(),
-                'vat_number' => $customer->getTaxvat(),
-                //'eori_number' => ?
-                'country' => $seller->getCountryPic(),
-                "city" => $seller->getCompanyLocality(),
-            ];
+            if (empty($result)) {
+                $result = [
+                    'country' => $seller->getCountryPic(),
+                    "city" => $seller->getCompanyLocality(),
+                ];
+            }
+
+            $result['id'] = $seller->getSellerId();
+            $result['name'] = $seller->getShopTitle();
+            $result['mail'] = $customer->getEmail();
+            $result['manager_name'] = $customer->getName();
+            $result['phone'] = $seller->getContactNumber();
+            $result['vat_number'] = $customer->getTaxvat();
 
             /*
-              "street": "11 rue de la République",
-              "postal_code": "75002",
               "SYDEREP": {
                         "CRITEO": 8765RFGH76T,
                   "REFASHION": HJGFRTYHUY6T5*/
