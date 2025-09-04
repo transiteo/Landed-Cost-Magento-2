@@ -54,17 +54,16 @@ class TransiteoApiShipmentParameters
         $array = [
             "lang" => $this->lang,
             "from_country" => $this->fromCountry,
-           "from_district" => $this->fromDistrict,
+//            "from_district" => $this->fromDistrict,
             "to_country" => $this->toCountry,
             "to_district" => $this->toDistrict,
             "shipment_type" => $this->shipmentType,
             'included_tax' => $this->isIncludedTaxes,
             'incoterm' => $this->taxesCalculationMethod,
-            //'ecommerce_type'=>  'MARKETPLACE',
             "sender" => [
                 "pro" => $this->senderPro,
-                //"revenue_country_annual" => $this->senderProRevenue,
-                //"currency_revenue_country_annual" => $this->senderProRevenueCurrency
+                "revenue_country_annual" => $this->senderProRevenue,
+                "currency_revenue_country_annual" => $this->senderProRevenueCurrency
             ],
             "receiver" => [
                 "pro" => $this->receiverPro
