@@ -130,39 +130,12 @@ class TransiteoProducts
         $this->getDutiesCalled = true;
         $finalParams = [];
         $cacheParams = $this->shipmentParams->buildArrayForCache();
-        
-        // Récupérer les paramètres d'expédition pour les copier dans chaque produit
-        $shipmentData = $this->shipmentParams->buildArray();
-        
         foreach ($this->productsParams as $id => $param) {
-            $productArray = $param->buildArray();
-            
-            // Ajouter les informations d'expédition à chaque produit si elles ne sont pas déjà définies
-            if (!isset($productArray['from_country']) && isset($shipmentData['from_country'])) {
-                $productArray['from_country'] = $shipmentData['from_country'];
-            }
-            if (!isset($productArray['to_country']) && isset($shipmentData['to_country'])) {
-                $productArray['to_country'] = $shipmentData['to_country'];
-            }
-            if (!isset($productArray['included_tax']) && isset($shipmentData['included_tax'])) {
-                $productArray['included_tax'] = $shipmentData['included_tax'];
-            }
-            if (!isset($productArray['incoterm']) && isset($shipmentData['incoterm'])) {
-                $productArray['incoterm'] = $shipmentData['incoterm'];
-            }
-            if (!isset($productArray['sender']) && isset($shipmentData['sender'])) {
-                $productArray['sender'] = $shipmentData['sender'];
-            }
-            // Ajouter group_shipping_price depuis les données d'expédition si pas défini
-            if (!isset($productArray['group_shipping_price']) && isset($shipmentData['global_ship_price'])) {
-                $productArray['group_shipping_price'] = $shipmentData['global_ship_price'];
-            }
-            
-            $finalParams['products'][] = $productArray;
+            $finalParams['products'][] = $param->buildArray();
             $cacheParams[$id] = $param->builArrayForCache();
         }
 
-        $finalParams = array_merge($finalParams, $shipmentData);
+        $finalParams = array_merge($finalParams, $this->shipmentParams->buildArray());
 
         $cacheKey = $this->taxesCacheHandler->getKeyFromRequest($cacheParams);
         $cachedTaxes = $this->taxesCacheHandler->loadFromCache($cacheKey);
