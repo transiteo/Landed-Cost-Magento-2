@@ -43,6 +43,19 @@ class TransiteoApiShipmentParameters
 
     protected $taxesCalculationMethod;
 
+    /**
+     * @var string
+     */
+    protected $salesTerm;
+    /**
+     * @var string
+     */
+    protected $ecommerceType;
+    /**
+     * @var float
+     */
+    protected $extraFees;
+
     public function __construct(
         SerializerInterface $serializer
     ) {
@@ -84,6 +97,40 @@ class TransiteoApiShipmentParameters
             $array["currency_global_ship_price"] = $this->currencyGlobalShipPrice;
         }
 
+        if ($this->shipmentType ==='GROUP') {
+            if (isset($array["from_country"])) {
+                unset($array["from_country"]);
+            }
+            if (isset($array["from_district"])) {
+                unset($array["from_district"]);
+            }
+            if (isset($array["to_country"])) {
+                unset($array["to_country"]);
+            }
+            if (isset($array["to_district"])) {
+                unset($array["to_district"]);
+            }
+            if (isset($array["sender"])) {
+                unset($array["sender"]);
+            }
+            if (isset($array["global_ship_price"])) {
+                unset($array["global_ship_price"]);
+            }
+            if (isset($array["currency_global_ship_price"])) {
+                unset($array["currency_global_ship_price"]);
+            }
+        }
+
+        if(isset($this->salesTerm)){
+            $array["sales_term"] = $this->salesTerm;
+        }
+        if(isset($this->ecommerceType)){
+            $array["ecommerce_type"] = $this->ecommerceType;
+        }
+        if(isset($this->extraFees)){
+            $array["extra_fees"] = $this->extraFees;
+        }
+
         if ($this->transportCarrier != null) {
             $array['transport'] = [
                 "type" => $this->transportType,
@@ -101,13 +148,15 @@ class TransiteoApiShipmentParameters
     public function buildArrayForCache(){
         $result = $this->buildArray();
         $array = [
-            $result["to_country"],
-            $result["to_district"],
             $result["shipment_type"],
-            $result["global_ship_price"],
             $result['included_tax'],
             $result['incoterm'],
         ];
+        if($this->shipmentType !=='GROUP'){
+            $array[]= $result["to_country"];
+            $array[] = $result["to_district"];
+            $array[] = $result["global_ship_price"];
+        }
         if ($this->shipmentType ==='GLOBAL') {
             $array[] = $result["global_ship_price"];
             $array[] = $result["currency_global_ship_price"];
@@ -208,22 +257,40 @@ class TransiteoApiShipmentParameters
     /**
      * Set the value of shipmentType
      *
-     * @param bool $isGlobal
+     * @param string $type
      * @param float $globalShipPrice
      * @param string $currencyGlobalShipPrice
      *
      * @return  self
      */
-    public function setShipmentType($isGlobal, $globalShipPrice = null, $currencyGlobalShipPrice = null)
+    public function setShipmentType($type = "GLOBAL", $globalShipPrice = null, $currencyGlobalShipPrice = null)
     {
-        if ($isGlobal) {
-            $this->shipmentType = "GLOBAL";
+        if ($type === "GLOBAL") {
+            $this->shipmentType = $type;
             $this->globalShipPrice = $globalShipPrice;
             $this->currencyGlobalShipPrice = $currencyGlobalShipPrice;
-        } else {
-            $this->shipmentType = "ARTICLE";
+            return $this;
+        }
+
+        if ($type === "ARTICLE") {
+            $this->shipmentType = $type;
+            $this->globalShipPrice = $globalShipPrice;
+            $this->currencyGlobalShipPrice = $currencyGlobalShipPrice;
+            return $this;
+        }
+
+        /**
+         * @TODO hardocoded
+         */
+        if ($type === "GROUP") {
+            $this->shipmentType = $type;
             $this->globalShipPrice = null;
             $this->currencyGlobalShipPrice = null;
+            $this->salesTerm = "btoc";
+            $this->ecommerceType = "MARKETPLACE";
+            $this->extraFees = 0.03;
+            $this->isIncludedTaxes = true;
+            return $this;
         }
 
         return $this;

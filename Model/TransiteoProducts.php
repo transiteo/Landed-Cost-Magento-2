@@ -22,6 +22,8 @@ use Transiteo\LandedCost\Model\Cache\Handler\Taxes;
 
 class TransiteoProducts
 {
+    public const FALLBACK_DUTY_PERCENT = 0.06;
+
     /**
      * @var TransiteoApiService
      */
@@ -132,7 +134,7 @@ class TransiteoProducts
         $cacheParams = $this->shipmentParams->buildArrayForCache();
         foreach ($this->productsParams as $id => $param) {
             $finalParams['products'][] = $param->buildArray();
-            $cacheParams[$id] = $param->builArrayForCache();
+            $cacheParams[$id] = $param->buildArrayForCache();
         }
 
         $finalParams = array_merge($finalParams, $this->shipmentParams->buildArray());
@@ -142,6 +144,10 @@ class TransiteoProducts
         if(!isset($cachedTaxes)){
             $this->apiService->getLogger()->debug('Requesting to API :');
             $this->apiResponseContent = \json_decode(($this->getDutiesFromApi($finalParams)), true);
+
+            if(array_key_exists(0, $this->apiResponseContent ?? [])){
+                $this->apiResponseContent = $this->apiResponseContent[0];
+            }
             //set products ids as keys for results products
             if (isset($this->apiResponseContent["products"])&& isset($this->productsParams)) {
                 $this->apiResponseContent["products"] = \array_combine(\array_keys($this->productsParams), $this->apiResponseContent["products"]);
@@ -265,10 +271,7 @@ class TransiteoProducts
     public function getDuty($productId)
     {
         if (!$this->isValid()) {
-            $response = $this->getDuties();
-            if ($response !== true) {
-                return null;
-            }
+            $this->getDuties();
         }
 
         $isNull = true;
@@ -279,7 +282,13 @@ class TransiteoProducts
             $isNull &= $this->safeSum($total, $this->apiResponseContent["products"][$productId]["duty"]["shipping_taxes_amount"] ?? null);
             $isNull &= $this->safeSum($total, $this->apiResponseContent["products"][$productId]["duty"]["packaging_taxes_amount"] ?? null);
             $isNull &= $this->safeSum($total, $this->apiResponseContent["products"][$productId]["duty"]["insurance_taxes_amount"] ?? null);
+        }else if(!$this->responseIsOk){
+            ////LOGGER////
+            $product = $this->productsParams[$productId];
+            $isNull &= $this->safeSum($total,(($product->getUnitPrice() + $product->getUnitShipPrice()) * self::FALLBACK_DUTY_PERCENT * $product->getQuantity()));
+            $this->apiService->getLogger()->debug(sprintf("Invalid reponse from API, use fallback value of %s percent for product %s: %s", self::FALLBACK_DUTY_PERCENT, $productId, $total));
         }
+
         if(!$isNull){
             return $total;
         }
@@ -458,10 +467,7 @@ class TransiteoProducts
     public function getShippingDuty()
     {
         if (!$this->isValid()) {
-            $response = $this->getDuties();
-            if ($response !== true) {
-                return null;
-            }
+            $this->getDuties();
         }
 
         if (isset($this->apiResponseContent["shipping_global"]) && isset($this->apiResponseContent["shipping_global"]["duty"])) {
@@ -469,6 +475,15 @@ class TransiteoProducts
             $totalTax += ($this->apiResponseContent["shipping_global"]["duty"]["amount"] ?? 0);
             $totalTax += ($this->apiResponseContent["shipping_global"]["duty"]["vat_amount"] ?? 0);
             return  $totalTax;
+        }else if(!$this->responseIsOk){
+            ////LOGGER////
+            $totalShipping = 0.0;
+            foreach ($this->productsParams as $id => $productsParam){
+                $totalShipping += $productsParam->getGroupShippingPrice() ?? 0.0;
+            }
+            $totalTax = ($this->shipmentParams->getGlobalShipPrice() ?? $totalShipping * self::FALLBACK_DUTY_PERCENT);
+            $this->apiService->getLogger()->debug(sprintf("Invalid response from API, use fallback value of %s percent for shipping duty: %s", self::FALLBACK_DUTY_PERCENT, $totalTax));
+            return $totalTax;
         }
         return null;
     }
@@ -542,15 +557,12 @@ class TransiteoProducts
     public function getTotalDuty()
     {
         if (!$this->isValid()) {
-            $response = $this->getDuties();
-            if ($response !== true) {
-                return null;
-            }
+            $this->getDuties();
         }
         $isNull = true;
         $totalTax = 0;
-        if (isset($this->apiResponseContent["products"])) {
-            foreach ($this->apiResponseContent["products"] as $id => $product) {
+        if (isset($this->productsParams)) {
+            foreach ($this->productsParams as $id => $product) {
                 $isNull &= $this->safeSum($totalTax, $this->getDuty($id));
             }
         }
@@ -636,14 +648,22 @@ class TransiteoProducts
     public function getTotalTaxes($productId = null)
     {
         if (!$this->isValid()) {
-            $response = $this->getDuties();
-            if ($response !== true) {
-                return null;
-            }
+            $this->getDuties();
         }
+
+
 
         $isNull = true;
         $total = 0;
+
+        // Return fallback duty if response is not ok.
+        if(!$this->responseIsOk){
+            if($productId !== null){
+                return $this->getDuty($productId);
+            }
+            return $this->getTotalDuty();
+        }
+
         if ($productId !== null) {
             $isNull &= $this->safeSum($total, $this->getDuty($productId));
             $isNull &= $this->safeSum($total, $this->getVat($productId));

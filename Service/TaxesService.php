@@ -37,6 +37,8 @@ use Transiteo\LandedCost\Model\TransiteoApiShipmentParameters;
 use Transiteo\LandedCost\Model\TransiteoApiShipmentParametersFactory;
 use Transiteo\LandedCost\Model\TransiteoProducts;
 use Transiteo\LandedCost\Model\TransiteoProductsFactory;
+use Webkul\Marketplace\Helper\Data;
+use Webkul\MarketplaceBaseShipping\Model\ResourceModel\ShippingSetting\CollectionFactory as ShippingSettingsCollectionFactory;
 
 class TaxesService
 {
@@ -101,7 +103,16 @@ class TaxesService
     protected $cookie;
 
     /**
-     * TaxesService constructor.
+     * @var Data
+     */
+    protected $marketplaceHelper;
+
+    /**
+     * @var ShippingSettingsCollectionFactory
+     */
+    protected $shippingSettingsCollectionFactory;
+
+    /**
      * @param TransiteoProductsFactory $transiteoProductsFactory
      * @param StoreManagerInterface $storeManager
      * @param TransiteoApiProductParametersFactory $productParamsFactory
@@ -112,6 +123,8 @@ class TaxesService
      * @param ProductRepositoryInterface $productRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param Cookie $cookie
+     * @param Data $marketplaceHelper
+     * @param ShippingSettingsCollectionFactory $shippingSettingsCollectionFactory
      */
     public function __construct(
         TransiteoProductsFactory $transiteoProductsFactory,
@@ -123,7 +136,9 @@ class TaxesService
         Config $config,
         ProductRepositoryInterface $productRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        Cookie $cookie
+        Cookie $cookie,
+        Data $marketplaceHelper,
+        ShippingSettingsCollectionFactory $shippingSettingsCollectionFactory
     ) {
         $this->logger = $logger;
         $this->transiteoProductsFactory     = $transiteoProductsFactory;
@@ -135,6 +150,8 @@ class TaxesService
         $this->productRepository = $productRepository;
         $this->searchCriteriaBuilder =$searchCriteriaBuilder;
         $this->cookie = $cookie;
+        $this->marketplaceHelper = $marketplaceHelper;
+        $this->shippingSettingsCollectionFactory = $shippingSettingsCollectionFactory;
     }
 
 
@@ -156,6 +173,8 @@ class TaxesService
         ///PRODUCTS
         $productsParams = [];
 
+        $countries = $this->getCountryByItemId($products);
+        $shippingPrice = $this->getShippingPriceByProductId($products);
         foreach ($products as $quoteItem) {
             $qty = $quoteItem->getQty();
             $product = $quoteItem->getProduct();
@@ -166,6 +185,12 @@ class TaxesService
              */
             $productParams = $this->productParamsFactory->create();
             $this->fillProductParams($productParams, $product, $qty, 0, $price);
+
+            /** @todo hardcoded logic */
+            // propagate shipment countries to product params for per-product payload
+            $productParams->setGroupShippingPrice($shippingPrice[$quoteItem->getProductId()] ?? 0.0);
+            $productParams->setFromCountry( $countries[$quoteItem->getItemId()] ?? $shipmentParams->getFromCountry());
+            $productParams->setToCountry($shipmentParams->getToCountry());
             $productsParams[$product->getId()] = $productParams;
         }
 
@@ -180,6 +205,99 @@ class TaxesService
         }
 
         return $this->formatDutiesResponse($transiteoProducts);
+    }
+
+    /**
+     * @param CartItemInterface[] $cartItems
+     * @return array
+     */
+    public function getShippingPriceByProductId(array $products){
+        $shippingPrice = [];
+        if(empty($products)){
+            return [];
+        }
+        $quote = reset($products)->getQuote();
+        $data = $quote->getData("shipping_data");
+        if(empty($data)){
+            return [];
+        }
+        $data = json_decode($data, true);
+        if(!$data){
+            return [];
+        }
+        foreach ($data as $shippingMethods) {
+            foreach ($shippingMethods as $shippingData) {
+                $price = $shippingData["price"];
+                $totalQty = 0;
+                foreach ($shippingData["items"] as $item) {
+                    $totalQty += $item["qty"];
+                }
+                $unitShippingPrice = $price / $totalQty;
+                foreach ($shippingData["items"] as $item) {
+                    $shippingPrice[$item["id"]] = $shippingPrice[$item["id"]] ?? 0.0 + ($unitShippingPrice * $item["qty"]);
+                }
+            }
+        }
+        return $shippingPrice;
+    }
+
+    /**
+     * @param CartItemInterface[] $cartItems
+     * @return array
+     */
+    public function getCountryByItemId(array $cartItems){
+        $sellerIds = [];
+        foreach ($cartItems as $cartItem) {
+            $sellerIds[$cartItem->getItemId()] = $this->marketplaceHelper->getSellerIdByProductId($cartItem->getProductId());
+        }
+
+        $sellers = $this->shippingSettingsCollectionFactory->create()
+            ->addFieldToFilter('seller_id', ['in' => $sellerIds])
+            ->addFieldToSelect('country_id')
+            ->addFieldToSelect('seller_id')
+            ->getItems();
+
+        $countries = [];
+        foreach ($sellers as $seller) {
+            foreach ($sellerIds as $cartItemId => $sellerId) {
+                if ($sellerId == $seller->getData("seller_id")) {
+                    $country = $seller->getData("ship_country");
+                    if(isset($country) && is_string($country)){
+                        $countries[$cartItemId] = $this->config->getIso3Country($country);
+                    }else{
+                        $countries[$cartItemId] = null;
+                    }
+                }
+            }
+        }
+        return $countries;
+    }
+
+    /**
+     * @param int $productId
+     * @return array|mixed|null
+     */
+    public function getCountryByProductId(int $productId){
+        $sellerId = $this->marketplaceHelper->getSellerIdByProductId($productId);
+
+        $sellers = $this->shippingSettingsCollectionFactory->create()
+            ->addFieldToFilter('seller_id', ['eq' => $sellerId])
+            ->addFieldToSelect('country_id')
+            ->addFieldToSelect('seller_id')
+            ->getItems();
+
+        if(empty($sellers)){
+            return null;
+        }
+
+        $seller = reset($sellers);
+
+        $country = $seller->getData("ship_country");
+        if(isset($country) && is_string($country)){
+            return $this->config->getIso3Country($country);
+        }
+
+        return null;
     }
 
     /**
@@ -209,6 +327,10 @@ class TaxesService
             $productParams = $this->productParamsFactory->create();
             $this->fillShipmentParams($shipmentParams, $qty);
             $this->fillProductParams( $productParams, $product, $qty);
+            // propagate shipment countries to product params for per-product payload
+            $productParams->setGroupShippingPrice( 0.0);
+            $productParams->setFromCountry($this->getCountryByProductId((int) $product->getId()) ?? $shipmentParams->getFromCountry());
+            $productParams->setToCountry($shipmentParams->getToCountry());
             $transiteoProducts = $this->transiteoProductsFactory->create();
             $transiteoProducts->setProducts([$product->getId() => $productParams]);
             $transiteoProducts->setShipmentParams($shipmentParams);
@@ -328,7 +450,10 @@ class TaxesService
             $shippingAmount = 0;
         }
 
-        $shipmentParams->setShipmentType(true, round($shippingAmount, 2), $this->getCurrentStoreCurrency());
+        /**
+         * @TODO hardocoded
+         */
+        $shipmentParams->setShipmentType("GROUP", round($shippingAmount, 2), $this->getCurrentStoreCurrency());
 
         $shipmentParams->setLang($this->getTransiteoLang());
 
@@ -336,39 +461,8 @@ class TaxesService
 
         /** TODO add from district in config */
         $shipmentParams->setFromDistrict($this->config->getWebsiteDistrict()); // district from DistrictRepository
+        list($toCountry, $toDistrict) = $this->getToCountryAndToDistrictFromParamsOrCookie($params);
 
-        //GET to country and to district from params or cookie
-        if ((!array_key_exists(self::TO_COUNTRY, $params))) {
-            if ((array_key_exists(self::DISALLOW_GET_COUNTRY_FROM_COOKIE, $params)
-                && $params[self::DISALLOW_GET_COUNTRY_FROM_COOKIE])) {
-                throw new Exception("Transiteo_LandedCost getting country from cookie is disallowed.");
-            }
-            $cookie = $this->cookie->get(Config::COOKIE_NAME, null);
-            if ($cookie === null) {
-                throw new Exception("Transiteo_LandedCost country cookie does not exists.");
-            }
-
-            $cookie = explode('_', $cookie);
-            $toCountry = $cookie[0];
-            if (!array_key_exists(self::TO_DISTRICT, $params) || $params[self::TO_DISTRICT] === "") {
-                $toDistrict = $cookie[1];
-            } else {
-                $toDistrict = $params[self::TO_DISTRICT];
-            }
-        } else {
-            $toCountry = $params[self::TO_COUNTRY];
-            if (array_key_exists(self::TO_DISTRICT, $params)) {
-                $toDistrict = $params[self::TO_DISTRICT];
-            } else {
-                //Set to district = "NOTSET" if not required
-                $toDistrict = $this->getRequiredDefaultDistrict($toCountry);
-            }
-        }
-
-        //IF country is ISO2 get ISO3 code
-        if (strlen($toCountry) === 2) {
-            $toCountry = $this->config->getIso3Country($toCountry);
-        }
         $shipmentParams->setToCountry($toCountry); // country from customer attribute or cookie value
         $shipmentParams->setToDistrict($toDistrict); // district from customer attribute or cookie value
 
@@ -600,6 +694,48 @@ class TaxesService
     public function getConfig(): Config
     {
         return $this->config;
+    }
+
+    /**
+     * @param array $params
+     * @return array
+     * @throws Exception
+     */
+    protected function getToCountryAndToDistrictFromParamsOrCookie(array $params): array
+    {
+//GET to country and to district from params or cookie
+        if ((!array_key_exists(self::TO_COUNTRY, $params))) {
+            if ((array_key_exists(self::DISALLOW_GET_COUNTRY_FROM_COOKIE, $params)
+                && $params[self::DISALLOW_GET_COUNTRY_FROM_COOKIE])) {
+                throw new Exception("Transiteo_LandedCost getting country from cookie is disallowed.");
+            }
+            $cookie = $this->cookie->get(Config::COOKIE_NAME, null);
+            if ($cookie === null) {
+                throw new Exception("Transiteo_LandedCost country cookie does not exists.");
+            }
+
+            $cookie = explode('_', $cookie);
+            $toCountry = $cookie[0];
+            if (!array_key_exists(self::TO_DISTRICT, $params) || $params[self::TO_DISTRICT] === "") {
+                $toDistrict = $cookie[1];
+            } else {
+                $toDistrict = $params[self::TO_DISTRICT];
+            }
+        } else {
+            $toCountry = $params[self::TO_COUNTRY];
+            if (array_key_exists(self::TO_DISTRICT, $params)) {
+                $toDistrict = $params[self::TO_DISTRICT];
+            } else {
+                //Set to district = "NOTSET" if not required
+                $toDistrict = $this->getRequiredDefaultDistrict($toCountry);
+            }
+        }
+
+        //IF country is ISO2 get ISO3 code
+        if (strlen($toCountry) === 2) {
+            $toCountry = $this->config->getIso3Country($toCountry);
+        }
+        return array($toCountry, $toDistrict);
     }
 
 

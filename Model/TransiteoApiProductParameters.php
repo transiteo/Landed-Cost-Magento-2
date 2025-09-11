@@ -26,6 +26,9 @@ class TransiteoApiProductParameters
     private $currency_unit_price;
     private $unit_ship_price;
     private $sku;
+    private $from_country;
+    private $to_country;
+    private $group_shipping_price;
 
     /**
      * @return array
@@ -35,13 +38,17 @@ class TransiteoApiProductParameters
     {
         $array = [];
 
-        if(isset($this->sku)){
-            $array['identification']['type'] = "SKU";
-            $array['identification']['value'] = $this->sku;
-        }else{
+
+        /**
+         * @TODO hardocoded
+         */
+//        if(isset($this->sku)){
+//            $array['identification']['type'] = "SKU";
+//            $array['identification']['value'] = $this->sku;
+//        }else{
             $array['identification']['type'] = "TEXT";
             $array['identification']['value'] = $this->productName;
-        }
+//        }
 
         if (isset($this->weight) &&  $this->weight > 0) {
             $array['weight'] = $this->weight;
@@ -57,10 +64,31 @@ class TransiteoApiProductParameters
         $array['quantity'] = $this->quantity;
         $array['unit_price'] = $this->unit_price;
         $array['currency_unit_price'] = $this->currency_unit_price;
-        if($this->unit_ship_price > 0){
+        if ($this->unit_ship_price > 0) {
             $array['unit_ship_price'] = $this->unit_ship_price;
         }
-        //$array['currency_unit_ship_price'] = $this->currency_unit_price;
+
+        // Map new field group_shipping_price to the seller shipping price (use unit_ship_price per product)
+        if (isset($this->from_country)) {
+            $array['group_shipping_price'] = $this->group_shipping_price;
+        }
+        // Add seller/buyer countries when available
+        if (isset($this->from_country)) {
+            $array['from_country'] = $this->from_country;
+        }
+        if (isset($this->to_country)) {
+            $array['to_country'] = $this->to_country;
+        }
+
+        /**
+         * @TODO hardocoded
+         */
+        // Add required static fields
+        $array['included_tax'] = true;
+        $array['incoterm'] = 'CIF';
+        $array['sender'] = [
+            'pro' => true
+        ];
 
         return $array;
     }
@@ -69,7 +97,7 @@ class TransiteoApiProductParameters
      * @return array
      * @throws \Exception
      */
-    public function builArrayForCache(){
+    public function buildArrayForCache(){
         $result = $this->buildArray();
         $array = [
             $result['quantity'],
@@ -78,6 +106,15 @@ class TransiteoApiProductParameters
         ];
         if(array_key_exists('unit_ship_price', $result)){
             $array[] = $result['unit_ship_price'];
+        }
+        if(array_key_exists('group_shipping_price', $result)){
+            $array[] = $result['group_shipping_price'];
+        }
+        if(array_key_exists('from_country', $result)){
+            $array[] = $result['from_country'];
+        }
+        if(array_key_exists('to_country', $result)){
+            $array[] = $result['to_country'];
         }
         return $array;
     }
@@ -167,6 +204,26 @@ class TransiteoApiProductParameters
     }
 
     /**
+     * Set the value of unit_ship_price
+     * @param float $group_shipping_price
+     * @return  self
+     */
+    public function setGroupShippingPrice($group_shipping_price)
+    {
+        $this->group_shipping_price = $group_shipping_price;
+
+        return $this;
+    }
+
+    /**
+     * @return float|null
+     */
+    public function getGroupShippingPrice()
+    {
+        return $this->group_shipping_price;
+    }
+
+    /**
      * @param mixed $sku
      */
     public function setSku($sku): void
@@ -236,5 +293,27 @@ class TransiteoApiProductParameters
     public function getSku()
     {
         return $this->sku;
+    }
+
+    /**
+     * Set the value of from_country
+     * @param string $fromCountry
+     * @return self
+     */
+    public function setFromCountry($fromCountry)
+    {
+        $this->from_country = $fromCountry;
+        return $this;
+    }
+
+    /**
+     * Set the value of to_country
+     * @param string $toCountry
+     * @return self
+     */
+    public function setToCountry($toCountry)
+    {
+        $this->to_country = $toCountry;
+        return $this;
     }
 }
