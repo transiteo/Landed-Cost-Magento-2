@@ -148,13 +148,41 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             } else {
                 $total->setBaseTransiteoTotalTaxesAmount(null);
             }
+
             $total->setTotalAmount(self::COLLECTOR_TYPE_CODE, $this->totalTaxes ?? 0.0);
             $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, ($this->totalTaxes / $currencyRate));
             $total->setGrandTotal($total->getGrandTotal() + $amount);
             $total->setBaseGrandTotal($total->getBaseGrandTotal() + ($amount / $currencyRate));
+
+            $this->fillTotalAppliedTaxes($total);
         }
 
         return $this;
+    }
+
+    /**
+     * @param $total
+     * @return void
+     */
+    protected function fillTotalAppliedTaxes($total){
+        // Populate applied_taxes
+        $appliedTaxes = [];
+        $totalTaxes = $this->totalTaxes;
+
+        if (!empty($totalTaxes)) {
+            $appliedTaxes[] = [
+                'percent' => 100,
+                'amount' => $totalTaxes,
+                'rates' => [
+                    [
+                        'title' => __('Taxes And Duties')->render(),
+                        'percent' => 100
+                    ]
+                ]
+            ];
+        }
+
+        $total->setData('applied_taxes', $appliedTaxes);
     }
 
     /**
