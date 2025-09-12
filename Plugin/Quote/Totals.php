@@ -17,7 +17,6 @@
 namespace Transiteo\LandedCost\Plugin\Quote;
 
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\InventoryInStorePickupShippingApi\Model\Carrier\InStorePickup;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\Total;
 use Magento\Quote\Model\Quote\Address\Total\Collector;

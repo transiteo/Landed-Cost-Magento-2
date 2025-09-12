@@ -20,7 +20,6 @@ use Magento\Framework\Serialize\SerializerInterface;
 
 class TransiteoApiShipmentParameters
 {
-    private $serializer;
     private $lang;
     private $fromCountry;
     private $fromDistrict;
@@ -55,12 +54,6 @@ class TransiteoApiShipmentParameters
      * @var float
      */
     protected $extraFees;
-
-    public function __construct(
-        SerializerInterface $serializer
-    ) {
-        $this->serializer = $serializer;
-    }
 
     public function buildArray()
     {
