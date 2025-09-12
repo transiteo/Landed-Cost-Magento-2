@@ -131,15 +131,13 @@ class TransiteoProducts
         }
         $this->getDutiesCalled = true;
         $finalParams = [];
-        $cacheParams = $this->shipmentParams->buildArrayForCache();
         foreach ($this->productsParams as $id => $param) {
             $finalParams['products'][] = $param->buildArray();
-            $cacheParams[$id] = $param->buildArrayForCache();
         }
 
         $finalParams = array_merge($finalParams, $this->shipmentParams->buildArray());
 
-        $cacheKey = $this->taxesCacheHandler->getKeyFromRequest($cacheParams);
+        $cacheKey = $this->taxesCacheHandler->getKeyFromRequest($finalParams);
         $cachedTaxes = $this->taxesCacheHandler->loadFromCache($cacheKey);
         if(!isset($cachedTaxes)){
             $this->apiService->getLogger()->debug('Requesting to API :');
@@ -152,7 +150,11 @@ class TransiteoProducts
             if (isset($this->apiResponseContent["products"])&& isset($this->productsParams)) {
                 $this->apiResponseContent["products"] = \array_combine(\array_keys($this->productsParams), $this->apiResponseContent["products"]);
                 $this->responseIsOk = true;
-                $this->taxesCacheHandler->storeToCache($cacheKey,$this->apiResponseContent, array_keys($cacheParams));
+                $this->taxesCacheHandler->storeToCache($cacheKey,$this->apiResponseContent,
+                    array_map(function ($param) {
+                        return $param->getId();
+                    }, $this->productsParams)
+                );
             } else {
                 $this->taxesCacheHandler->removeFromCache($cacheKey);
                 $this->responseIsOk = false;

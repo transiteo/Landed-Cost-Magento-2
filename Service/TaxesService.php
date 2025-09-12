@@ -261,7 +261,7 @@ class TaxesService
         foreach ($sellers as $seller) {
             foreach ($sellerIds as $cartItemId => $sellerId) {
                 if ($sellerId == $seller->getData("seller_id")) {
-                    $country = $seller->getData("ship_country");
+                    $country = $seller->getData("country_id");
                     if(isset($country) && is_string($country)){
                         $countries[$cartItemId] = $this->config->getIso3Country($country);
                     }else{
@@ -535,6 +535,7 @@ class TaxesService
      */
     protected function fillProductParams(TransiteoApiProductParameters $productParams,ProductInterface $product,float $qty = 1,float $globalShipPrice = 0, ?float $overridePrice = null){
         $productParams->setSku($this->config->getTransiteoProductSku($product));
+        $productParams->setId((int) $product->getProductId());
         $productParams->setProductName($product->getName());
         $productParams->setWeight(round(floatval($product->getWeight()), 2));
         $productParams->setWeight(0);

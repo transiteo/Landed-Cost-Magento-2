@@ -71,7 +71,7 @@ class TransiteoApiShipmentParameters
             "to_country" => $this->toCountry,
             "to_district" => $this->toDistrict,
             "shipment_type" => $this->shipmentType,
-            'included_tax' => $this->isIncludedTaxes,
+            'included_tax_from_country' => $this->isIncludedTaxes,
             'incoterm' => $this->taxesCalculationMethod,
             "sender" => [
                 "pro" => $this->senderPro,
@@ -142,25 +142,6 @@ class TransiteoApiShipmentParameters
             $array["receiver"]["activity_id"] = $this->receiverActivity;
         }
 
-        return $array;
-    }
-
-    public function buildArrayForCache(){
-        $result = $this->buildArray();
-        $array = [
-            $result["shipment_type"],
-            $result['included_tax'],
-            $result['incoterm'],
-        ];
-        if($this->shipmentType !=='GROUP'){
-            $array[]= $result["to_country"];
-            $array[] = $result["to_district"];
-            $array[] = $result["global_ship_price"];
-        }
-        if ($this->shipmentType ==='GLOBAL') {
-            $array[] = $result["global_ship_price"];
-            $array[] = $result["currency_global_ship_price"];
-        }
         return $array;
     }
 

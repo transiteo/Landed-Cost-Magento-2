@@ -26,6 +26,11 @@ class TransiteoApiProductParameters
     private $currency_unit_price;
     private $unit_ship_price;
     private $sku;
+
+    /**
+     * @var int
+     */
+    private $id;
     private $from_country;
     private $to_country;
     private $group_shipping_price;
@@ -84,38 +89,12 @@ class TransiteoApiProductParameters
          * @TODO hardocoded
          */
         // Add required static fields
-        $array['included_tax'] = true;
+        $array['included_tax_from_country'] = true;
         $array['incoterm'] = 'CIF';
         $array['sender'] = [
             'pro' => true
         ];
 
-        return $array;
-    }
-
-    /**
-     * @return array
-     * @throws \Exception
-     */
-    public function buildArrayForCache(){
-        $result = $this->buildArray();
-        $array = [
-            $result['quantity'],
-            $result['unit_price'],
-            $result['currency_unit_price'],
-        ];
-        if(array_key_exists('unit_ship_price', $result)){
-            $array[] = $result['unit_ship_price'];
-        }
-        if(array_key_exists('group_shipping_price', $result)){
-            $array[] = $result['group_shipping_price'];
-        }
-        if(array_key_exists('from_country', $result)){
-            $array[] = $result['from_country'];
-        }
-        if(array_key_exists('to_country', $result)){
-            $array[] = $result['to_country'];
-        }
         return $array;
     }
 
@@ -314,6 +293,24 @@ class TransiteoApiProductParameters
     public function setToCountry($toCountry)
     {
         $this->to_country = $toCountry;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param int $id
+     * @return $this
+     */
+    public function setId(int $id): self
+    {
+        $this->id = $id;
         return $this;
     }
 }

@@ -77,20 +77,7 @@ class Taxes
      */
     public function getKeyFromRequest(array $request):string
     {
-        $cacheKey = "";
-        foreach ($request as $key => $value){
-            if(isset($key)){
-                if(is_array($value)){
-                    $cacheKey .= '--' .$key;
-                    foreach ($value as $v){
-                        $cacheKey .= '-' . $v;
-                    }
-                }else{
-                    $cacheKey .= '-' .$value;
-                }
-            }
-        }
-        return $cacheKey;
+        return md5(json_encode($request));
     }
 
     /**
@@ -105,11 +92,11 @@ class Taxes
             return false;
         }
 
-        //store product sku as tags
+        //store product ids as tags
         $tags = [\Transiteo\LandedCost\Model\Cache\Type\Taxes::CACHE_TAG];
         if(!empty($productIds)){
             foreach ($productIds as $id){
-                $tags[] = \Transiteo\LandedCost\Model\Cache\Type\Taxes::CACHE_TAG . '_' . $id;
+                $tags[] = \Transiteo\LandedCost\Model\Cache\Type\Taxes::CACHE_TAG . '_PROD_ID_' . $id;
             }
         }
 
