@@ -2,7 +2,6 @@
     "name": "transiteo/cross-border",
     "description": "Transiteo CrossBorder",
     "type": "magento2-module",
-    "version": "1.1.0",
     "license": [
       "MIT"
     ],
