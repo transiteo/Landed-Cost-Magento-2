@@ -366,7 +366,7 @@ class TaxesService
             $quoteItem->setData('transiteo_special_taxes', $specialTaxes);
             $quoteItem->setData('transiteo_total_taxes', $totalTaxes);
 
-            if ($currencyRate === 1.0) {
+            if (isset($vatAmount)) {
                 $quoteItem->setData('base_transiteo_vat', $vatAmount / $currencyRate);
             } else {
                 $quoteItem->setData('base_transiteo_vat', null);

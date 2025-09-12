@@ -148,7 +148,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             } else {
                 $total->setBaseTransiteoTotalTaxesAmount(null);
             }
-            $total->setTotalAmount(self::COLLECTOR_TYPE_CODE, $this->totalTaxes);
+            $total->setTotalAmount(self::COLLECTOR_TYPE_CODE, $this->totalTaxes ?? 0.0);
             $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, ($this->totalTaxes / $currencyRate));
             $total->setGrandTotal($total->getGrandTotal() + $amount);
             $total->setBaseGrandTotal($total->getBaseGrandTotal() + ($amount / $currencyRate));
@@ -278,7 +278,29 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         } else {
             $quote->setBaseTransiteoTotalTaxes(null);
         }
-        $quote->save();
+
+        //Avoid error in graphql when saving quote directly
+        $quoteResource = $quote->getResource();
+        $connection = $quoteResource->getConnection();
+        $table = $quoteResource->getMainTable();
+
+        $data = [
+            'transiteo_incoterm' => $quote->getTransiteoIncoterm(),
+            'base_transiteo_total_taxes' => $quote->getBaseTransiteoTotalTaxes(),
+            'transiteo_total_taxes' => $quote->getTransiteoTotalTaxes(),
+            'base_transiteo_duty' => $quote->getBaseTransiteoDuty(),
+            'transiteo_duty' => $quote->getTransiteoDuty(),
+            'base_transiteo_vat' => $quote->getBaseTransiteoVat(),
+            'transiteo_vat' => $quote->getTransiteoVat(),
+            'base_transiteo_special_taxes' => $quote->getBaseTransiteoSpecialTaxes(),
+            'transiteo_special_taxes' => $quote->getTransiteoSpecialTaxes()
+        ];
+
+        $connection->update(
+            $table,
+            $data,
+            ['entity_id = ?' => $quote->getId()]
+        );
     }
 
     /**
@@ -394,7 +416,10 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 
             //saving changes in products to quote
             $quote->setItems($products);
-            $quote->save();
+            //Avoid errors with graphql when saving quote
+            foreach ($products as $product){
+                $product->save();
+            }
         } else {
             throw new \Exception('Product Cart is Empty from Transiteo Api.');
         }
