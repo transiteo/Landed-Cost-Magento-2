@@ -28,6 +28,11 @@ class ProductSyncHandler
 {
 
     /**
+     * @var \Transiteo\LandedCost\Model\Config
+     */
+    protected $config;
+
+    /**
      * @var  \Transiteo\LandedCost\Logger\QueueLogger
      */
     protected $logger;
@@ -48,12 +53,14 @@ class ProductSyncHandler
     public function __construct(
         \Transiteo\LandedCost\Logger\QueueLogger $logger,
         \Transiteo\LandedCost\Service\ProductSync $productSync,
-        ProductRepositoryInterface $productRepository
+        ProductRepositoryInterface $productRepository,
+        \Transiteo\LandedCost\Model\Config $config
     )
     {
         $this->productRepository = $productRepository;
         $this->logger = $logger;
         $this->productSync = $productSync;
+        $this->config = $config;
     }
 
     /**
@@ -62,6 +69,9 @@ class ProductSyncHandler
      */
     public function process(string $message)
     {
+        if (!$this->config->isEnabled()) {
+            return;
+        }
         try {
             $params = unserialize($message);
             $method = $params["method"];

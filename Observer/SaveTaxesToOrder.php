@@ -18,12 +18,24 @@ namespace Transiteo\LandedCost\Observer;
 
 class SaveTaxesToOrder implements \Magento\Framework\Event\ObserverInterface
 {
+    /**
+     * @var \Transiteo\LandedCost\Model\Config
+     */
+    protected $config;
+
+    public function __construct(\Transiteo\LandedCost\Model\Config $config)
+    {
+        $this->config = $config;
+    }
 
     /**
      * @inheritDoc
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
+        if (!$this->config->isEnabled()) {
+            return $this;
+        }
         $order = $observer->getOrder();
         $quote = $observer->getQuote();
         if ($order && $quote) {

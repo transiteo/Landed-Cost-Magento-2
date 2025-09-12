@@ -34,8 +34,9 @@
          * @param SellerSync $sellerSync
          */
         public function __construct(
-            private QueueLogger  $logger,
-            private SellerSync $sellerSync,
+            protected QueueLogger  $logger,
+            protected SellerSync $sellerSync,
+            protected \Transiteo\LandedCost\Model\Config $config
         )
         {}
 
@@ -48,6 +49,9 @@
          */
         public function process(string $message): void
         {
+            if (!$this->config->isEnabled()) {
+                return;
+            }
             try {
                 $params = unserialize($message);
                 $sellerID = intval($params['seller_id']);

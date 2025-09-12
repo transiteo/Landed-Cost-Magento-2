@@ -46,6 +46,9 @@ class Surcharge extends \Magento\Sales\Model\Order\Invoice\Total\AbstractTotal
      */
     public function collect(\Magento\Sales\Model\Order\Invoice $invoice)
     {
+        if (!$this->config->isEnabled()) {
+            return $this;
+        }
         $order = $invoice->getOrder();
         /**
          * @var TransiteoTaxesExtensionInterface $order

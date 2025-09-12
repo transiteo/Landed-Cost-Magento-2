@@ -36,8 +36,9 @@
          * @param LoggerInterface $logger
          */
         public function __construct(
-            private SellerSync $sellerSync,
-            LoggerInterface $logger
+            protected SellerSync $sellerSync,
+            LoggerInterface $logger,
+            protected \Transiteo\LandedCost\Model\Config $config
         )
         {
             $this->logger = $logger;
@@ -52,6 +53,9 @@
          */
         public function execute(Observer $observer)
         {
+            if (!$this->config->isEnabled()) {
+                return;
+            }
             try {
                 /** @var Seller $seller */
                 $seller = $observer->getEvent()->getObject();

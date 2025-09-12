@@ -39,6 +39,9 @@ class TaxesToOrderItem
         \Magento\Quote\Model\Quote\Item\AbstractItem $item,
         $additional = []
     ) {
+        if (!$this->config->isEnabled()) {
+            return $proceed($item, $additional);
+        }
         $orderItem = $proceed($item, $additional);
         $orderItem->setTransiteoVat($item->getTransiteoVat());
         $orderItem->setTransiteoDuty($item->getTransiteoDuty());
@@ -49,21 +52,18 @@ class TaxesToOrderItem
         $orderItem->setBaseTransiteoSpecialTaxes($item->getBaseTransiteoSpecialTaxes());
         $orderItem->setBaseTransiteoTotalTaxes($item->getBaseTransiteoTotalTaxes());
 
-
-
         //add tax compensation to avoid adding the amount to the row total
         /**
          * @var OrderItemInterface $orderItem
          */
 
         $totalTaxes = $orderItem->getTransiteoTotalTaxes();
-        if(isset($totalTaxes)){
+        if (isset($totalTaxes)) {
             $orderItem->setTaxAmount($item->getTaxAmount());
             $orderItem->setBaseTaxAmount($item->getBaseTaxAmount());
             $orderItem->setTaxPercent($item->getTaxPercent());
 //            $this->applyTaxesOnOrderItem($orderItem);
         }
-
 
         return $orderItem;
     }

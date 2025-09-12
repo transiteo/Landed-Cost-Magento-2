@@ -52,6 +52,7 @@ class Config
     public const CONFIG_PATH_GEOIP_CRON = 'transiteo_activation/geoip/cron';
     public const CONFIG_PATH_TRANSITEO_CLIENT_ID = 'transiteo_activation/general/client_id';
     public const CONFIG_PATH_TRANSITEO_REFRESH_TOKEN = 'transiteo_activation/general/refresh_token';
+    public const CONFIG_PATH_MODULE_ENABLED = 'transiteo_activation/general/enabled';
 
     public const TRANSITEO_ORDER_STATUS = [
         'PAID',
@@ -506,6 +507,14 @@ class Config
     public function getTaxesCalculationMethod(): string
     {
         return (string) $this->scopeConfig->getValue(self::CONFIG_PATH_TAX_CALCULATION_METHOD, ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * Check if module is enabled
+     */
+    public function isEnabled(): bool
+    {
+        return $this->scopeConfig->isSetFlag(self::CONFIG_PATH_MODULE_ENABLED, ScopeInterface::SCOPE_STORE);
     }
 
 }

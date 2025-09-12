@@ -20,19 +20,24 @@ use Magento\Sales\Model\Convert\Order;
 
 class Converter
 {
-
+    protected \Transiteo\LandedCost\Model\Config $config;
 
     /**
-     * @param Order $subject
-     * @param \Closure $proceed
-     * @param \Magento\Sales\Model\Order\Item $orderItem
-     * @return mixed
+     * @param \Transiteo\LandedCost\Model\Config $config
      */
+    public function __construct(\Transiteo\LandedCost\Model\Config $config)
+    {
+        $this->config = $config;
+    }
+
     public function aroundItemToInvoiceItem(
         \Magento\Sales\Model\Convert\Order $subject,
         \Closure $proceed,
         \Magento\Sales\Model\Order\Item $orderItem
     ) {
+        if (!$this->config->isEnabled()) {
+            return $proceed($orderItem);
+        }
         $entityItem = $proceed($orderItem);
         return $this->applyOrderTaxesToEntityItem($orderItem, $entityItem);
     }
@@ -48,6 +53,9 @@ class Converter
         \Closure $proceed,
         \Magento\Sales\Model\Order\Item $orderItem
     ) {
+        if (!$this->config->isEnabled()) {
+            return $proceed($orderItem);
+        }
         $entityItem = $proceed($orderItem);
         return $this->applyOrderTaxesToEntityItem($orderItem, $entityItem);
     }

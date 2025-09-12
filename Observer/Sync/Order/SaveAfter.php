@@ -38,21 +38,28 @@ class SaveAfter implements ObserverInterface
      */
     protected $logger;
 
+    protected \Transiteo\LandedCost\Model\Config $config;
+
     /**
      * @param OrderSync $orderSync
      * @param LoggerInterface $logger
      */
     public function __construct(
         OrderSync $orderSync,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        \Transiteo\LandedCost\Model\Config $config
     )
     {
         $this->logger = $logger;
         $this->orderSync = $orderSync;
+        $this->config = $config;
     }
 
     public function execute(Observer $observer)
     {
+        if (!$this->config->isEnabled()) {
+            return;
+        }
         /**
          * @var Order $order
          */

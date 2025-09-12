@@ -31,6 +31,7 @@ class ProductIndexer
      * @var MessageStatusCollection
      */
     protected $messageStatusCollection;
+    protected \Transiteo\LandedCost\Model\Config $config;
 
     /**
      * @param ProductSync $productSync
@@ -38,11 +39,13 @@ class ProductIndexer
      */
     public function __construct(
         ProductSync $productSync,
-        MessageStatusCollection $messageStatusCollection
+        MessageStatusCollection $messageStatusCollection,
+        \Transiteo\LandedCost\Model\Config $config
     )
     {
         $this->messageStatusCollection = $messageStatusCollection;
         $this->productSync = $productSync;
+        $this->config = $config;
     }
 
     /**
@@ -51,8 +54,12 @@ class ProductIndexer
      */
     public function afterExecuteFull(Product $subject, $result)
     {
+        if (!$this->config->isEnabled()) {
+            return $result;
+        }
         $this->clearAllWaitingProductSyncMesssages();
         $this->productSync->asyncUpdateAllProducts();
+        return $result;
     }
 
     /**
@@ -61,9 +68,13 @@ class ProductIndexer
      * @param $ids
      */
     public function afterExecute(Product $subject,$result, $ids){
+        if (!$this->config->isEnabled()) {
+            return $result;
+        }
         foreach ($ids as $id){
             $this->productSync->asyncUpdateMultipleStoreValuesOfProduct((int) $id);
         }
+        return $result;
     }
 
     /**
@@ -72,9 +83,13 @@ class ProductIndexer
      * @param $ids
      */
     public function afterExecuteList(Product $subject,$result, $ids){
+        if (!$this->config->isEnabled()) {
+            return $result;
+        }
         foreach ($ids as $id){
             $this->productSync->asyncUpdateMultipleStoreValuesOfProduct((int) $id);
         }
+        return $result;
     }
 
     /**
@@ -83,7 +98,11 @@ class ProductIndexer
      * @param $id
      */
     public function afterExecuteRow(Product $subject,$result, $id){
+        if (!$this->config->isEnabled()) {
+            return $result;
+        }
         $this->productSync->asyncUpdateMultipleStoreValuesOfProduct((int) $id);
+        return $result;
     }
 
     /**

@@ -24,15 +24,21 @@ use Magento\Store\Model\ScopeInterface;
 class RemoveBlock implements ObserverInterface
 {
     protected $_scopeConfig;
+    protected \Transiteo\LandedCost\Model\Config $config;
 
     public function __construct(
-        ScopeConfigInterface $scopeConfig
+        ScopeConfigInterface $scopeConfig,
+        \Transiteo\LandedCost\Model\Config $config
     ) {
         $this->_scopeConfig = $scopeConfig;
+        $this->config = $config;
     }
 
     public function execute(Observer $observer)
     {
+        if (!$this->config->isEnabled()) {
+            return;
+        }
         /** @var \Magento\Framework\View\Layout $layout */
         $layout = $observer->getLayout();
         $block = $layout->getBlock('transiteo.modal');  // here block reference name to remove

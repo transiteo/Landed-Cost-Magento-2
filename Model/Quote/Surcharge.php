@@ -73,6 +73,10 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $quote->setTransiteoDisplay(false);
         parent::collect($quote, $shippingAssignment, $total);
 
+        // If module disabled, skip
+        if (!$this->taxexService->getConfig()->isEnabled()) {
+            return $this;
+        }
 
         if($quote->getItemsQty() === 0){
             return $this;
@@ -197,6 +201,14 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         Quote $quote,
         Total $total
     ) {
+        if (!$this->taxexService->getConfig()->isEnabled()) {
+            return [
+                'code' => $this->getCode(),
+                'title' => __('Duty & Taxes Calculator'),
+                'value' => null,
+                'base_value' => null,
+            ];
+        }
         $isCheckoutCart = $this->manageCheckoutState();
         if (($isCheckoutCart && $this->taxexService->isActivatedOnCheckout()) ||
             (!$isCheckoutCart && $this->taxexService->isActivatedOnCartView())

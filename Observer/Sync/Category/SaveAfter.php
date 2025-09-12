@@ -31,13 +31,17 @@
          * @param LoggerInterface $logger
          */
         public function __construct(
-            private CategorySync     $categorySync,
-            private LoggerInterface $logger
+            protected CategorySync     $categorySync,
+            protected LoggerInterface $logger,
+            protected \Transiteo\LandedCost\Model\Config $config
         ) {
         }
 
         public function execute(Observer $observer)
         {
+            if (!$this->config->isEnabled()) {
+                return;
+            }
             /**
              * @var CategoryInterface $product
              */

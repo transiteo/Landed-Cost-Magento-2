@@ -29,6 +29,11 @@ use Monolog\Handler\StreamHandler;
 class OrderSyncHandler
 {
     /**
+     * @var \Transiteo\LandedCost\Model\Config
+     */
+    protected $config;
+
+    /**
      * @var \Transiteo\LandedCost\Logger\Logger
      */
     protected $logger;
@@ -49,9 +54,11 @@ class OrderSyncHandler
     public function __construct(
         \Transiteo\LandedCost\Logger\QueueLogger $logger,
         \Transiteo\LandedCost\Service\OrderSync $orderSync,
-        OrderRepositoryInterface $orderRepository
+        OrderRepositoryInterface $orderRepository,
+        \Transiteo\LandedCost\Model\Config $config
     ) {
         $this->orderRepository = $orderRepository;
+        $this->config = $config;
         $this->logger = new Logger('custom');
         $logFile = BP . '/var/log/test.log';
         $logger->pushHandler(new StreamHandler($logFile, Logger::INFO));
@@ -64,6 +71,9 @@ class OrderSyncHandler
      */
     public function process(string $message)
     {
+        if (!$this->config->isEnabled()) {
+            return;
+        }
         try {
             $params = unserialize($message);
 

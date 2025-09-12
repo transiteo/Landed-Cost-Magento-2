@@ -26,15 +26,18 @@ class ProductIndexer
      * @var Taxes
      */
     protected $taxesCacheHandler;
+    protected \Transiteo\LandedCost\Model\Config $config;
 
     /**
      * @param Taxes $taxesCacheHandler
      */
     public function __construct(
-        Taxes $taxesCacheHandler
+        Taxes $taxesCacheHandler,
+        \Transiteo\LandedCost\Model\Config $config
     )
     {
         $this->taxesCacheHandler = $taxesCacheHandler;
+        $this->config = $config;
     }
 
     /**
@@ -43,7 +46,11 @@ class ProductIndexer
      */
     public function afterExecuteFull(Product $subject, $result)
     {
+        if (!$this->config->isEnabled()) {
+            return $result;
+        }
         $this->taxesCacheHandler->flushCache();
+        return $result;
     }
 
     /**
@@ -52,7 +59,11 @@ class ProductIndexer
      * @param $ids
      */
     public function afterExecute(Product $subject,$result, $ids){
+        if (!$this->config->isEnabled()) {
+            return $result;
+        }
         $this->taxesCacheHandler->flushCacheByProductIds($ids);
+        return $result;
     }
 
     /**
@@ -61,7 +72,11 @@ class ProductIndexer
      * @param $ids
      */
     public function afterExecuteList(Product $subject,$result, $ids){
+        if (!$this->config->isEnabled()) {
+            return $result;
+        }
         $this->taxesCacheHandler->flushCacheByProductIds($ids);
+        return $result;
     }
 
     /**
@@ -70,6 +85,10 @@ class ProductIndexer
      * @param $id
      */
     public function afterExecuteRow(Product $subject,$result, $id){
+        if (!$this->config->isEnabled()) {
+            return $result;
+        }
         $this->taxesCacheHandler->flushCacheByProductIds([$id]);
+        return $result;
     }
 }

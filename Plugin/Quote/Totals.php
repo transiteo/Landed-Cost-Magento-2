@@ -18,14 +18,34 @@ namespace Transiteo\LandedCost\Plugin\Quote;
 
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\InventoryInStorePickupShippingApi\Model\Carrier\InStorePickup;
-use Magento\InventorySalesApi\Api\Data\SalesChannelInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\Total;
+use Magento\Quote\Model\Quote\Address\Total\Collector;
+use Magento\Quote\Model\Quote\Address\Total\CollectorFactory;
+use Magento\Quote\Model\Quote\QuantityCollector;
 use Magento\Quote\Model\Quote\TotalsCollector;
+use Magento\Quote\Model\Quote\TotalsCollectorList;
 use Transiteo\LandedCost\Model\Quote\Surcharge;
 
 class Totals extends \Magento\Quote\Model\Quote\TotalsCollector
 {
+
+    public function __construct(
+        protected \Transiteo\LandedCost\Model\Config $config,
+        Collector $totalCollector,
+        CollectorFactory $totalCollectorFactory,
+        \Magento\Framework\Event\ManagerInterface $eventManager,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Quote\Model\Quote\Address\TotalFactory $totalFactory,
+        TotalsCollectorList $collectorList,
+        \Magento\Quote\Model\ShippingFactory $shippingFactory,
+        \Magento\Quote\Model\ShippingAssignmentFactory $shippingAssignmentFactory,
+        \Magento\Quote\Model\QuoteValidator $quoteValidator,
+        QuantityCollector $quantityCollector = null
+    )
+    {
+        parent::__construct($totalCollector, $totalCollectorFactory, $eventManager, $storeManager, $totalFactory, $collectorList, $shippingFactory, $shippingAssignmentFactory, $quoteValidator, $quantityCollector);
+    }
 
     /**
      * Adding Transiteo Totals
@@ -42,6 +62,9 @@ class Totals extends \Magento\Quote\Model\Quote\TotalsCollector
         Total $total,
         Quote $quote
     ) {
+        if (!$this->config->isEnabled()) {
+            return $total;
+        }
         foreach ($quote->getAllAddresses() as $address) {
             $addressTotal = $this->collectAddressTotals($quote, $address);
 

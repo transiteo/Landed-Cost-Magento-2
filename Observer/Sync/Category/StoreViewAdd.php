@@ -33,14 +33,18 @@
          * @param LoggerInterface $logger
          */
         public function __construct(
-            private CategorySync     $categorySync,
-            private CountryExtractor $countryExtractor,
-            private LoggerInterface $logger
+            protected CategorySync     $categorySync,
+            protected CountryExtractor $countryExtractor,
+            protected LoggerInterface $logger,
+            protected \Transiteo\LandedCost\Model\Config $config
         ) {
         }
 
         public function execute(Observer $observer)
         {
+            if (!$this->config->isEnabled()) {
+                return;
+            }
             /**
              * @var CategoryInterface $product
              */

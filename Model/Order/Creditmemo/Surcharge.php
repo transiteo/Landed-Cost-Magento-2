@@ -42,6 +42,9 @@ class Surcharge extends \Magento\Sales\Model\Order\Creditmemo\Total\AbstractTota
      */
     function collect( \Magento\Sales\Model\Order\Creditmemo $creditmemo)
     {
+        if (!$this->config->isEnabled()) {
+            return $this;
+        }
         $order = $creditmemo->getOrder();
         /**
          * @var TransiteoTaxesExtensionInterface $order

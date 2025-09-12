@@ -18,6 +18,7 @@
     <default>
         <transiteo_activation>
             <general>
+                <enabled>0</enabled>
                 <client_id></client_id>
                 <refresh_token></refresh_token>
             </general>

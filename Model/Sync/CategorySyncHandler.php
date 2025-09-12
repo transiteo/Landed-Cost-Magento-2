@@ -33,8 +33,9 @@
          * @param CategorySync $categorySync
          */
         public function __construct(
-            private QueueLogger  $logger,
-            private CategorySync $categorySync
+            protected QueueLogger  $logger,
+            protected CategorySync $categorySync,
+            protected \Transiteo\LandedCost\Model\Config $config
         )
         {}
 
@@ -44,6 +45,9 @@
          */
         public function process(string $message)
         {
+            if (!$this->config->isEnabled()) {
+                return;
+            }
             try {
                 $params = unserialize($message);
                 if (array_key_exists("category_ids", $params)) {

@@ -30,6 +30,11 @@ class DeleteAfter implements ObserverInterface
 {
 
     /**
+     * @var \Transiteo\LandedCost\Model\Config
+     */
+    protected $config;
+
+    /**
      * @var ProductSync
      */
     protected $productSync;
@@ -44,15 +49,20 @@ class DeleteAfter implements ObserverInterface
      */
     public function __construct(
         ProductSync $productSync,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        \Transiteo\LandedCost\Model\Config $config
     )
     {
         $this->logger = $logger;
         $this->productSync = $productSync;
+        $this->config = $config;
     }
 
     public function execute(Observer $observer)
     {
+        if (!$this->config->isEnabled()) {
+            return;
+        }
         /**
          * @var ProductInterface $product
          */
