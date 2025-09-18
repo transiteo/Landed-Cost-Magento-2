@@ -29,25 +29,23 @@ class CreditmemoItemRepository
      * @return \Magento\Sales\Api\Data\CreditmemoItemSearchResultInterface
      */
      public function afterGetList(\Magento\Sales\Api\CreditmemoItemRepositoryInterface $subject,\Magento\Sales\Api\Data\CreditmemoItemSearchResultInterface $searchResults){
-         $entities = [];
          foreach ($searchResults->getItems() as $entity) {
              /**
               * @var TransiteoItemTaxesExtensionInterface $extensionAttributes
               */
              $extensionAttributes = $entity->getExtensionAttributes();
-             $extensionAttributes->setBaseTransiteoDuty($entity->getData(TransiteoItemTaxesExtensionInterface::BASE_TRANSITEO_DUTY));
-             $extensionAttributes->setTransiteoDuty($entity->getData(TransiteoItemTaxesExtensionInterface::TRANSITEO_DUTY));
-             $extensionAttributes->setBaseTransiteoTotalTaxes($entity->getData(TransiteoItemTaxesExtensionInterface::BASE_TRANSITEO_TOTAL_TAXES));
-             $extensionAttributes->setTransiteoTotalTaxes($entity->getData(TransiteoItemTaxesExtensionInterface::TRANSITEO_TOTAL_TAXES));
-             $extensionAttributes->setBaseTransiteoSpecialTaxes($entity->getData(TransiteoItemTaxesExtensionInterface::BASE_TRANSITEO_SPECIAL_TAXES));
-             $extensionAttributes->setTransiteoSpecialTaxes($entity->getData(TransiteoItemTaxesExtensionInterface::TRANSITEO_SPECIAL_TAXES));
-             $extensionAttributes->setBaseTransiteoVat($entity->getData(TransiteoItemTaxesExtensionInterface::BASE_TRANSITEO_VAT));
-             $extensionAttributes->setTransiteoVat($entity->getData(TransiteoItemTaxesExtensionInterface::TRANSITEO_VAT));
-             $entity->setExtensionAttributes($extensionAttributes);
+             if(isset($extensionAttributes)){
+                 $extensionAttributes->setBaseTransiteoDuty($entity->getData(TransiteoItemTaxesExtensionInterface::BASE_TRANSITEO_DUTY));
+                 $extensionAttributes->setTransiteoDuty($entity->getData(TransiteoItemTaxesExtensionInterface::TRANSITEO_DUTY));
+                 $extensionAttributes->setBaseTransiteoTotalTaxes($entity->getData(TransiteoItemTaxesExtensionInterface::BASE_TRANSITEO_TOTAL_TAXES));
+                 $extensionAttributes->setTransiteoTotalTaxes($entity->getData(TransiteoItemTaxesExtensionInterface::TRANSITEO_TOTAL_TAXES));
+                 $extensionAttributes->setBaseTransiteoSpecialTaxes($entity->getData(TransiteoItemTaxesExtensionInterface::BASE_TRANSITEO_SPECIAL_TAXES));
+                 $extensionAttributes->setTransiteoSpecialTaxes($entity->getData(TransiteoItemTaxesExtensionInterface::TRANSITEO_SPECIAL_TAXES));
+                 $extensionAttributes->setBaseTransiteoVat($entity->getData(TransiteoItemTaxesExtensionInterface::BASE_TRANSITEO_VAT));
+                 $extensionAttributes->setTransiteoVat($entity->getData(TransiteoItemTaxesExtensionInterface::TRANSITEO_VAT));
 
-             $entities[] = $entity;
+             }
          }
-         $searchResults->setItems($entities);
          return $searchResults;
      }
 
@@ -74,7 +72,7 @@ class CreditmemoItemRepository
         $extensionAttributes->setTransiteoSpecialTaxes($entity->getData(TransiteoItemTaxesExtensionInterface::TRANSITEO_SPECIAL_TAXES));
         $extensionAttributes->setBaseTransiteoVat($entity->getData(TransiteoItemTaxesExtensionInterface::BASE_TRANSITEO_VAT));
         $extensionAttributes->setTransiteoVat($entity->getData(TransiteoItemTaxesExtensionInterface::TRANSITEO_VAT));
-        $entity->setExtensionAttributes($extensionAttributes);
+
 
         return $entity;
     }
