@@ -49,7 +49,7 @@
          */
         public function process(string $message): void
         {
-            if (!$this->config->isEnabled()) {
+            if (!$this->config->isSyncSellerEnabled()) {
                 return;
             }
             try {

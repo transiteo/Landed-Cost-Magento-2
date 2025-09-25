@@ -51,10 +51,12 @@ class ProductIndexer
     /**
      * @param Product $subject
      * @param $result
+     * @return mixed
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function afterExecuteFull(Product $subject, $result)
     {
-        if (!$this->config->isEnabled()) {
+        if (!$this->config->isSyncProductEnabled()) {
             return $result;
         }
         $this->clearAllWaitingProductSyncMesssages();
@@ -68,7 +70,7 @@ class ProductIndexer
      * @param $ids
      */
     public function afterExecute(Product $subject,$result, $ids){
-        if (!$this->config->isEnabled()) {
+        if (!$this->config->isSyncProductEnabled()) {
             return $result;
         }
         foreach ($ids as $id){
@@ -83,7 +85,7 @@ class ProductIndexer
      * @param $ids
      */
     public function afterExecuteList(Product $subject,$result, $ids){
-        if (!$this->config->isEnabled()) {
+        if (!$this->config->isSyncProductEnabled()) {
             return $result;
         }
         foreach ($ids as $id){
@@ -98,7 +100,7 @@ class ProductIndexer
      * @param $id
      */
     public function afterExecuteRow(Product $subject,$result, $id){
-        if (!$this->config->isEnabled()) {
+        if (!$this->config->isSyncProductEnabled()) {
             return $result;
         }
         $this->productSync->asyncUpdateMultipleStoreValuesOfProduct((int) $id);

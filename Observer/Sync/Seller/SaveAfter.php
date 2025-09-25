@@ -53,7 +53,7 @@
          */
         public function execute(Observer $observer)
         {
-            if (!$this->config->isEnabled()) {
+            if (!$this->config->isSyncSellerEnabled()) {
                 return;
             }
             try {

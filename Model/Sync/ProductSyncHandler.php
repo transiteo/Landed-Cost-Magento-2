@@ -69,7 +69,7 @@ class ProductSyncHandler
      */
     public function process(string $message)
     {
-        if (!$this->config->isEnabled()) {
+        if (!$this->config->isSyncProductEnabled()) {
             return;
         }
         try {

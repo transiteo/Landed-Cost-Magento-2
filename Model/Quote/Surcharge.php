@@ -22,21 +22,18 @@ use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Api\Data\ShippingAssignmentInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\Total;
+use Transiteo\LandedCost\Model\TransiteoProducts;
 use Transiteo\LandedCost\Service\TaxesService;
 
 class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 {
     const COLLECTOR_TYPE_CODE = 'transiteo-duty-taxes';
 
-    protected $vat;
-    protected $duty;
-    protected $specialTaxes;
-    protected $totalTaxes;
-
+    const FALLBACK_DUTY_PERCENT = 0.06;
     /**
      * @var TaxesService
      */
-    protected $taxexService;
+    protected $taxesService;
 
     /**
      * @var \Magento\Framework\App\RequestInterface
@@ -51,7 +48,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         \Magento\Framework\App\RequestInterface $request
     ) {
         $this->request = $request;
-        $this->taxexService = $taxesService;
+        $this->taxesService = $taxesService;
         $this->setCode(self::COLLECTOR_TYPE_CODE);
     }
 
@@ -70,13 +67,13 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         ShippingAssignmentInterface $shippingAssignment,
         Total $total
     ) {
-        $quote->setTransiteoDisplay(false);
-        parent::collect($quote, $shippingAssignment, $total);
-
         // If module disabled, skip
-        if (!$this->taxexService->getConfig()->isEnabled()) {
+        if (!$this->taxesService->getConfig()->isEnabled()) {
             return $this;
         }
+
+        $quote->setTransiteoDisplay(false);
+        parent::collect($quote, $shippingAssignment, $total);
 
         if($quote->getItemsQty() === 0){
             return $this;
@@ -98,84 +95,78 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
 
         $amount = 0;
         $isCheckoutCart = $this->manageCheckoutState();
-        if (($isCheckoutCart && $this->taxexService->isActivatedOnCheckout()) ||
-            (!$isCheckoutCart && $this->taxexService->isActivatedOnCartView())
+        if (($isCheckoutCart && $this->taxesService->isActivatedOnCheckout()) ||
+            (!$isCheckoutCart && $this->taxesService->isActivatedOnCartView())
         ) {
             try {
+                $connection = $quote->getResource()->getConnection();
                 $quote->setTransiteoDisplay(true);
-                $this->getTransiteoTaxes($quote, $total, $shippingAssignment);
-                //Getting total Taxes Amount previously recorded in quote and add it to grand total if ddp is activated
-                if ($this->taxexService->isDDPActivated()) {
-                    $amount += $this->totalTaxes;
-                }
+                $transiteoProducts = $this->getTransiteoTaxes($quote, $total, $shippingAssignment);
+                $connection->beginTransaction();
+                //Recording duties in quote
+                $this->applyDutiesAndTaxesToQuote($total, $quote, $transiteoProducts);
+                $this->applyDutiesAndTaxesToTotal($total, $quote, $transiteoProducts);
             } catch (\Exception $exception) {
+                $connection->rollBack();
                 //////////////////LOGGER//////////////
-                $this->taxexService->getLogger()->error($exception->getMessage());
+                $this->taxesService->getLogger()->error($exception->getMessage());
                 //  /////////////////////////////////////
-                $this->totalTaxes = null;
-                $this->specialTaxes = null;
-                $this->duty = null;
-                $this->vat = null;
+
+                $this->applyFallbackDutyToQuote($quote, $total);
+                return $this;
+            } finally {
+                $connection->commit();
             }
-            //Recording duties in quote
-            $this->saveInQuote($quote);
-
-            $currencyRate = $this->taxexService->getCurrentCurrencyRate();
-            $total->setTransiteoDutyAmount($this->duty);
-            if (isset($this->duty)) {
-                $total->setBaseTransiteoDutyAmount($this->duty / $currencyRate);
-            } else {
-                $total->setBaseTransiteoDutyAmount(null);
-            }
-
-            $total->setTransiteoVatAmount($this->vat);
-            if (isset($this->vat)) {
-                $total->setBaseTransiteoVatAmount($this->vat / $currencyRate);
-            } else {
-                $total->setBaseTransiteoVatAmount(null);
-            }
-
-            $total->setTransiteoSpecialTaxesAmount($this->specialTaxes);
-            if (isset($this->specialTaxes)) {
-                $total->setBaseTransiteoSpecialTaxesAmount($this->specialTaxes / $currencyRate);
-            } else {
-                $total->setBaseTransiteoSpecialTaxesAmount(null);
-            }
-
-            $total->setTransiteoTotalTaxesAmount($this->totalTaxes);
-            if (isset($this->totalTaxes)) {
-                $total->setBaseTransiteoTotalTaxesAmount($this->totalTaxes / $currencyRate);
-            } else {
-                $total->setBaseTransiteoTotalTaxesAmount(null);
-            }
-
-            $total->setTotalAmount(self::COLLECTOR_TYPE_CODE, $this->totalTaxes ?? 0.0);
-            $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, ($this->totalTaxes / $currencyRate));
-            $total->setGrandTotal($total->getGrandTotal() + $amount);
-            $total->setBaseGrandTotal($total->getBaseGrandTotal() + ($amount / $currencyRate));
-
-            $this->fillTotalAppliedTaxes($total);
         }
 
         return $this;
     }
 
     /**
-     * @param $total
+     * @param Total $total
+     * @param Quote $quote
      * @return void
      */
-    protected function fillTotalAppliedTaxes($total){
+    protected function fillTotalAppliedTaxes(Total $total, Quote $quote){
         // Populate applied_taxes
         $appliedTaxes = [];
-        $totalTaxes = $this->totalTaxes;
 
-        if (!empty($totalTaxes)) {
+        $vat = $quote->getTransiteoVat();
+        if (!empty($vat)) {
             $appliedTaxes[] = [
                 'percent' => 100,
-                'amount' => $totalTaxes,
+                'amount' => $vat,
                 'rates' => [
                     [
-                        'title' => __('Taxes And Duties')->render(),
+                        'title' => __('VAT/GST')->render(),
+                        'percent' => 100
+                    ]
+                ]
+            ];
+        }
+
+        $duty = $quote->getTransiteoDuty();
+        if (!empty($duty)) {
+            $appliedTaxes[] = [
+                'percent' => 100,
+                'amount' => $vat,
+                'rates' => [
+                    [
+                        'title' => __('Duty')->render(),
+                        'percent' => 100
+                    ]
+                ]
+            ];
+        }
+
+        $specialTaxes = $quote->getTransiteoSpecialTaxes();
+        if (!empty($specialTaxes)) {
+            $appliedTaxes[] = [
+                'percent' => 100,
+                'amount' => $specialTaxes,
+                'rates' => [
+                    [
+                        'title' => __('Special Taxes')->render(),
                         'percent' => 100
                     ]
                 ]
@@ -200,27 +191,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
     }
 
     /**
-     * @param Total $total
-     */
-    protected function clearValues(Total $total)
-    {
-        $total->setTotalAmount('subtotal', 0);
-        $total->setBaseTotalAmount('subtotal', 0);
-        $total->setTotalAmount(self::COLLECTOR_TYPE_CODE, 0);
-        $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, 0);
-        $total->setSubtotalInclTax(0);
-        $total->setBaseSubtotalInclTax(0);
-        $total->setTransiteoDutyAmount(null);
-        $total->setBaseTransiteoDutyAmount(null);
-        $total->setTransiteoVatAmount(null);
-        $total->setBaseTransiteoVatAmount(null);
-        $total->setTransiteoSpecialTaxesAmount(null);
-        $total->setBaseTransiteoSpecialTaxesAmount(null);
-        $total->setTransiteoTotalTaxesAmount(null);
-        $total->setBaseTransiteoTotalTaxesAmount(null);
-    }
-
-    /**
      * @param Quote $quote
      * @param Total $total
      * @return array
@@ -229,7 +199,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         Quote $quote,
         Total $total
     ) {
-        if (!$this->taxexService->getConfig()->isEnabled()) {
+        if (!$this->taxesService->getConfig()->isEnabled()) {
             return [
                 'code' => $this->getCode(),
                 'title' => __('Duty & Taxes Calculator'),
@@ -238,24 +208,28 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             ];
         }
         $isCheckoutCart = $this->manageCheckoutState();
-        if (($isCheckoutCart && $this->taxexService->isActivatedOnCheckout()) ||
-            (!$isCheckoutCart && $this->taxexService->isActivatedOnCartView())
+        if (($isCheckoutCart && $this->taxesService->isActivatedOnCheckout()) ||
+            (!$isCheckoutCart && $this->taxesService->isActivatedOnCartView())
         ) {
             try {
                 $quote->setTransiteoDisplay(true);
                 $quote->save();
             }catch (\Exception $e){
                 //////////////////LOGGER//////////////
-                $this->taxexService->getLogger()->error($e->getMessage());
+                $this->taxesService->getLogger()->error($e->getMessage());
                 ///////////////////////////////////////
             }
         }
 
-        if($this->taxexService->isDDPActivated()){
+        if($this->taxesService->isDDPActivated()){
             $included = ' ' . __('(included)');
         }else{
             $included = ' ' . __('(not included)');
         }
+        /**
+         * @todo Clean ??
+         */
+        $included = "";
         return [
             'code' => $this->getCode(),
             'title' => __('Duty & Taxes Calculator') . $included,
@@ -273,39 +247,63 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
     }
 
     /**
-     * Save Transiteo data in quote
-     *
-     * @param $quote
+     * @param Total $total
+     * @param Quote $quote
+     * @param TransiteoProducts $transiteoProducts
+     * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    protected function saveInQuote($quote)
+    protected function applyDutiesAndTaxesToQuote(Total $total,Quote $quote, TransiteoProducts $transiteoProducts)
     {
-        $quote->setTransiteoIncoterm($this->taxexService->getIncoterm());
-        $quote->setTransiteoDuty($this->duty);
-        if (isset($this->duty)) {
-            $quote->setBaseTransiteoDuty($this->duty / $this->taxexService->getCurrentCurrencyRate());
+        $quote->setTransiteoIncoterm($this->taxesService->getIncoterm());
+        $currencyRate = $this->taxesService->getCurrentCurrencyRate();
+
+        $duty = $transiteoProducts->getTotalDuty();
+        $quote->setTransiteoDuty($duty);
+        if (isset($duty)) {
+            $quote->setBaseTransiteoDuty($duty / $currencyRate);
         } else {
             $quote->setBaseTransiteoDuty(null);
         }
-        $quote->setTransiteoVat($this->vat);
-        if (isset($this->vat)) {
-            $quote->setBaseTransiteoVat($this->vat / $this->taxexService->getCurrentCurrencyRate());
+
+        $vat =  $transiteoProducts->getTotalVat();
+        $quote->setTransiteoVat($vat);
+        if (isset($vat)) {
+            $quote->setBaseTransiteoVat($vat / $currencyRate);
         } else {
             $quote->setBaseTransiteoVat(null);
         }
-        $quote->setTransiteoSpecialTaxes($this->specialTaxes);
-        if (isset($this->specialTaxes)) {
-            $quote->setBaseTransiteoSpecialTaxes($this->specialTaxes / $this->taxexService->getCurrentCurrencyRate());
+
+        $specialTaxes = $transiteoProducts->getTotalSpecialTaxes();
+        $quote->setTransiteoSpecialTaxes($specialTaxes);
+        if (isset($specialTaxes)) {
+            $quote->setBaseTransiteoSpecialTaxes($specialTaxes / $currencyRate);
         } else {
             $quote->setBaseTransiteoSpecialTaxes(null);
         }
-        $quote->setTransiteoTotalTaxes($this->totalTaxes);
-        if (isset($this->totalTaxes)) {
-            $quote->setBaseTransiteoTotalTaxes($this->totalTaxes / $this->taxexService->getCurrentCurrencyRate());
+
+        $totalTaxes = $transiteoProducts->getTotalTaxes();
+        $quote->setTransiteoTotalTaxes($totalTaxes);
+        if (isset($totalTaxes)) {
+            $quote->setBaseTransiteoTotalTaxes($totalTaxes / $currencyRate);
         } else {
             $quote->setBaseTransiteoTotalTaxes(null);
         }
+
+        $discountAmount =  $quote->getBaseSubtotalWithDiscount() - $quote->getSubtotal();
+        $subtotal = $transiteoProducts->getSubtotalExclusiveVAT();
+        $quote->setSubtotal($subtotal);
+        $quote->setBaseSubtotal($subtotal / $currencyRate);
+
+        $subtotalWithDiscount = $subtotal + $discountAmount;
+        $quote->setSubtotalWithDiscount($subtotalWithDiscount);
+        $quote->setBaseSubtotalWithDiscount($subtotalWithDiscount / $currencyRate);
+
+        $grandTotal = $transiteoProducts->getGrandTotal() + $total->getShippingAmount();
+        $quote->setGrandTotal($grandTotal);
+        $quote->setBaseGrandTotal($grandTotal / $currencyRate);
+
 
         //Avoid error in graphql when saving quote directly
         $quoteResource = $quote->getResource();
@@ -321,7 +319,13 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             'base_transiteo_vat' => $quote->getBaseTransiteoVat(),
             'transiteo_vat' => $quote->getTransiteoVat(),
             'base_transiteo_special_taxes' => $quote->getBaseTransiteoSpecialTaxes(),
-            'transiteo_special_taxes' => $quote->getTransiteoSpecialTaxes()
+            'transiteo_special_taxes' => $quote->getTransiteoSpecialTaxes(),
+            'subtotal' => $quote->getSubtotal(),
+            'base_subtotal' => $quote->getBaseSubtotal(),
+            'subtotal_with_discount' => $quote->getSubtotalWithDiscount(),
+            'base_subtotal_with_discount' => $quote->getBaseSubtotalWithDiscount(),
+            'grand_total' => $quote->getGrandTotal(),
+            'base_grand_total' => $quote->getBaseGrandTotal(),
         ];
 
         $connection->update(
@@ -340,10 +344,10 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    protected function getTransiteoTaxes($quote, $total, $shippingAssignment = null)
+    protected function getTransiteoTaxes($quote, $total, $shippingAssignment = null): \Transiteo\LandedCost\Model\TransiteoProducts
     {
         ////LOGGER////
-        $this->taxexService->getLogger()->debug('Request for quoteID => ' . ($quote->getId() ?? '') . ' ' . ($quote->getCustomerEmail() ?? ''));
+        $this->taxesService->getLogger()->debug('Request for quoteID => ' . ($quote->getId() ?? '') . ' ' . ($quote->getCustomerEmail() ?? ''));
         /**
          * @var \Magento\Quote\Api\Data\CartItemInterface $quoteItem
          */
@@ -379,6 +383,8 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         } else {
             $params[TaxesService::SHIPPING_AMOUNT] = $shippingAmount;
         }
+        $params[TaxesService::OBJECT_TOTAL] = $total;
+        $params[TaxesService::OBJECT_SHIPPING_ASSIGNEMENT] = $shippingAssignment;
 
         /**
          * TODO
@@ -440,7 +446,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             }
 
             //get duties and taxes from taxes service
-            $taxes= $this->taxexService->getDutiesByQuoteItems($products, $params);
+            $taxes= $this->taxesService->getDutiesByQuoteItems($products, $params);
 
             //saving changes in products to quote
             $quote->setItems($products);
@@ -453,7 +459,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         }
 
         if (
-            !array_key_exists(TaxesService::RETURN_KEY_DUTY, $taxes) ||
+            !array_key_exists(TaxesService::RETURN_KEY_PRODUCTS, $taxes) ||
             !array_key_exists(TaxesService::RETURN_KEY_VAT, $taxes) ||
             !array_key_exists(TaxesService::RETURN_KEY_SPECIAL_TAXES, $taxes) ||
             !array_key_exists(TaxesService::RETURN_KEY_TOTAL_TAXES, $taxes)
@@ -461,13 +467,9 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             throw new \Exception('Unable to get Duty and Taxes from Transiteo Api.');
         }
 
-        //get duties
-        $this->duty = $taxes[TaxesService::RETURN_KEY_DUTY];
-        $this->vat =$taxes[TaxesService::RETURN_KEY_VAT];
-        $this->specialTaxes = $taxes[TaxesService::RETURN_KEY_SPECIAL_TAXES];
-        $this->totalTaxes = $taxes[TaxesService::RETURN_KEY_TOTAL_TAXES];
+
         //////////////////LOGGER//////////////
-        $this->taxexService->getLogger()->debug(
+        $this->taxesService->getLogger()->debug(
             'Result for quoteID => ' . ($quote->getId() ?? '') . ' ' . ($quote->getCustomerEmail() ?? '') . ' : ' .
             ',Duty => ' . ($taxes[TaxesService::RETURN_KEY_DUTY] ?? 'null') .
             ' ,VAT => ' . ($taxes[TaxesService::RETURN_KEY_VAT] ?? 'null') .
@@ -475,5 +477,96 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             ' ,TOTAL TAXES => ' . ($taxes[TaxesService::RETURN_KEY_TOTAL_TAXES] ?? 'null')
         );
         ///////////////////////////////////////
+
+        return $taxes[TaxesService::RETURN_KEY_PRODUCTS];
+    }
+
+    /**
+     * @param Quote $quote
+     * @param Total $total
+     * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    protected function applyFallbackDutyToQuote(Quote $quote, Total $total): void
+    {
+        $quote->setTransiteoIncoterm($this->taxesService->getIncoterm());
+        $currencyRate = $this->taxesService->getCurrentCurrencyRate();
+        $grandTotal = $total->getGrandTotal();
+        $duty = $grandTotal * self::FALLBACK_DUTY_PERCENT;
+        $message = sprintf("Error during price retrieval, using fallback duty percentage of %s => %s for quote %s %s", self::FALLBACK_DUTY_PERCENT, $duty, $quote->getId(), $quote->getCustomerEmail() ?? '');
+        $quote->addMessage($message);
+        $this->taxesService->getLogger()->info($message);
+        $quote->setTransiteoDuty($duty);
+        $quote->setBaseTransiteoDuty($duty / $currencyRate);;
+        $quote->setTransiteoTotalTaxes($duty);
+        $quote->setBaseTransiteoTotalTaxes($duty / $currencyRate);
+        $quote->setGrandTotal($grandTotal + $duty);
+        $quote->setBaseGrandTotal(($grandTotal + $duty) / $currencyRate);
+
+        $quoteResource = $quote->getResource();
+        $connection = $quoteResource->getConnection();
+        $table = $quoteResource->getMainTable();
+
+        $data = [
+            'transiteo_incoterm' => $quote->getTransiteoIncoterm(),
+            'base_transiteo_total_taxes' => $quote->getBaseTransiteoTotalTaxes(),
+            'transiteo_total_taxes' => $quote->getTransiteoTotalTaxes(),
+            'base_transiteo_duty' => $quote->getBaseTransiteoDuty(),
+            'transiteo_duty' => $quote->getTransiteoDuty(),
+            'grand_total' => $quote->getGrandTotal(),
+            'base_grand_total' => $quote->getBaseGrandTotal(),
+        ];
+
+        $connection->update(
+            $table,
+            $data,
+            ['entity_id = ?' => $quote->getId()]
+        );
+        $total->setTotalAmount(self::COLLECTOR_TYPE_CODE, $quote->getTransiteoTotalTaxes());
+        $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, $quote->getBaseTransiteoTotalTaxes());
+        $total->setTransiteoTotalTaxes($quote->getTransiteoTotalTaxes());
+        $total->setBaseTransiteoTotalTaxes($quote->getBaseTransiteoTotalTaxes());
+        $total->setTransiteoDuty($quote->getTransiteoDuty());
+        $total->setBaseTransiteoDuty($quote->getBaseTransiteoDuty());
+        $total->setGrandTotal($quote->getGrandTotal());
+        $total->setBaseGrandTotal($quote->getBaseGrandTotal());
+        $this->fillTotalAppliedTaxes($total, $quote);
+    }
+
+    /**
+     * @param Total $total
+     * @param Quote $quote
+     * @param TransiteoProducts $transiteoProducts
+     * @return void
+     */
+    protected function applyDutiesAndTaxesToTotal(Total $total, Quote $quote, TransiteoProducts $transiteoProducts): void
+    {
+        $total->setTransiteoDuty($quote->getTransiteoDuty());
+        $total->setBaseTransiteoDuty($quote->getBaseTransiteoDuty());
+        $total->setTransiteoVat($quote->getTransiteoVat());
+        $total->setBaseTransiteoVat($quote->getBaseTransiteoVat());
+
+        $total->setTransiteoSpecialTaxes($quote->getTransiteoSpecialTaxes());
+        $total->setBaseTransiteoSpecialTaxes($quote->getBaseTransiteoSpecialTaxes());
+
+        $total->setTransiteoTotalTaxes($quote->getTransiteoTotalTaxes());
+        $total->setBaseTransiteoTotalTaxes($quote->getBaseTransiteoTotalTaxes());
+
+        $subtotalInclusiveTaxes = $transiteoProducts->getSubtotalInclusiveTaxes();
+        $total->setSubtotalInclTax($subtotalInclusiveTaxes);
+        $total->setBaseSubtotalInclTax($subtotalInclusiveTaxes / $this->taxesService->getCurrentCurrencyRate());
+        $total->setTotalAmount(self::COLLECTOR_TYPE_CODE, $quote->getTransiteoTotalTaxes());
+        $total->setBaseTotalAmount(self::COLLECTOR_TYPE_CODE, $quote->getBaseTransiteoTotalTaxes());
+
+        //Report data from quote :
+        $total->setSubtotal($quote->getSubtotal());
+        $total->setBaseSubtotal($quote->getBaseSubtotal());
+        $total->setSubtotalWithDiscount($quote->getSubtotalWithDiscount());
+        $total->setBaseSubtotalWithDiscount($quote->getBaseSubtotalWithDiscount());
+        $total->setGrandTotal($quote->getGrandTotal());
+        $total->setBaseGrandTotal($quote->getBaseGrandTotal());
+
+        $this->fillTotalAppliedTaxes($total, $quote);
     }
 }

@@ -43,6 +43,8 @@ use Webkul\MarketplaceBaseShipping\Model\ResourceModel\ShippingSetting\Collectio
 class TaxesService
 {
     public const SHIPPING_AMOUNT = 'shipping_amount';
+    public const OBJECT_TOTAL = 'total';
+    public const OBJECT_SHIPPING_ASSIGNEMENT = 'shipping_assignement';
     public const TAXES_CALCULATION_METHOD = 'taxes_calculation_method';
     public const INCLUDED_TAX = 'included_tax';
     public const RECEIVER_PRO = 'receiver_pro';
@@ -54,6 +56,7 @@ class TaxesService
     public const RETURN_KEY_DUTY = 'duty';
     public const RETURN_KEY_VAT = 'vat';
     public const RETURN_KEY_SPECIAL_TAXES = 'special_taxes';
+    public const RETURN_KEY_PRODUCTS = 'products';
     public const RETURN_KEY_TOTAL_TAXES = 'total_taxes';
     public const COOKIE_NAME = Config::COOKIE_NAME;
 
@@ -174,11 +177,19 @@ class TaxesService
         $productsParams = [];
 
         $countries = $this->getCountryByItemId($products);
-        $shippingPrice = $this->getShippingPriceByProductId($products);
+//        $shippingPrice = $this->getShippingPriceByProductId($products);
+        $shippingPrice = [];
         foreach ($products as $quoteItem) {
             $qty = $quoteItem->getQty();
             $product = $quoteItem->getProduct();
-            $price = (float) $quoteItem->getPrice() - ($quoteItem->getDeltaDiscount() ?? 0.0);
+            if($quoteItem->getCustomPrice()){
+                $price = $quoteItem->getCustomPrice();
+            }else{
+                $price = (float) $quoteItem->getPrice();
+            }
+            if(!$quoteItem->getNoDiscount()){
+                $price -= ($quoteItem->getDeltaDiscount() ?? 0.0);
+            }
             /**
              * @var TransiteoApiProductParameters $productParams;
              * @var ProductInterface $product;
@@ -390,15 +401,28 @@ class TaxesService
             }
 
             //if taxes have been retrieved
-
             if (isset($totalTaxes)){
-                //Set Tax Amount if incoterm is ddp
-                if($this->isDDPActivated() && !$this->config->getIsPriceIncludingTaxes()) {
-                    $quoteItem->setTaxAmount($totalTaxes ?? 0);
-                    $quoteItem->setBaseTaxAmount($totalTaxes / $currencyRate);
-                }
-                //tax percent is included in every cases.
-                $quoteItem->setTaxPercent($transiteoProducts->getProductTaxPercent($id));
+                $quoteItem->setTaxAmount($totalTaxes ?? 0);
+                $quoteItem->setBaseTaxAmount($totalTaxes / $currencyRate);
+                $quoteItem->setTaxPercent($transiteoProducts->getPercentageTotalTaxes($id) ?? 0);
+
+                $rowTotalIncludingTaxes = $transiteoProducts->getGrandTotal($id) ?? 0;
+                $quoteItem->setRowTotalInclTax($rowTotalIncludingTaxes);
+                $quoteItem->setBaseRowTotalInclTax($rowTotalIncludingTaxes / $currencyRate);
+                $quoteItem->setRowTotalWithDiscount($rowTotalIncludingTaxes);
+
+                $rowTotal = $transiteoProducts->getSubtotalExclusiveVAT($id);
+                $unitPrice = round(($rowTotal ?? 0) / $quoteItem->getQty(),2);
+                $quoteItem->setPrice($unitPrice);
+                $quoteItem->setCalculationPrice($unitPrice);
+                $quoteItem->setBasePrice($unitPrice / $currencyRate);
+                $quoteItem->setRowTotal($rowTotal);
+                $quoteItem->setBaseRowTotal($rowTotal / $currencyRate);
+
+
+                $unitPriceInclTax = round(($rowTotalIncludingTaxes ?? 0) / $quoteItem->getQty(), 2) ;
+                $quoteItem->setPriceInclTax($unitPriceInclTax);
+                $quoteItem->setBasePriceInclTax($unitPriceInclTax / $currencyRate);
             }
 
         }
@@ -415,7 +439,8 @@ class TaxesService
             self::RETURN_KEY_DUTY          => $products->getTotalDuty(),
             self::RETURN_KEY_VAT           => $products->getTotalVat(),
             self::RETURN_KEY_SPECIAL_TAXES => $products->getTotalSpecialTaxes(),
-            self::RETURN_KEY_TOTAL_TAXES   => $products->getTotalTaxes()
+            self::RETURN_KEY_TOTAL_TAXES   => $products->getTotalTaxes(),
+            self::RETURN_KEY_PRODUCTS      => $products
         ];
     }
 
@@ -538,7 +563,6 @@ class TaxesService
         $productParams->setId((int) $product->getProductId());
         $productParams->setProductName($product->getName());
         $productParams->setWeight(round(floatval($product->getWeight()), 2));
-        $productParams->setWeight(0);
         $productParams->setWeight_unit($this->config->getWeightUnit());
         $productParams->setQuantity($qty);
         $productParams->setUnit_price(round(($overridePrice ?? $product->getFinalPrice()) * $this->getCurrentCurrencyRate(), 2));

@@ -71,7 +71,7 @@ class OrderSyncHandler
      */
     public function process(string $message)
     {
-        if (!$this->config->isEnabled()) {
+        if (!$this->config->isSyncOrderEnabled()) {
             return;
         }
         try {

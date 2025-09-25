@@ -43,6 +43,8 @@ class Config
     public const CONFIG_PATH_PDP_EVENT_ACTION = 'transiteo_landedcost_settings/pdp_settings/event_action';
     public const CONFIG_PATH_PDP_DELAY = 'transiteo_landedcost_settings/pdp_settings/delay';
     public const CONFIG_PATH_ORDER_IDENTIFIER = 'transiteo_activation/order_sync/order_id';
+
+    public const CONFIG_PATH_SYNC_ORDER = 'transiteo_activation/order_sync/enabled';
     public const CONFIG_PATH_ORDER_STATUS_CORRESPONDENCE = 'transiteo_activation/order_sync/status';
     public const CONFIG_PATH_TAX_CALCULATION_METHOD = 'transiteo_activation/duties/taxes_calculation_method';
     public const CONFIG_PATH_PRICE_INCLUDES_TAXES = 'tax/calculation/price_includes_tax';
@@ -53,6 +55,9 @@ class Config
     public const CONFIG_PATH_TRANSITEO_CLIENT_ID = 'transiteo_activation/general/client_id';
     public const CONFIG_PATH_TRANSITEO_REFRESH_TOKEN = 'transiteo_activation/general/refresh_token';
     public const CONFIG_PATH_MODULE_ENABLED = 'transiteo_activation/general/enabled';
+    public const CONFIG_PATH_SYNC_PRODUCT = 'transiteo_activation/sync/product_enabled';
+    public const CONFIG_PATH_SYNC_CATEGORY = 'transiteo_activation/sync/category_enabled';
+    public const CONFIG_PATH_SYNC_SELLER = 'transiteo_activation/sync/seller_enabled';
 
     public const TRANSITEO_ORDER_STATUS = [
         'PAID',
@@ -515,6 +520,38 @@ class Config
     public function isEnabled(): bool
     {
         return $this->scopeConfig->isSetFlag(self::CONFIG_PATH_MODULE_ENABLED, ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSyncProductEnabled():bool
+    {
+        return $this->scopeConfig->isSetFlag(self::CONFIG_PATH_SYNC_PRODUCT, ScopeInterface::SCOPE_STORE) && $this->isEnabled();
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSyncCategoryEnabled():bool
+    {
+        return $this->scopeConfig->isSetFlag(self::CONFIG_PATH_SYNC_CATEGORY, ScopeInterface::SCOPE_STORE) && $this->isEnabled();
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSyncSellerEnabled():bool
+    {
+        return $this->scopeConfig->isSetFlag(self::CONFIG_PATH_SYNC_SELLER, ScopeInterface::SCOPE_STORE) && $this->isEnabled();
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSyncOrderEnabled():bool
+    {
+        return $this->scopeConfig->isSetFlag(self::CONFIG_PATH_SYNC_ORDER, ScopeInterface::SCOPE_STORE) && $this->isEnabled();
     }
 
 }

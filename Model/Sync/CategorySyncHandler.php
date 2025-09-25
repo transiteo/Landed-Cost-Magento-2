@@ -45,7 +45,7 @@
          */
         public function process(string $message)
         {
-            if (!$this->config->isEnabled()) {
+            if (!$this->config->isSyncCategoryEnabled()) {
                 return;
             }
             try {

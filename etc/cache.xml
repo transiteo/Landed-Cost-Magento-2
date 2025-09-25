@@ -15,7 +15,7 @@
   -->
 
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Cache/etc/cache.xsd">
-    <type name="transiteo_taxes" translate="label,description" instance="Transiteo\LandedCost\Model\Cache\Type\Taxes">
+    <type name="transiteo_taxes" translate="label,description" instance="Transiteo\LandedCost\Model\Cache\Type\Taxes" enabled="true">
         <label>Transiteo Taxes</label>
         <description>Transiteo Taxes cache</description>
     </type>

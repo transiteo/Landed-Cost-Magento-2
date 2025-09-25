@@ -58,7 +58,7 @@ class TransiteoProducts
     /**
      * @var bool
      */
-    protected $getDutiesCalled = false;
+    protected $transiteoApiCalled = false;
     /**
      * @var Taxes
      */
@@ -124,12 +124,12 @@ class TransiteoProducts
         return $this->responseIsOk && $this->isProductsInitialized && $this->isShipmentInitialized;
     }
 
-    public function getDuties()
+    public function callTransiteoApi()
     {
-        if ($this->getDutiesCalled || !($this->isProductsInitialized && $this->isShipmentInitialized)) {
+        if ($this->transiteoApiCalled || !($this->isProductsInitialized && $this->isShipmentInitialized)) {
             return false;
         }
-        $this->getDutiesCalled = true;
+        $this->transiteoApiCalled = true;
         $finalParams = [];
         foreach ($this->productsParams as $id => $param) {
             $finalParams['products'][] = $param->buildArray();
@@ -247,24 +247,6 @@ class TransiteoProducts
     }
 
     /**
-     * Get Global Duty Fees
-     *
-     * @todo Implements get Duty Fees Global (verify if is correct)
-     * @return int|mixed|null
-     */
-    public function getDutyFeesGlobal()
-    {
-        if (!$this->isValid()) {
-            $response = $this->getDuties();
-            if ($response !== true) {
-                return null;
-            }
-        }
-
-        return $this->apiResponseContent["duty_fees_global"] ?? null;
-    }
-
-    /**
      * Get Duty by Product ID
      *
      * @param $productId
@@ -273,7 +255,7 @@ class TransiteoProducts
     public function getDuty($productId)
     {
         if (!$this->isValid()) {
-            $this->getDuties();
+            $this->callTransiteoApi();
         }
 
         $isNull = true;
@@ -299,53 +281,6 @@ class TransiteoProducts
     }
 
     /**
-     * @param int $productId
-     * @return float|null
-     */
-    public function getProductPriceWithoutTaxes(int $productId):?float
-    {
-        if(array_key_exists($productId, $this->productsParams)){
-            if($this->shipmentParams->isIncludedTaxes()){
-                return $this->productsParams[$productId]->getUnitPrice() - ($this->getTotalTaxes($productId) / $this->productsParams[$productId]->getQuantity());
-            }
-            return $this->productsParams[$productId]->getUnitPrice();
-        }
-        return null;
-    }
-
-    /**
-     * @param int $productId
-     * @return float|null
-     */
-    public function getProductPriceInclTaxes(int $productId):?float
-    {
-        if(array_key_exists($productId, $this->productsParams)){
-            if($this->shipmentParams->isIncludedTaxes()){
-                return  $this->productsParams[$productId]->getUnitPrice();
-            }
-            return $this->productsParams[$productId]->getUnitPrice() + ($this->getTotalTaxes($productId) / $this->productsParams[$productId]->getQuantity());
-        }
-        return null;
-    }
-
-    /**
-     * @param int $productId
-     * @return float|null
-     */
-    public function getProductTaxPercent(int $productId):?float
-    {
-        if(array_key_exists($productId, $this->productsParams)){
-            $price = $this->getProductPriceWithoutTaxes($productId);
-            $taxes = $this->getProductPriceInclTaxes($productId) - $price;
-            if($price === 0 || $price === null){
-                $price = 1;
-            }
-            return ($taxes / $price) * 100;
-        }
-        return null;
-    }
-
-    /**
      * Get Vat By Product ID
      *
      * @param $productId
@@ -354,7 +289,7 @@ class TransiteoProducts
     public function getVat($productId)
     {
         if (!$this->isValid()) {
-            $response = $this->getDuties();
+            $response = $this->callTransiteoApi();
             if ($response !== true) {
                 return null;
             }
@@ -378,55 +313,6 @@ class TransiteoProducts
     }
 
     /**
-     * Get Vat Label By Product ID
-     *
-     * @param $productId
-     * @return int|mixed|null
-     */
-    public function getVatLabels($productId)
-    {
-        if (!$this->isValid()) {
-            $response = $this->getDuties();
-            if ($response !== true) {
-                return null;
-            }
-        }
-        $labels = [];
-        if (isset($this->apiResponseContent["products"][$productId]["vat"])) {
-            foreach (($this->apiResponseContent["products"][$productId]["vat"]) as $vat) {
-                if (isset($vat["label"])) {
-                    $labels[] = $vat["label"];
-                }
-            }
-        }
-        return $labels;
-    }
-
-    /**
-     * Return Vat Percentage
-     * @param $productId
-     * @return mixed|null
-     */
-    public function getVatPercentage($productId)
-    {
-        if (!$this->isValid()) {
-            $response = $this->getDuties();
-            if ($response !== true) {
-                return null;
-            }
-        }
-
-        if (isset($this->apiResponseContent["products"][$productId]["vat"])) {
-            $totalPercentage = 0;
-            foreach (($this->apiResponseContent["products"][$productId]["vat"]) as $vat) {
-                $totalPercentage += ($vat["percentage"] ?? 0);
-            }
-            return $totalPercentage;
-        }
-        return null;
-    }
-
-    /**
      * Get Special Taxes by product Id
      *
      * @param $productId
@@ -435,7 +321,7 @@ class TransiteoProducts
     public function getSpecialTaxes($productId)
     {
         if (!$this->isValid()) {
-            $response = $this->getDuties();
+            $response = $this->callTransiteoApi();
             if ($response !== true) {
                 return null;
             }
@@ -462,82 +348,6 @@ class TransiteoProducts
     }
 
     /**
-     * Return total amount of shipping duty
-     *
-     * @return int|mixed|null
-     */
-    public function getShippingDuty()
-    {
-        if (!$this->isValid()) {
-            $this->getDuties();
-        }
-
-        if (isset($this->apiResponseContent["shipping_global"]) && isset($this->apiResponseContent["shipping_global"]["duty"])) {
-            $totalTax = 0;
-            $totalTax += ($this->apiResponseContent["shipping_global"]["duty"]["amount"] ?? 0);
-            $totalTax += ($this->apiResponseContent["shipping_global"]["duty"]["vat_amount"] ?? 0);
-            return  $totalTax;
-        }else if(!$this->responseIsOk){
-            ////LOGGER////
-            $totalShipping = 0.0;
-            foreach ($this->productsParams as $id => $productsParam){
-                $totalShipping += $productsParam->getGroupShippingPrice() ?? 0.0;
-            }
-            $totalTax = ($this->shipmentParams->getGlobalShipPrice() ?? $totalShipping * self::FALLBACK_DUTY_PERCENT);
-            $this->apiService->getLogger()->debug(sprintf("Invalid response from API, use fallback value of %s percent for shipping duty: %s", self::FALLBACK_DUTY_PERCENT, $totalTax));
-            return $totalTax;
-        }
-        return null;
-    }
-
-    /**
-     *
-     * Return Shipping VAT
-     *
-     * @return int|mixed|null
-     */
-    public function getShippingVat()
-    {
-        if (!$this->isValid()) {
-            $response = $this->getDuties();
-            if ($response !== true) {
-                return null;
-            }
-        }
-
-        if (isset($this->apiResponseContent["shipping_global"])&& isset($this->apiResponseContent["shipping_global"]["vat"])) {
-            $totalTax = 0;
-            foreach ($this->apiResponseContent["shipping_global"]["vat"] as $vat) {
-                $totalTax += ($vat["amount"] ?? 0);
-            }
-            return $totalTax;
-        }
-        return null;
-    }
-
-    /**
-     * Get Shipping Special Taxes
-     * @todo verify that it is correct
-     * @return int|mixed|null
-     */
-    public function getShippingSpecialTaxes()
-    {
-        if (!$this->isValid()) {
-            $response = $this->getDuties();
-            if ($response !== true) {
-                return null;
-            }
-        }
-
-        if (isset($this->apiResponseContent["products"]) && isset($this->apiResponseContent["products"]["special_taxes"])) {
-            $totalTax = 0;
-            $totalTax += ($this->apiResponseContent["products"]["special_taxes"]["amount"] ?? 0);
-            return $totalTax;
-        }
-        return null;
-    }
-
-    /**
      * Add safely first element to second one, return true is value was null
      *
      * @param $totalTaxes
@@ -559,27 +369,9 @@ class TransiteoProducts
     public function getTotalDuty()
     {
         if (!$this->isValid()) {
-            $this->getDuties();
+            $this->callTransiteoApi();
         }
-        $isNull = true;
-        $totalTax = 0;
-        if (isset($this->productsParams)) {
-            foreach ($this->productsParams as $id => $product) {
-                $isNull &= $this->safeSum($totalTax, $this->getDuty($id));
-            }
-        }
-
-        //Get Shipping Duty
-        $isNull &= $this->safeSum($totalTax, $this->getShippingDuty() ?? null);
-
-        //Get Duty Fees Global
-        $isNull &= $this->safeSum($totalTax, $this->getDutyFeesGlobal() ?? null);
-
-        if ($isNull) {
-            return null;
-        }
-
-        return $totalTax;
+        return $this->apiResponseContent["global"]["amount_duty"] ?? null;
     }
 
     /**
@@ -590,26 +382,12 @@ class TransiteoProducts
     public function getTotalVat()
     {
         if (!$this->isValid()) {
-            $response = $this->getDuties();
+            $response = $this->callTransiteoApi();
             if ($response !== true) {
                 return null;
             }
         }
-        $isNull = true;
-        $totalTax = 0;
-        if (isset($this->apiResponseContent["products"])) {
-            foreach ($this->apiResponseContent["products"] as $id => $product) {
-                $isNull &= $this->safeSum($totalTax, $this->getVat($id));
-            }
-        }
-
-        $isNull &= $this->safeSum($totalTax, $this->getShippingVat());
-
-        if ($isNull) {
-            return null;
-        }
-
-        return $totalTax;
+        return $this->apiResponseContent["global"]["amount_vat"] ?? null;
     }
 
     /**
@@ -621,24 +399,12 @@ class TransiteoProducts
     public function getTotalSpecialTaxes()
     {
         if (!$this->isValid()) {
-            $response = $this->getDuties();
+            $response = $this->callTransiteoApi();
             if ($response !== true) {
                 return null;
             }
         }
-        $isNull = true;
-        $totalTax = 0;
-        if (isset($this->apiResponseContent["products"])) {
-            foreach ($this->apiResponseContent["products"] as $id => $product) {
-                $isNull &= $this->safeSum($totalTax, $this->getSpecialTaxes($id));
-            }
-        }
-
-        if ($isNull) {
-            return null;
-        }
-
-        return $totalTax;
+        return $this->apiResponseContent["global"]["amount_special_taxes"] ?? null;
     }
 
     /**
@@ -650,9 +416,8 @@ class TransiteoProducts
     public function getTotalTaxes($productId = null)
     {
         if (!$this->isValid()) {
-            $this->getDuties();
+            $this->callTransiteoApi();
         }
-
 
 
         $isNull = true;
@@ -670,14 +435,110 @@ class TransiteoProducts
             $isNull &= $this->safeSum($total, $this->getDuty($productId));
             $isNull &= $this->safeSum($total, $this->getVat($productId));
             $isNull &= $this->safeSum($total, $this->getSpecialTaxes($productId));
-        } else {
-            $isNull &= $this->safeSum($total, $this->apiResponseContent['global']['amount'] ?? null);
+            if ($isNull) {
+                return null;
+            }
+
+            return $total;
         }
 
-        if ($isNull) {
-            return null;
-        }
+        return $this->apiResponseContent["global"]["amount_duty_and_tax"] ?? null;
+    }
 
-        return $total;
+    /**
+     * @param int|null $productId
+     * @return float|null
+     */
+    public function getGrandTotal($productId = null){
+        if (!$this->isValid()) {
+            $this->callTransiteoApi();
+        }
+        if($productId !== null){
+            return $this->apiResponseContent["products"][$productId]["amount_total"] ?? null;
+        }
+        return $this->apiResponseContent["global"]["amount_total"] ?? null;
+    }
+
+    /**
+     * @param int|null $productId
+     * @return float|null
+     */
+    public function getSubtotalExclusiveVAT($productId = null){
+        if (!$this->isValid()) {
+            $this->callTransiteoApi();
+        }
+        if($productId !== null){
+            return $this->apiResponseContent["products"][$productId]["amount_exclusive"] ?? null;
+        }
+        return $this->apiResponseContent["global"]["amount_exclusive"] ?? null;
+    }
+
+    /**
+     * @param int|null $productId
+     * @return float|null
+     */
+    public function getSubtotalInclusiveVAT($productId = null){
+        if (!$this->isValid()) {
+            $this->callTransiteoApi();
+        }
+        if($productId !== null){
+            return $this->apiResponseContent["products"][$productId]["amount_inclusive_vat"] ?? null;
+        }
+        return $this->apiResponseContent["global"]["amount_inclusive_vat"] ?? null;
+    }
+
+    public function getSubtotalInclusiveTaxes($productId = null){
+        if (!$this->isValid()) {
+            $this->callTransiteoApi();
+        }
+        if($productId !== null){
+            return $this->getSubtotalExclusiveVAT($productId) + $this->getTotalTaxes($productId);
+        }
+        return $this->getSubtotalExclusiveVAT() + $this->getTotalTaxes();
+    }
+
+
+    /**
+     * @param int|null $productId
+     * @return float|null
+     */
+    public function getPercentageTotalTaxes($productId = null){
+        if (!$this->isValid()) {
+            $this->callTransiteoApi();
+        }
+        if($productId !== null){
+
+            $isNull = true;
+            $total = 0;
+
+            if(isset($this->apiResponseContent["products"][$productId]["duty"]) && is_array($this->apiResponseContent["products"][$productId]["duty"])){
+                foreach ($this->apiResponseContent["products"][$productId]["duty"] as $duty){
+                    $isNull &= $this->safeSum($total,$duty["percentage"] ?? null);
+                }
+            }else{
+                $isNull &= $this->safeSum($total,$this->apiResponseContent["products"][$productId]["duty"]["percentage"] ?? null);
+            }
+            if(isset($this->apiResponseContent["products"][$productId]["special_taxes"]) && is_array($this->apiResponseContent["products"][$productId]["special_taxes"])){
+                foreach ($this->apiResponseContent["products"][$productId]["special_taxes"] as $special_taxes){
+                    $isNull &= $this->safeSum($total,$special_taxes["percentage"] ?? null);
+                }
+            }else{
+                $isNull &= $this->safeSum($total,$this->apiResponseContent["products"][$productId]["special_taxes"]["percentage"] ?? null);
+            }
+
+            if(isset($this->apiResponseContent["products"][$productId]["vat"]) && is_array($this->apiResponseContent["products"][$productId]["vat"])){
+                foreach ($this->apiResponseContent["products"][$productId]["vat"] as $vat){
+                    $isNull &= $this->safeSum($total,$vat["percentage"] ?? null);
+                }
+            }else{
+                $isNull &= $this->safeSum($total,$this->apiResponseContent["products"][$productId]["vat"]["percentage"] ?? null);
+            }
+
+            if ($isNull) {
+                return null;
+            }
+            return $total;
+        }
+        return $this->apiResponseContent["global"]["percentage_duty_and_tax"] ?? null;
     }
 }

@@ -59,7 +59,7 @@ class SaveAfter implements ObserverInterface
 
     public function execute(Observer $observer)
     {
-        if (!$this->config->isEnabled()) {
+        if (!$this->config->isSyncProductEnabled()) {
             return;
         }
         /**
