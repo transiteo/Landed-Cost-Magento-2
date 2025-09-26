@@ -155,7 +155,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         if ($duty !== null) {
             $appliedTaxes[] = [
                 'percent' => 100,
-                'amount' => $vat,
+                'amount' => $duty,
                 'rates' => [
                     [
                         'title' => $transiteoProducts?->getDutyLabel() ??  __('Duty')->render(),
