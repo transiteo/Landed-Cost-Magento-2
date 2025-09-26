@@ -84,9 +84,10 @@ class Taxes
      * @param string $cacheKey
      * @param array $data
      * @param array $productIds
+     * @param int $lifeTime
      * @return bool
      */
-    public function storeToCache(string $cacheKey,array $data, array $productIds = []):bool
+    public function storeToCache(string $cacheKey,array $data, array $productIds = [], int $lifeTime = \Transiteo\LandedCost\Model\Cache\Type\Taxes::DEFAULT_CACHE_LIFETIME):bool
     {
         if(!$this->cacheState->isEnabled(\Transiteo\LandedCost\Model\Cache\Type\Taxes::TYPE_IDENTIFIER)){
             return false;
@@ -104,7 +105,7 @@ class Taxes
             $this->serializer->serialize($data),
             $cacheKey,
             $tags,
-            \Transiteo\LandedCost\Model\Cache\Type\Taxes::DEFAULT_CACHE_LIFETIME
+            $lifeTime
         );
     }
 

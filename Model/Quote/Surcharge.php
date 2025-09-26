@@ -98,24 +98,29 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         if (($isCheckoutCart && $this->taxesService->isActivatedOnCheckout()) ||
             (!$isCheckoutCart && $this->taxesService->isActivatedOnCartView())
         ) {
+            $quoteData = $quote->getData();
+            $connection = $quote->getResource()->getConnection();
+            $beginTransaction = false;
             try {
-                $connection = $quote->getResource()->getConnection();
                 $quote->setTransiteoDisplay(true);
                 $transiteoProducts = $this->getTransiteoTaxes($quote, $total, $shippingAssignment);
                 $connection->beginTransaction();
+                $beginTransaction = true;
                 //Recording duties in quote
                 $this->applyDutiesAndTaxesToQuote($total, $quote, $transiteoProducts);
                 $this->applyDutiesAndTaxesToTotal($total, $quote, $transiteoProducts);
+                $connection->commit();
             } catch (\Exception $exception) {
-                $connection->rollBack();
+                if($beginTransaction){
+                    $connection->rollBack();
+                    $quote->setData($quoteData);
+                }
                 //////////////////LOGGER//////////////
                 $this->taxesService->getLogger()->error($exception->getMessage());
                 //  /////////////////////////////////////
 
                 $this->applyFallbackDutyToQuote($quote, $total);
                 return $this;
-            } finally {
-                $connection->commit();
             }
         }
 
@@ -125,20 +130,21 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
     /**
      * @param Total $total
      * @param Quote $quote
+     * @param TransiteoProducts|null $transiteoProducts
      * @return void
      */
-    protected function fillTotalAppliedTaxes(Total $total, Quote $quote){
+    protected function fillTotalAppliedTaxes(Total $total, Quote $quote, ?TransiteoProducts $transiteoProducts = null){
         // Populate applied_taxes
         $appliedTaxes = [];
 
         $vat = $quote->getTransiteoVat();
-        if (!empty($vat)) {
+        if ($vat !== null) {
             $appliedTaxes[] = [
                 'percent' => 100,
                 'amount' => $vat,
                 'rates' => [
                     [
-                        'title' => __('VAT/GST')->render(),
+                        'title' => $transiteoProducts?->getVatLabel() ?? __('VAT')->render(),
                         'percent' => 100
                     ]
                 ]
@@ -146,13 +152,13 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         }
 
         $duty = $quote->getTransiteoDuty();
-        if (!empty($duty)) {
+        if ($duty !== null) {
             $appliedTaxes[] = [
                 'percent' => 100,
                 'amount' => $vat,
                 'rates' => [
                     [
-                        'title' => __('Duty')->render(),
+                        'title' => $transiteoProducts?->getDutyLabel() ??  __('Duty')->render(),
                         'percent' => 100
                     ]
                 ]
@@ -160,18 +166,49 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         }
 
         $specialTaxes = $quote->getTransiteoSpecialTaxes();
-        if (!empty($specialTaxes)) {
+        if ($specialTaxes !== null) {
             $appliedTaxes[] = [
                 'percent' => 100,
                 'amount' => $specialTaxes,
                 'rates' => [
                     [
-                        'title' => __('Special Taxes')->render(),
+                        'title' => $transiteoProducts?->getSpecialTaxesLabel() ?? __('Special Taxes')->render(),
                         'percent' => 100
                     ]
                 ]
             ];
         }
+
+        if(isset($transiteoProducts)){
+            $extraFees = $transiteoProducts->getTotalExtraFees();
+            if ($extraFees !== null) {
+                $appliedTaxes[] = [
+                    'percent' => 100,
+                    'amount' => $extraFees,
+                    'rates' => [
+                        [
+                            'title' => $transiteoProducts?->getExtraFeesLabel() ?? __('Extra Fees')->render(),
+                            'percent' => 100
+                        ]
+                    ]
+                ];
+            }
+        }
+
+        $totalTaxes = $quote->getTransiteoTotalTaxes();
+        if (!empty($totalTaxes)) {
+            $appliedTaxes[] = [
+                'percent' => 100,
+                'amount' => $totalTaxes,
+                'rates' => [
+                    [
+                        'title' => $transiteoProducts?->getTotalTaxesLabel() ?? __('Special Taxes')->render(),
+                        'percent' => 100
+                    ]
+                ]
+            ];
+        }
+
 
         $total->setData('applied_taxes', $appliedTaxes);
     }
@@ -391,31 +428,41 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
          * Get Customer pro and activity
          */
 
-        if ($shippingAssignment) {
+        //Get address from shipping assignment, if address type is shipping of from billing if there is no shipping address registered
+        if ($shippingAssignment && ($quote->getShippingAddress() && $shippingAssignment?->getShipping()?->getAddress()?->getAddressType() !== "billing" ) ) {
             $countryId = $shippingAssignment->getShipping()->getAddress()->getCountryId();
             $districtId = $shippingAssignment->getShipping()->getAddress()->getRegionCode();
-            if ($countryId) {
-                $params[TaxesService::TO_COUNTRY] = $countryId;
-                if ($districtId) {
-                    $districtId = $countryId . '-' . $districtId;
-                    //If country is us, append postcode to id
-                    if ($countryId === "US") {
-                        $zip = $shippingAssignment->getShipping()->getAddress()->getPostcode();
-                        if ($zip) {
-                            $districtId .= '-' . $zip;
-                            $params[TaxesService::TO_DISTRICT] = $districtId;
-                        }
-                    } else {
+        }else{
+            $countryId = $quote->getShippingAddress()?->getCountryId();
+            $districtId = $quote->getShippingAddress()?->getRegionCode();
+            if(!$countryId){
+                $countryId = $quote->getBillingAddress()?->getCountryId();
+                $districtId = $quote->getBillingAddress()?->getRegionCode();
+            }
+        }
+
+        if ($countryId) {
+            $params[TaxesService::TO_COUNTRY] = $countryId;
+            if ($districtId) {
+                $districtId = $countryId . '-' . $districtId;
+                //If country is us, append postcode to id
+                if ($countryId === "US") {
+                    $zip = $shippingAssignment->getShipping()->getAddress()->getPostcode();
+                    if ($zip) {
+                        $districtId .= '-' . $zip;
                         $params[TaxesService::TO_DISTRICT] = $districtId;
                     }
                 } else {
-                    $districtId = $shippingAssignment->getShipping()->getAddress()->getRegion();
-                    if ($districtId) {
-                        $params[TaxesService::TO_DISTRICT] = $districtId;
-                    }
+                    $params[TaxesService::TO_DISTRICT] = $districtId;
+                }
+            } else {
+                $districtId = $shippingAssignment->getShipping()->getAddress()->getRegion();
+                if ($districtId) {
+                    $params[TaxesService::TO_DISTRICT] = $districtId;
                 }
             }
         }
+
 
 
 
@@ -567,6 +614,6 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $total->setGrandTotal($quote->getGrandTotal());
         $total->setBaseGrandTotal($quote->getBaseGrandTotal());
 
-        $this->fillTotalAppliedTaxes($total, $quote);
+        $this->fillTotalAppliedTaxes($total, $quote, $transiteoProducts);
     }
 }

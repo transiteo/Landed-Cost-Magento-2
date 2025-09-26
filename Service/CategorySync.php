@@ -23,6 +23,7 @@
     use Magento\Framework\Exception\NoSuchEntityException;
     use Magento\Framework\MessageQueue\PublisherInterface;
     use Magento\Framework\Webapi\Rest\Request;
+    use Transiteo\LandedCost\Model\Cache\Handler\Taxes;
     use Transiteo\LandedCost\Model\CategoryMatrixFactory;
     use Transiteo\LandedCost\Model\CategorySyncLog;
     use Transiteo\LandedCost\Model\CategorySyncLogFactory;

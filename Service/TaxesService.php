@@ -186,6 +186,7 @@ class TaxesService
                 $price = $quoteItem->getCustomPrice();
             }else{
                 $price = (float) $quoteItem->getPrice();
+                $quoteItem->setCustomPrice($price);
             }
             if(!$quoteItem->getNoDiscount()){
                 $price -= ($quoteItem->getDeltaDiscount() ?? 0.0);
@@ -486,7 +487,13 @@ class TaxesService
 
         /** TODO add from district in config */
         $shipmentParams->setFromDistrict($this->config->getWebsiteDistrict()); // district from DistrictRepository
-        list($toCountry, $toDistrict) = $this->getToCountryAndToDistrictFromParamsOrCookie($params);
+
+        try{
+            list($toCountry, $toDistrict) = $this->getToCountryAndToDistrictFromParamsOrCookie($params);
+        }catch (\Exception $e){
+            $toCountry = $this->config->getIso3Country($this->config->getWebsiteCountry());
+            $toDistrict = $this->config->getWebsiteDistrict();
+        }
 
         $shipmentParams->setToCountry($toCountry); // country from customer attribute or cookie value
         $shipmentParams->setToDistrict($toDistrict); // district from customer attribute or cookie value

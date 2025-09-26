@@ -354,10 +354,10 @@ class Surcharge extends \Magento\Sales\Model\Order\Invoice\Total\AbstractTotal
             $invoice->setBaseTransiteoVat($baseTransiteoVat);
             $invoice->setTransiteoVat($transiteoVat);
 
-            if($invoice->getTransiteoIncoterm() === "ddp"){
-                $invoice->setGrandTotal($invoice->getGrandTotal() + $transiteoTotalTaxes);
-                $invoice->setBaseGrandTotal($invoice->getBaseGrandTotal() + $baseTransiteoTotalTaxes);
-            }
+//            if($invoice->getTransiteoIncoterm() === "ddp"){
+//                $invoice->setGrandTotal($invoice->getGrandTotal() + $transiteoTotalTaxes);
+//                $invoice->setBaseGrandTotal($invoice->getBaseGrandTotal() + $baseTransiteoTotalTaxes);
+//            }
         }
         return $this;
     }

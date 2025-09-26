@@ -350,10 +350,10 @@ class Surcharge extends \Magento\Sales\Model\Order\Creditmemo\Total\AbstractTota
             $creditmemo->setBaseTransiteoVat($baseTransiteoVat);
             $creditmemo->setTransiteoVat($transiteoVat);
 
-            if($creditmemo->getTransiteoIncoterm() === "ddp"){
-                $creditmemo->setGrandTotal($creditmemo->getGrandTotal() + $transiteoTotalTaxes);
-                $creditmemo->setBaseGrandTotal($creditmemo->getBaseGrandTotal() + $baseTransiteoTotalTaxes);
-            }
+//            if($creditmemo->getTransiteoIncoterm() === "ddp"){
+//                $creditmemo->setGrandTotal($creditmemo->getGrandTotal() + $transiteoTotalTaxes);
+//                $creditmemo->setBaseGrandTotal($creditmemo->getBaseGrandTotal() + $baseTransiteoTotalTaxes);
+//            }
         }
         return $this;
     }

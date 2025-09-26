@@ -391,6 +391,29 @@ class TransiteoProducts
     }
 
     /**
+     * Return Total Vat
+     *
+     * @return int|mixed|null
+     */
+    public function getTotalExtraFees()
+    {
+        if (!$this->isValid()) {
+            $response = $this->callTransiteoApi();
+            if ($response !== true) {
+                return null;
+            }
+        }
+
+        if(!isset($this->apiResponseContent["extra_fees"])){
+            return null;
+        }
+
+        return $this->apiResponseContent["extra_fees"]["amount"] ?? null;
+    }
+
+
+
+    /**
      *
      * Return Total Special Taxes
      *
@@ -540,5 +563,105 @@ class TransiteoProducts
             return $total;
         }
         return $this->apiResponseContent["global"]["percentage_duty_and_tax"] ?? null;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getVatLabel(){
+        if (!$this->isValid()) {
+            $this->callTransiteoApi();
+        }
+
+        if(isset($this->apiResponseContent["products"])){
+            foreach ($this->apiResponseContent["products"] as $product){
+                if(is_array($product["vat"] ?? null)){
+                    foreach ($product["vat"] as $vat){
+                        if(($vat["label"] ?? null) !== null){
+                            return $vat["label"];
+                        }
+                    }
+                }else{
+                    if(isset($product["vat"]["label"])){
+                        return $product["vat"]["label"];
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getSpecialTaxesLabel(){
+        if (!$this->isValid()) {
+            $this->callTransiteoApi();
+        }
+        if(isset($this->apiResponseContent["products"])){
+            foreach ($this->apiResponseContent["products"] as $product){
+                if(is_array($product["special_taxes"] ?? null)){
+                    foreach ($product["special_taxes"] as $special_tax){
+                        if(($special_tax["label"] ?? null) !== null){
+                            return $special_tax["label"];
+                        }
+                    }
+                }else{
+                    if(isset($product["special_taxes"]["label"])){
+                        return $product["special_taxes"]["label"];
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getDutyLabel(){
+        if (!$this->isValid()) {
+            $this->callTransiteoApi();
+        }
+        if(isset($this->apiResponseContent["products"])){
+            foreach ($this->apiResponseContent["products"] as $product){
+                if(is_array($product["duty"] ?? null)){
+                    foreach ($product["duty"] as $duty){
+                        if(($duty["label"] ?? null) !== null){
+                            return $duty["label"];
+                        }
+                    }
+                }else{
+                    if(isset($product["duty"]["label"])){
+                        return $product["duty"]["label"];
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * @return string|null
+     */
+    public function getTotalTaxesLabel(){
+        return __("Total Duties And Taxes")->render();
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getExtraFeesLabel()
+    {
+        if (!$this->isValid()) {
+            $this->callTransiteoApi();
+        }
+        if(isset($this->apiResponseContent["extra_fees"])){
+            if(isset($this->apiResponseContent["extra_fees"]["label"])){
+                return $this->apiResponseContent["extra_fees"]["label"];
+            }
+        }
+        return null;
     }
 }
