@@ -33,7 +33,6 @@
                 <debug_mode>0</debug_mode>
             </duties>
             <order_sync>
-                <enabled>1</enabled>
                 <order_id>increment_id</order_id>
                 <product_identifier>sku</product_identifier>
                 <status>
@@ -88,9 +87,9 @@
                 </status>
             </order_sync>
             <sync>
-                <category_enabled>0</category_enabled>
+                <category_enabled>1</category_enabled>
                 <product_enabled>0</product_enabled>
-                <seller_enabled>0</seller_enabled>
+                <seller_enabled>1</seller_enabled>
             </sync>
         </transiteo_activation>
         <currency>

@@ -551,7 +551,7 @@ class Config
      */
     public function isSyncOrderEnabled():bool
     {
-        return $this->scopeConfig->isSetFlag(self::CONFIG_PATH_SYNC_ORDER, ScopeInterface::SCOPE_STORE) && $this->isEnabled();
+        return $this->isEnabled();
     }
 
 }

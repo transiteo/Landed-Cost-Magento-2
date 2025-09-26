@@ -115,11 +115,6 @@
             <group id="order_sync" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>Order Sync</label>
                 <comment>All the order going to an other country than original store country will be sent to Transiteo</comment>
-                <field id="enabled" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
-                    <label>Enable Order Sync</label>
-                    <comment>All orders will be sent to transiteo with message queue.</comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
                 <field id="order_id" type="text" translate="label comment" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Order Unique Identifier</label>
                     <comment>Enter the name of the column useed to identify the order. Default is "increment_id" but could be "entity_id".</comment>
