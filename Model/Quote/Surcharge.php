@@ -239,7 +239,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         if (!$this->taxesService->getConfig()->isEnabled()) {
             return [
                 'code' => $this->getCode(),
-                'title' => __('Duty & Taxes Calculator'),
+                'title' => __('Duty & Taxes'),
                 'value' => null,
                 'base_value' => null,
             ];
@@ -269,7 +269,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         $included = "";
         return [
             'code' => $this->getCode(),
-            'title' => __('Duty & Taxes Calculator') . $included,
+            'title' => __('Duty & Taxes') . $included,
             'value' => $total->getData('transiteo-duty-taxes_amount'),
             'base_value' => $total->getData('base_transiteo-duty-taxes_amount'),
         ];
@@ -280,7 +280,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
      */
     public function getLabel()
     {
-        return __('Duty & Taxes Calculator');
+        return __('Duty & Taxes');
     }
 
     /**

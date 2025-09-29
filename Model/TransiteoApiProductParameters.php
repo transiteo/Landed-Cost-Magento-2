@@ -89,7 +89,7 @@ class TransiteoApiProductParameters
          * @TODO hardocoded
          */
         // Add required static fields
-        $array['included_tax'] = true;
+        $array['included_tax_to_country'] = true;
         $array['incoterm'] = 'CIF';
         $array['sender'] = [
             'pro' => true

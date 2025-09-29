@@ -64,7 +64,7 @@ class TransiteoApiShipmentParameters
             "to_country" => $this->toCountry,
             "to_district" => $this->toDistrict,
             "shipment_type" => $this->shipmentType,
-            'included_tax' => $this->isIncludedTaxes,
+            'included_tax_to_country' => $this->isIncludedTaxes,
             'incoterm' => $this->taxesCalculationMethod,
             "sender" => [
                 "pro" => $this->senderPro,
