@@ -75,12 +75,8 @@ class OrderSyncHandler
             return;
         }
         try {
+            $this->logger->debug("OrderSyncHandler: " . $message);
             $params = unserialize($message);
-
-            //////////////////LOGGER//////////////
-            $result = json_encode($params);
-            $this->logger->info($result);
-            ///////////////////////////////////////
 
             $method = $params["method"];
             $errorMessage = null;

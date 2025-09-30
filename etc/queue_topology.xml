@@ -15,28 +15,22 @@
   -->
 
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/topology.xsd">
-    <exchange name="transiteo-sync-order-exchange" type="topic" connection="db">
-        <binding id="process"
+    <exchange name="transiteo.sync">
+        <binding id="transiteoSyncOrder"
                  topic="transiteo.sync.order"
-                 destinationType="queue"
-                 destination="transiteo_sync_order_queue"/>
-    </exchange>
-    <exchange name="transiteo-sync-product-exchange" type="topic" connection="db">
-        <binding id="process"
+                 destination="transiteo.sync.order"
+                 destinationType="queue"/>
+        <binding id="transiteoSyncProduct"
                  topic="transiteo.sync.product"
-                 destinationType="queue"
-                 destination="transiteo_sync_product_queue"/>
-    </exchange>
-    <exchange name="transiteo-sync-category-exchange" type="topic" connection="db">
-        <binding id="process"
+                 destination="transiteo.sync.product"
+                 destinationType="queue"/>
+        <binding id="transiteoSyncCategory"
                  topic="transiteo.sync.category"
-                 destinationType="queue"
-                 destination="transiteo_sync_category_queue"/>
-    </exchange>
-    <exchange name="transiteo-sync-seller-exchange" type="topic" connection="db">
-        <binding id="process"
+                 destination="transiteo.sync.category"
+                 destinationType="queue"/>
+        <binding id="transiteoSyncSeller"
                  topic="transiteo.sync.seller"
-                 destinationType="queue"
-                 destination="transiteo_sync_seller_queue"/>
+                 destination="transiteo.sync.seller"
+                 destinationType="queue"/>
     </exchange>
 </config>

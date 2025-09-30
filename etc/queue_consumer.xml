@@ -16,23 +16,23 @@
 
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/consumer.xsd">
     <consumer name="transiteo.sync.order"
-              queue="transiteo_sync_order_queue"
+              queue="transiteo.sync.order"
               handler="Transiteo\LandedCost\Model\Sync\OrderSyncHandler::process"
-              connection="db"
+              onlySpawnWhenMessageAvailable="1"
     />
     <consumer name="transiteo.sync.product"
-              queue="transiteo_sync_product_queue"
+              queue="transiteo.sync.product"
               handler="Transiteo\LandedCost\Model\Sync\ProductSyncHandler::process"
-              connection="db"
+              onlySpawnWhenMessageAvailable="1"
     />
     <consumer name="transiteo.sync.category"
-              queue="transiteo_sync_category_queue"
+              queue="transiteo.sync.category"
               handler="Transiteo\LandedCost\Model\Sync\CategorySyncHandler::process"
-              connection="db"
+              onlySpawnWhenMessageAvailable="1"
     />
     <consumer name="transiteo.sync.seller"
-              queue="transiteo_sync_seller_queue"
+              queue="transiteo.sync.seller"
               handler="Transiteo\LandedCost\Model\Sync\SellerSyncHandler::process"
-              connection="db"
+              onlySpawnWhenMessageAvailable="1"
     />
 </config>

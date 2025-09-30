@@ -49,6 +49,7 @@
                 return;
             }
             try {
+                $this->logger->debug("CategorySyncHandler: " . $message);
                 $params = unserialize($message);
                 if (array_key_exists("category_ids", $params)) {
                     $this->categorySync->actionOnCategories($params['category_ids'], 1, $params['country'] ?? null);

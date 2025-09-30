@@ -16,15 +16,15 @@
 
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/publisher.xsd">
     <publisher topic="transiteo.sync.order">
-        <connection name="db" exchange="transiteo-sync-order-exchange" disabled="false"/>
+        <connection exchange="transiteo.sync"/>
     </publisher>
     <publisher topic="transiteo.sync.product">
-        <connection name="db" exchange="transiteo-sync-product-exchange" disabled="false"/>
+        <connection exchange="transiteo.sync"/>
     </publisher>
     <publisher topic="transiteo.sync.category">
-        <connection name="db" exchange="transiteo-sync-category-exchange" disabled="false"/>
+        <connection exchange="transiteo.sync"/>
     </publisher>
     <publisher topic="transiteo.sync.seller">
-        <connection name="db" exchange="transiteo-sync-seller-exchange" disabled="false"/>
+        <connection exchange="transiteo.sync"/>
     </publisher>
 </config>

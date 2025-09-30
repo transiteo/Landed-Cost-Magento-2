@@ -53,6 +53,7 @@
                 return;
             }
             try {
+                $this->logger->debug("SellerSyncHandler: " . $message);
                 $params = unserialize($message);
                 $sellerID = intval($params['seller_id']);
                 $action = $params['action'];

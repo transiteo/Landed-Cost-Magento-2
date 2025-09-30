@@ -73,6 +73,7 @@ class ProductSyncHandler
             return;
         }
         try {
+            $this->logger->debug("ProductSyncHandler: " . $message);
             $params = unserialize($message);
             $method = $params["method"];
             $errorMessage = null;
