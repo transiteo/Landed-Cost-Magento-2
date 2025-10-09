@@ -110,7 +110,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                 $this->applyDutiesAndTaxesToQuote($total, $quote, $transiteoProducts);
                 $this->applyDutiesAndTaxesToTotal($total, $quote, $transiteoProducts);
                 $connection->commit();
-            } catch (\Exception $exception) {
+            } catch (\Throwable $exception) {
                 if($beginTransaction){
                     $connection->rollBack();
                     $quote->setData($quoteData);
