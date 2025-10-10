@@ -159,37 +159,36 @@ class TaxesService
 
 
     /**
-     * @param CartItemInterface[] $products array of quote items
+     * @param CartItemInterface[] $cartItems array of quote items
      * @param array $params
-     * @param bool $save
      * @return array
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getDutiesByQuoteItems(array $products, $params = [], bool $save = true): array
+    public function getDutiesByQuoteItems(array $cartItems, array $params = []): array
     {
         //SHIPMENT
         $shipmentParams = $this->shipmentParamsFactory->create();
 
-        $this->fillShipmentParams($shipmentParams, count($products), $params);
+        $this->fillShipmentParams($shipmentParams, count($cartItems), $params);
 
         ///PRODUCTS
         $productsParams = [];
 
-        $countries = $this->getCountryByItemId($products);
+        $countries = $this->getCountryByItemId($cartItems);
 //        $shippingPrice = $this->getShippingPriceByProductId($products);
         $shippingPrice = [];
-        foreach ($products as $quoteItem) {
-            $qty = $quoteItem->getQty();
-            $product = $quoteItem->getProduct();
-            if($quoteItem->getCustomPrice()){
-                $price = $quoteItem->getCustomPrice();
+        foreach ($cartItems as $cartItem) {
+            $qty = $cartItem->getQty();
+            $product = $cartItem->getProduct();
+            if($cartItem->getCustomPrice()){
+                $price = $cartItem->getCustomPrice();
             }else{
-                $price = (float) $quoteItem->getPrice();
-                $quoteItem->setCustomPrice($price);
+                $price = (float) $cartItem->getPrice();
+                $cartItem->setCustomPrice($price);
             }
-            if(!$quoteItem->getNoDiscount()){
-                $price -= ($quoteItem->getDeltaDiscount() ?? 0.0);
+            if(!$cartItem->getNoDiscount()){
+                $price -= ($cartItem->getDeltaDiscount() ?? 0.0);
             }
             /**
              * @var TransiteoApiProductParameters $productParams;
@@ -200,8 +199,8 @@ class TaxesService
 
             /** @todo hardcoded logic */
             // propagate shipment countries to product params for per-product payload
-            $productParams->setGroupShippingPrice($shippingPrice[$quoteItem->getProductId()] ?? 0.0);
-            $productParams->setFromCountry( $countries[$quoteItem->getItemId()] ?? $shipmentParams->getFromCountry());
+            $productParams->setGroupShippingPrice($shippingPrice[$cartItem->getProductId()] ?? 0.0);
+            $productParams->setFromCountry( $countries[$cartItem->getItemId()] ?? $shipmentParams->getFromCountry());
             $productParams->setToCountry($shipmentParams->getToCountry());
             $productsParams[$product->getId()] = $productParams;
         }
@@ -210,11 +209,6 @@ class TaxesService
 
         $transiteoProducts->setProducts($productsParams);
         $transiteoProducts->setShipmentParams($shipmentParams);
-
-
-        if($save){
-            $this->saveDutiesOnQuoteItems($products, $transiteoProducts);
-        }
 
         return $this->formatDutiesResponse($transiteoProducts);
     }
@@ -350,83 +344,6 @@ class TaxesService
             return $this->formatDutiesResponse($transiteoProducts);
         }
         return [];
-    }
-
-    /**
-     * @param Item[] $quoteItems
-     * @param TransiteoProducts $transiteoProducts
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
-     */
-    protected function saveDutiesOnQuoteItems(array $quoteItems, TransiteoProducts $transiteoProducts){
-        foreach ($quoteItems as $quoteItem) {
-            $product = $quoteItem->getProduct();
-            /**
-             * @var CartItemInterface $product
-             */
-            $id = (int) $product->getId();
-
-            $currencyRate = $this->getCurrentCurrencyRate();
-            $duty = $transiteoProducts->getDuty($id);
-            $specialTaxes = $transiteoProducts->getSpecialTaxes($id);
-            $totalTaxes = $transiteoProducts->getTotalTaxes($id);
-            $vatAmount = $transiteoProducts->getVat($id);
-
-            //Set Transiteo Taxes
-            $quoteItem->setData('transiteo_vat', $vatAmount);
-            $quoteItem->setData('transiteo_duty', $duty);
-            $quoteItem->setData('transiteo_special_taxes', $specialTaxes);
-            $quoteItem->setData('transiteo_total_taxes', $totalTaxes);
-
-            if (isset($vatAmount)) {
-                $quoteItem->setData('base_transiteo_vat', $vatAmount / $currencyRate);
-            } else {
-                $quoteItem->setData('base_transiteo_vat', null);
-            }
-
-            if (isset($duty)) {
-                $quoteItem->setData('base_transiteo_duty', $duty / $currencyRate);
-            } else {
-                $quoteItem->setData('base_transiteo_duty', null);
-            }
-
-            if (isset($specialTaxes)) {
-                $quoteItem->setData('base_transiteo_special_taxes', $specialTaxes / $currencyRate);
-            } else {
-                $quoteItem->setData('base_transiteo_special_taxes', null);
-            }
-            if (isset($totalTaxes)) {
-                $quoteItem->setData('base_transiteo_total_taxes', $totalTaxes / $currencyRate);
-            } else {
-                $quoteItem->setData('base_transiteo_total_taxes', null);
-            }
-
-            //if taxes have been retrieved
-            if (isset($totalTaxes)){
-                $quoteItem->setTaxAmount($totalTaxes ?? 0);
-                $quoteItem->setBaseTaxAmount($totalTaxes / $currencyRate);
-                $quoteItem->setTaxPercent($transiteoProducts->getPercentageTotalTaxes($id) ?? 0);
-
-                $rowTotalIncludingTaxes = $transiteoProducts->getGrandTotal($id) ?? 0;
-                $quoteItem->setRowTotalInclTax($rowTotalIncludingTaxes);
-                $quoteItem->setBaseRowTotalInclTax($rowTotalIncludingTaxes / $currencyRate);
-                $quoteItem->setRowTotalWithDiscount($rowTotalIncludingTaxes);
-
-                $rowTotal = $transiteoProducts->getSubtotalExclusiveVAT($id);
-                $unitPrice = round(($rowTotal ?? 0) / $quoteItem->getQty(),2);
-                $quoteItem->setPrice($unitPrice);
-                $quoteItem->setCalculationPrice($unitPrice);
-                $quoteItem->setBasePrice($unitPrice / $currencyRate);
-                $quoteItem->setRowTotal($rowTotal);
-                $quoteItem->setBaseRowTotal($rowTotal / $currencyRate);
-
-
-                $unitPriceInclTax = round(($rowTotalIncludingTaxes ?? 0) / $quoteItem->getQty(), 2) ;
-                $quoteItem->setPriceInclTax($unitPriceInclTax);
-                $quoteItem->setBasePriceInclTax($unitPriceInclTax / $currencyRate);
-            }
-
-        }
     }
 
 
