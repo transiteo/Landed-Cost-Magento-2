@@ -35,6 +35,8 @@ class TransiteoApiProductParameters
     private $to_country;
     private $group_shipping_price;
 
+    private $item_identifier;
+
     /**
      * @return array
      * @throws \Exception
@@ -52,7 +54,7 @@ class TransiteoApiProductParameters
 //            $array['identification']['value'] = $this->sku;
 //        }else{
             $array['identification']['type'] = "TEXT";
-            $array['identification']['value'] = $this->productName;
+            $array['identification']['value'] = "#$this->item_identifier " . $this->productName;
 //        }
 
         if (isset($this->weight) &&  $this->weight > 0) {
@@ -311,6 +313,24 @@ class TransiteoApiProductParameters
     public function setId(int $id): self
     {
         $this->id = $id;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getItemIdentifier(): int
+    {
+        return $this->item_identifier;
+    }
+
+    /**
+     * @param string $id
+     * @return $this
+     */
+    public function setItemIdentifier(string $id): self
+    {
+        $this->item_identifier = $id;
         return $this;
     }
 }

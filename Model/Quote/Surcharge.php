@@ -99,6 +99,10 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             return $this;
         }
 
+        foreach ($items as $item) {
+            $item->setData(TaxesService::ITEM_IDENTIFIER_KEY, $item->getProduct()?->getId() . $item->getQty());
+        }
+
         $this->applyDiscountToQuoteItems($quote, $items);
 
         $isCalculationFromCheckout = $this->isCalculatingFromCheckout();
@@ -109,7 +113,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             $quoteData = $quote->getData();
             $itemsData = [];
             foreach ($items as $item) {
-                $itemsData[$item->getItemId()] = $item->getData();
+                $itemsData[$item->getData(TaxesService::ITEM_IDENTIFIER_KEY)] = $item->getData();
             }
             $totalData = $total->getData();
 
@@ -122,7 +126,7 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             } catch (\Throwable $throwable) {
                 //Restore Quote and items data
                 foreach ($items as $item) {
-                    $item->setData($itemsData[$item->getItemId()]);
+                    $item->setData($itemsData[$item->getData(TaxesService::ITEM_IDENTIFIER_KEY)]);
                 }
                 $quote->setData($quoteData);
                 $total->setData($totalData);
@@ -131,9 +135,23 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
                 $this->taxesService->getLogger()->error($throwable->getMessage());
                 //  /////////////////////////////////////
 
-                $this->applyFallbackDutyAndTaxesToQuoteItems($quote, $items);
-                $this->applyFallbackDutyAndTaxesToQuote($quote, $total);
-                $this->applyDutiesAndTaxesToTotal($total, $quote, null);;
+                try{
+                    $this->applyFallbackDutyAndTaxesToQuoteItems($quote, $items);
+                    $this->applyFallbackDutyAndTaxesToQuote($quote, $total);
+                    $this->applyDutiesAndTaxesToTotal($total, $quote, null);
+                }catch (\Throwable $throwable){
+                    # In case fallback crash, do not apply any calculation
+
+                    //////////////////LOGGER//////////////
+                    $this->taxesService->getLogger()->error($throwable->getMessage());
+                    //  /////////////////////////////////////
+                    foreach ($items as $item) {
+                        $item->setData($itemsData[$item->getData(TaxesService::ITEM_IDENTIFIER_KEY)]);
+                    }
+                    $quote->setData($quoteData);
+                    $total->setData($totalData);
+                }
+
                 return $this;
             }
         }
@@ -439,11 +457,10 @@ class Surcharge extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             if($quoteItem->getParentItem()){
                 continue;
             }
-            $product = $quoteItem->getProduct();
             /**
              * @var ProductInterface $product
              */
-            $id = (int)$product->getId();
+            $id = (int) $quoteItem->getData(TaxesService::ITEM_IDENTIFIER_KEY);
 
             $duty = $transiteoProducts->getDuty($id);
             $specialTaxes = $transiteoProducts->getSpecialTaxes($id);

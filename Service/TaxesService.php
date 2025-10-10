@@ -42,6 +42,7 @@ use Webkul\MarketplaceBaseShipping\Model\ResourceModel\ShippingSetting\Collectio
 
 class TaxesService
 {
+    public const ITEM_IDENTIFIER_KEY = "__idententifier";
     public const SHIPPING_AMOUNT = 'shipping_amount';
     public const OBJECT_TOTAL = 'total';
     public const OBJECT_SHIPPING_ASSIGNEMENT = 'shipping_assignement';
@@ -195,6 +196,7 @@ class TaxesService
              * @var ProductInterface $product;
              */
             $productParams = $this->productParamsFactory->create();
+            $productParams->setItemIdentifier((string) $cartItem->getData(TaxesService::ITEM_IDENTIFIER_KEY));
             $this->fillProductParams($productParams, $product, $qty, 0, $price);
 
             /** @todo hardcoded logic */
@@ -202,7 +204,7 @@ class TaxesService
             $productParams->setGroupShippingPrice($shippingPrice[$cartItem->getProductId()] ?? 0.0);
             $productParams->setFromCountry( $countries[$cartItem->getItemId()] ?? $shipmentParams->getFromCountry());
             $productParams->setToCountry($shipmentParams->getToCountry());
-            $productsParams[$product->getId()] = $productParams;
+            $productsParams[$cartItem->getData(TaxesService::ITEM_IDENTIFIER_KEY)] = $productParams;
         }
 
         $transiteoProducts = $this->transiteoProductsFactory->create();

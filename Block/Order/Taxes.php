@@ -133,11 +133,11 @@ class Taxes extends \Magento\Framework\View\Element\Template
             $baseTransiteoVat = $salesEntity->getBaseTransiteoVat();
             $transiteoSpecialTaxes = $salesEntity->getTransiteoSpecialTaxes();
             $baseTransiteoSpecialTaxes = $salesEntity->getBaseTransiteoSpecialTaxes();
-            $transiteoExtraFees = $transiteoTotalTaxes - $transiteoDuty - $transiteoVat - $transiteoSpecialTaxes;
-            $baseTransiteoExtraFees = $baseTransiteoTotalTaxes - $baseTransiteoDuty - $baseTransiteoVat - $baseTransiteoSpecialTaxes;
-            if($transiteoExtraFees < 0 ){
-                $transiteoExtraFees = null;
-            }
+//            $transiteoExtraFees = $transiteoTotalTaxes - $transiteoDuty - $transiteoVat - $transiteoSpecialTaxes;
+//            $baseTransiteoExtraFees = $baseTransiteoTotalTaxes - $baseTransiteoDuty - $baseTransiteoVat - $baseTransiteoSpecialTaxes;
+//            if($transiteoExtraFees < 0 ){
+//                $transiteoExtraFees = null;
+//            }
             if ($incoterm === "ddp") {
                 $included = ' (' . __('included').')';
                 if($isCreditMemo || $isInvoice){

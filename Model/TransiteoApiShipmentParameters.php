@@ -66,6 +66,7 @@ class TransiteoApiShipmentParameters
             "shipment_type" => $this->shipmentType,
             'included_tax_to_country' => $this->isIncludedTaxes,
             'incoterm' => $this->taxesCalculationMethod,
+            "intra" => true,
             "sender" => [
                 "pro" => $this->senderPro,
                 "revenue_country_annual" => $this->senderProRevenue,
@@ -262,7 +263,6 @@ class TransiteoApiShipmentParameters
             $this->currencyGlobalShipPrice = null;
             $this->salesTerm = "btoc";
             $this->ecommerceType = "MARKETPLACE";
-            $this->extraFees = 0.03;
             $this->isIncludedTaxes = true;
             return $this;
         }
