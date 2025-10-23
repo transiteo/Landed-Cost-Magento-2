@@ -17,8 +17,7 @@
 namespace Transiteo\LandedCost\CustomerData;
 
 use Magento\Customer\CustomerData\SectionSourceInterface;
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Store\Model\ScopeInterface;
+use Transiteo\LandedCost\Model\Config;
 use Transiteo\LandedCost\Model\GeoIp;
 
 /**
@@ -26,19 +25,22 @@ use Transiteo\LandedCost\Model\GeoIp;
  */
 class GeoIpCountry extends \Magento\Framework\DataObject implements SectionSourceInterface
 {
+    /**
+     * @var GeoIp
+     */
     protected $geoIp;
 
     /**
-     * @var ScopeConfigInterface
+     * @var Config
      */
-    private $scopeConfig;
+    protected $config;
 
     public function __construct(
         GeoIp $geoIp,
-        ScopeConfigInterface $scopeConfig
+        Config $config
     ) {
         $this->geoIp       = $geoIp;
-        $this->scopeConfig = $scopeConfig;
+        $this->config = $config;
         parent::__construct();
     }
 
@@ -48,8 +50,13 @@ class GeoIpCountry extends \Magento\Framework\DataObject implements SectionSourc
      */
     public function getSectionData()
     {
+
+        if(!$this->config->isEnabled() || !$this->config->isGeoIpEnabled()){
+            return [];
+        }
+
         $visitorCountry = $this->geoIp->getUserCountry();
-        $websiteCountry = $this->getWebsiteCountry();
+        $websiteCountry = $this->config->getWebsiteCountry();
 
         $sameCountry = ($visitorCountry != $websiteCountry ? false : true);
 
@@ -57,18 +64,5 @@ class GeoIpCountry extends \Magento\Framework\DataObject implements SectionSourc
             'visitor_country'         => $visitorCountry,
             'same_country_as_website' => $sameCountry
         ];
-    }
-
-    /**
-     * Get Country code by website scope
-     *
-     * @return string
-     */
-    public function getWebsiteCountry(): string
-    {
-        return $this->scopeConfig->getValue(
-            'general/country/default',
-            ScopeInterface::SCOPE_WEBSITES
-        );
     }
 }

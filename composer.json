@@ -11,9 +11,12 @@
         "ext-json": "*"
     },
     "autoload": {
-      "files": ["registration.php"],
+      "files": [
+          "registration.php"
+      ],
       "psr-4": {
-        "Transiteo\\LandedCost\\": ""
+        "Transiteo\\LandedCost\\": "",
+        "MaxMind\\Db\\": "lib/internal/MaxMind-DB-Reader-php-master/src/MaxMind/Db/"
       }
     }
   }
