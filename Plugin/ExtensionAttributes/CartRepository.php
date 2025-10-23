@@ -27,10 +27,10 @@ class CartRepository
 
     /**
      * @param \Magento\Quote\Api\CartRepositoryInterface $subject
-     * @param \Magento\Quote\Api\Data\CartSearchResultInterface $searchResults
-     * @return \Magento\Quote\Api\Data\CartSearchResultInterface
+     * @param \Magento\Quote\Api\Data\CartSearchResultsInterface $searchResults
+     * @return \Magento\Quote\Api\Data\CartSearchResultsInterface
      */
-     public function afterGetList(\Magento\Quote\Api\CartRepositoryInterface $subject,\Magento\Quote\Api\Data\CartSearchResultInterface $searchResults){
+     public function afterGetList(\Magento\Quote\Api\CartRepositoryInterface $subject,\Magento\Quote\Api\Data\CartSearchResultsInterface $searchResults){
          foreach ($searchResults->getItems() as $entity) {
              /**
               * @var TransiteoTaxesExtensionInterface $extensionAttributes
